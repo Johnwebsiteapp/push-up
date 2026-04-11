@@ -1191,6 +1191,41 @@
   filter: brightness(1.08);
 }
 
+/* Nick prompt modal (obowiązkowe ustawienie nicka) */
+.modal.nick-prompt {
+  text-align: center;
+}
+.modal.nick-prompt .brand {
+  margin-bottom: 18px;
+  font-size: 1.4rem;
+}
+.modal.nick-prompt h3 {
+  font-size: 1.35rem;
+  margin-bottom: 10px;
+}
+.modal.nick-prompt p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+.modal.nick-prompt form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal.nick-prompt input {
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 14px;
+}
+.modal.nick-prompt button[type='submit'] {
+  padding: 15px;
+  box-shadow: 0 0 32px rgba(204, 255, 0, 0.38);
+}
+
 @keyframes modalFadeIn {
   from {
     opacity: 0;

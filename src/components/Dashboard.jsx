@@ -138,12 +138,16 @@ export default function Dashboard({ session }) {
   const [tab, setTab] = useState('home')
   const [workouts, setWorkouts] = useState([])
   const [profiles, setProfiles] = useState({})
+  const [profilesLoaded, setProfilesLoaded] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [profileRefresh, setProfileRefresh] = useState(0)
+  const [nickPromptNick, setNickPromptNick] = useState('')
+  const [nickPromptSaving, setNickPromptSaving] = useState(false)
+  const [nickPromptError, setNickPromptError] = useState(null)
 
   // Live-drag state
   const [isDragging, setIsDragging] = useState(false)
@@ -282,6 +286,7 @@ export default function Dashboard({ session }) {
       }
 
       setProfiles(map)
+      setProfilesLoaded(true)
     }
     loadProfiles()
     return () => {
@@ -428,6 +433,47 @@ export default function Dashboard({ session }) {
       alert('Błąd usuwania: ' + error.message)
     } else {
       setDeleteTarget(null)
+    }
+  }
+
+  // Czy użytkownik potrzebuje ustawić nick (modal blokujący)
+  const needsNick =
+    profilesLoaded &&
+    !(profiles[user.id]?.nick) &&
+    !(user.user_metadata?.nick)
+
+  async function handleNickPromptSave(e) {
+    e.preventDefault()
+    const trimmed = nickPromptNick.trim()
+    if (trimmed.length < 2) {
+      setNickPromptError('Nick musi mieć co najmniej 2 znaki.')
+      return
+    }
+    setNickPromptSaving(true)
+    setNickPromptError(null)
+
+    try {
+      // 1. user_metadata
+      const { error: metaError } = await supabase.auth.updateUser({
+        data: { nick: trimmed },
+      })
+      if (metaError) throw metaError
+
+      // 2. tabela profiles
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        user_id: user.id,
+        nick: trimmed,
+        updated_at: new Date().toISOString(),
+      })
+      if (profileError) throw profileError
+
+      // Odśwież profile w Dashboard
+      setProfileRefresh((v) => v + 1)
+      setNickPromptNick('')
+    } catch (err) {
+      setNickPromptError('Błąd zapisu: ' + err.message)
+    } finally {
+      setNickPromptSaving(false)
     }
   }
 
@@ -614,6 +660,48 @@ export default function Dashboard({ session }) {
           Profil
         </button>
       </nav>
+
+      {needsNick && (
+        <div className="modal-backdrop" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal nick-prompt"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="brand" style={{ justifyContent: 'center' }}>
+              <span className="brand-bolt">⚡</span>
+              <span>POMPKI</span>
+            </div>
+            <h3>Wybierz swój nick</h3>
+            <p>
+              Pod tym nickiem będziesz widoczny w rankingu i historii.
+              Możesz go później zmienić w zakładce Profil.
+            </p>
+            <form onSubmit={handleNickPromptSave}>
+              <input
+                type="text"
+                value={nickPromptNick}
+                onChange={(e) => setNickPromptNick(e.target.value)}
+                placeholder="Twój nick"
+                minLength={2}
+                maxLength={30}
+                required
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={nickPromptSaving || nickPromptNick.trim().length < 2}
+              >
+                {nickPromptSaving ? 'Zapisywanie…' : 'Zapisz i kontynuuj'}
+              </button>
+              {nickPromptError && (
+                <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
+                  {nickPromptError}
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
 
       {deleteTarget && (
         <div
