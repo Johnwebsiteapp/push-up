@@ -859,7 +859,7 @@ export default function Dashboard({ session }) {
   }
 
   return (
-    <div className="dashboard">
+    <div className="dashboard" data-tab={tab}>
       <header className="topbar">
         <div className="brand">
           <span className="brand-bolt">⚡</span>

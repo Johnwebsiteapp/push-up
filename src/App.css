@@ -753,11 +753,15 @@
 .quick-log {
   position: relative;
   background: var(--bg-card);
-  border: 2px dashed rgba(204, 255, 0, 0.42);
+  border: 2px dashed var(--border);
   border-radius: 22px;
   padding: 12px 16px 14px;
   margin-bottom: 12px;
   animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 160ms backwards;
+}
+/* Zielona ramka tylko gdy aktywna zakładka to Home */
+.dashboard[data-tab='home'] .quick-log {
+  border-color: rgba(204, 255, 0, 0.42);
 }
 .quick-log-header {
   display: flex;
@@ -925,11 +929,16 @@
   background: var(--primary);
   color: var(--bg);
   font-size: 0.8rem;
+  /* Bez glow by default — włączany tylko gdy aktywna zakładka to Home */
+  box-shadow: none;
+}
+
+/* Pulsujący pill-shaped glow aktywny TYLKO gdy data-tab="home" na dashboardzie */
+.dashboard[data-tab='home'] .confirm-btn {
   box-shadow: 0 0 40px rgba(204, 255, 0, 0.55);
   animation: confirmGlow 2.6s ease-in-out infinite;
 }
 
-/* Pill-shaped pulsing glow — widoczny, okrągły, follow border-radius: 999px */
 @keyframes confirmGlow {
   0%, 100% {
     box-shadow: 0 0 36px rgba(204, 255, 0, 0.5),
