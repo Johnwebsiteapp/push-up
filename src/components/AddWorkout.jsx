@@ -16,6 +16,14 @@ export default function AddWorkout({ user }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
+  const QUICK_ADDS = [10, 15, 20]
+
+  function quickAdd(n) {
+    const current = parseInt(count, 10) || 0
+    setCount(String(current + n))
+    if (error) setError(null)
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
@@ -62,6 +70,21 @@ export default function AddWorkout({ user }) {
           required
         />
         <div className="quick-log-sub">Liczba pompek</div>
+      </div>
+
+      <div className="quick-add-row">
+        {QUICK_ADDS.map((n) => (
+          <button
+            key={n}
+            type="button"
+            className="quick-add-btn"
+            onClick={() => quickAdd(n)}
+            disabled={saving}
+            aria-label={`Dodaj ${n} pompek`}
+          >
+            +{n}
+          </button>
+        ))}
       </div>
 
       <div className="quick-log-extras">
