@@ -93,18 +93,25 @@ export default function Auth() {
     setMessage(null)
 
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      // Zapisz nick do user_metadata — to zawsze działa bez RLS
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { nick: trimmedNick },
+        },
+      })
       if (error) throw error
 
-      if (data?.user) {
-        // Zapisz nick od razu do profilu
+      if (data?.user && data?.session) {
+        // Jeśli mamy już sesję, zapisz też do tabeli profiles (dla rankingu/historii)
         const { error: profileError } = await supabase.from('profiles').upsert({
           user_id: data.user.id,
           nick: trimmedNick,
           updated_at: new Date().toISOString(),
         })
         if (profileError) {
-          console.warn('Nie udało się zapisać nicka:', profileError.message)
+          console.warn('Nie udało się zapisać profilu:', profileError.message)
         }
       }
 

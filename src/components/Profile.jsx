@@ -30,11 +30,17 @@ export default function Profile({ user, onProfileChange }) {
           })
         } else if (data) {
           setForm({
-            nick: data.nick ?? '',
+            nick: data.nick ?? user.user_metadata?.nick ?? '',
             name: data.name ?? '',
             height_cm: data.height_cm ?? '',
             weight_kg: data.weight_kg ?? '',
           })
+        } else {
+          // Profil jeszcze nie istnieje — pre-fill nickiem z rejestracji
+          setForm((f) => ({
+            ...f,
+            nick: user.user_metadata?.nick ?? '',
+          }))
         }
         setLoading(false)
       }
@@ -43,7 +49,7 @@ export default function Profile({ user, onProfileChange }) {
     return () => {
       ignore = true
     }
-  }, [user.id])
+  }, [user.id, user.user_metadata])
 
   function update(field) {
     return (e) => setForm((f) => ({ ...f, [field]: e.target.value }))

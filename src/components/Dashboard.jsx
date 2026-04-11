@@ -249,17 +249,45 @@ export default function Dashboard({ session }) {
     let ignore = false
     async function loadProfiles() {
       const { data, error } = await supabase.from('profiles').select('*')
-      if (!ignore && !error && data) {
-        const map = {}
-        for (const p of data) map[p.user_id] = p
-        setProfiles(map)
+      if (ignore || error || !data) return
+
+      const map = {}
+      for (const p of data) map[p.user_id] = p
+
+      // Fallback dla bieżącego użytkownika — jeśli nie ma w tabeli,
+      // a w user_metadata jest nick (np. zaraz po rejestracji), użyj go
+      const metaNick = user.user_metadata?.nick
+      if (!map[user.id]?.nick && metaNick) {
+        map[user.id] = {
+          ...(map[user.id] || { user_id: user.id }),
+          nick: metaNick,
+        }
+
+        // Auto-heal: zapisz nick do tabeli profiles żeby było trwale
+        supabase
+          .from('profiles')
+          .upsert({
+            user_id: user.id,
+            nick: metaNick,
+            updated_at: new Date().toISOString(),
+          })
+          .then(({ error: upsertError }) => {
+            if (upsertError) {
+              console.warn(
+                'Auto-heal profilu nie powiódł się:',
+                upsertError.message
+              )
+            }
+          })
       }
+
+      setProfiles(map)
     }
     loadProfiles()
     return () => {
       ignore = true
     }
-  }, [profileRefresh])
+  }, [profileRefresh, user.id, user.user_metadata])
 
   // Realtime treningów
   useEffect(() => {
