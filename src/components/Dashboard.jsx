@@ -617,7 +617,7 @@ export default function Dashboard({ session }) {
 
             <section className="card">
               <h3 className="card-title">
-                <span>Historia</span>
+                <span>Moja historia</span>
               </h3>
               {loading ? (
                 <p className="empty">Ładowanie…</p>
@@ -625,7 +625,7 @@ export default function Dashboard({ session }) {
                 <p className="error">Błąd: {error}</p>
               ) : (
                 <WorkoutList
-                  workouts={workouts}
+                  workouts={myWorkouts}
                   profiles={profiles}
                   currentUserId={user.id}
                   onDelete={requestDelete}
