@@ -536,7 +536,16 @@ export default function Dashboard({ session }) {
           prof?.nick ||
           prof?.name ||
           (v.email ? v.email.split('@')[0] : 'Użytkownik')
-        return { user_id, ...v, displayName }
+        const customInitials = prof?.initials
+        const derivedInitials = (
+          prof?.nick ||
+          prof?.name ||
+          (v.email ? v.email : '??')
+        )
+          .slice(0, 2)
+          .toUpperCase()
+        const avatarInitials = customInitials || derivedInitials
+        return { user_id, ...v, displayName, avatarInitials }
       })
       .sort((a, b) => b.total - a.total)
   }, [workouts, profiles])
@@ -546,14 +555,11 @@ export default function Dashboard({ session }) {
     myProfile?.nick ||
     myProfile?.name ||
     (user.email ? user.email.split('@')[0] : 'Użytkownik')
-  const initials = (
-    myProfile?.nick ||
-    myProfile?.name ||
-    user.email ||
-    '??'
-  )
-    .slice(0, 2)
-    .toUpperCase()
+  const initials =
+    myProfile?.initials ||
+    (myProfile?.nick || myProfile?.name || user.email || '??')
+      .slice(0, 2)
+      .toUpperCase()
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -682,13 +688,10 @@ export default function Dashboard({ session }) {
                 <ul className="leaderboard-list">
                   {leaderboard.map((entry, idx) => {
                     const isMe = entry.user_id === user.id
-                    const init = entry.displayName
-                      ? entry.displayName.slice(0, 2).toUpperCase()
-                      : '??'
                     return (
                       <li key={entry.user_id} className="leaderboard-item">
                         <div className={`lb-avatar ${isMe ? 'me' : ''}`}>
-                          {init}
+                          {entry.avatarInitials || '??'}
                           <span className="lb-rank">{idx + 1}</span>
                         </div>
                         <div className="lb-info">

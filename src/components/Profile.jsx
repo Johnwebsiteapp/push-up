@@ -8,6 +8,7 @@ export default function Profile({ user, onProfileChange }) {
   const [form, setForm] = useState({
     nick: '',
     name: '',
+    initials: '',
     height_cm: '',
     weight_kg: '',
     daily_goal: '',
@@ -34,6 +35,7 @@ export default function Profile({ user, onProfileChange }) {
           setForm({
             nick: data.nick ?? user.user_metadata?.nick ?? '',
             name: data.name ?? '',
+            initials: data.initials ?? '',
             height_cm: data.height_cm ?? '',
             weight_kg: data.weight_kg ?? '',
             daily_goal: data.daily_goal ?? '',
@@ -68,6 +70,7 @@ export default function Profile({ user, onProfileChange }) {
       user_id: user.id,
       nick: form.nick.trim() || null,
       name: form.name.trim() || null,
+      initials: form.initials.trim().toUpperCase() || null,
       height_cm: form.height_cm ? parseInt(form.height_cm, 10) : null,
       weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
       daily_goal: form.daily_goal ? parseInt(form.daily_goal, 10) : null,
@@ -101,7 +104,9 @@ export default function Profile({ user, onProfileChange }) {
   }
 
   const displayName = form.nick || form.name || user.email.split('@')[0]
-  const initials = (form.nick || form.name || user.email).slice(0, 2).toUpperCase()
+  const initials =
+    (form.initials && form.initials.trim().toUpperCase()) ||
+    (form.nick || form.name || user.email).slice(0, 2).toUpperCase()
 
   if (loading) {
     return <div className="empty">Ładowanie profilu…</div>
@@ -130,16 +135,34 @@ export default function Profile({ user, onProfileChange }) {
           <span>Dane osobowe</span>
         </h3>
 
-        <label>
-          Nick
-          <input
-            type="text"
-            value={form.nick}
-            onChange={update('nick')}
-            placeholder="Jak Cię zwać"
-            maxLength={30}
-          />
-        </label>
+        <div className="profile-row">
+          <label style={{ flex: 2 }}>
+            Nick
+            <input
+              type="text"
+              value={form.nick}
+              onChange={update('nick')}
+              placeholder="Jak Cię zwać"
+              maxLength={30}
+            />
+          </label>
+          <label style={{ flex: 1 }}>
+            Inicjały
+            <input
+              type="text"
+              value={form.initials}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  initials: e.target.value.toUpperCase().slice(0, 4),
+                }))
+              }
+              placeholder="auto"
+              maxLength={4}
+              style={{ textAlign: 'center', letterSpacing: '0.1em' }}
+            />
+          </label>
+        </div>
 
         <label>
           Imię
