@@ -117,7 +117,7 @@
   min-height: 100vh;
   max-width: 480px;
   margin: 0 auto;
-  padding: 20px 18px 120px;
+  padding: 16px 16px 100px;
   position: relative;
 }
 
@@ -125,12 +125,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   position: sticky;
   top: 0;
   z-index: 30;
-  margin: -20px -18px 20px;
-  padding: 16px 18px;
+  margin: -16px -16px 14px;
+  padding: 12px 16px;
   background: rgba(15, 17, 17, 0.88);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -239,22 +239,22 @@
    ============================================================ */
 .hero {
   position: relative;
-  padding: 44px 24px 24px;
+  padding: 22px 20px 18px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 28px;
-  margin-bottom: 16px;
+  border-radius: 24px;
+  margin-bottom: 12px;
   overflow: hidden;
 }
 .hero::before {
   content: 'POSTĘP';
   position: absolute;
-  top: 14px;
+  top: 8px;
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Lexend', sans-serif;
   font-weight: 800;
-  font-size: 2.8rem;
+  font-size: 1.85rem;
   color: rgba(255, 255, 255, 0.035);
   letter-spacing: 0.12em;
   pointer-events: none;
@@ -277,40 +277,40 @@
 
 .hero-count {
   text-align: center;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 .hero-number {
   font-family: 'Lexend', sans-serif;
   font-weight: 800;
-  font-size: 5.5rem;
+  font-size: 3.6rem;
   line-height: 1;
   color: var(--primary);
-  text-shadow: 0 0 50px rgba(204, 255, 0, 0.55),
-    0 0 12px rgba(204, 255, 0, 0.4);
+  text-shadow: 0 0 40px rgba(204, 255, 0, 0.5),
+    0 0 10px rgba(204, 255, 0, 0.35);
 }
 .hero-label {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-top: 6px;
+  margin-top: 4px;
   font-weight: 600;
 }
 
 .hero-title {
   text-align: center;
-  font-size: 1.55rem;
-  margin-top: 26px;
-  line-height: 1.15;
+  font-size: 1.1rem;
+  margin-top: 14px;
+  line-height: 1.2;
 }
 .hero-sub {
   text-align: center;
   color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.5;
-  margin-top: 10px;
-  max-width: 300px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin-top: 6px;
+  max-width: 280px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -318,18 +318,19 @@
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 24px;
+  gap: 10px;
+  margin-top: 14px;
 }
 .stat-box {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 10px 14px;
 }
 .stat-box .label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
+  font-size: 0.6rem;
 }
 .stat-box.primary .label {
   color: var(--primary);
@@ -339,7 +340,7 @@
 }
 .stat-box .value {
   font-family: 'Lexend', sans-serif;
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.01em;
@@ -352,14 +353,14 @@
   position: relative;
   background: var(--bg-card);
   border: 2px dashed rgba(204, 255, 0, 0.42);
-  border-radius: 28px;
-  padding: 24px 22px;
-  margin-bottom: 16px;
-  box-shadow: 0 0 50px rgba(204, 255, 0, 0.1);
+  border-radius: 22px;
+  padding: 16px 18px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 40px rgba(204, 255, 0, 0.08);
 }
 .quick-log-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
@@ -367,14 +368,14 @@
   font-weight: 700;
 }
 .quick-log-big {
-  margin-top: 14px;
+  margin-top: 6px;
   text-align: center;
 }
 .quick-log-input {
   width: 100%;
   text-align: center;
   font-family: 'Lexend', sans-serif;
-  font-size: 4.5rem;
+  font-size: 2.9rem;
   font-weight: 800;
   background: transparent;
   border: none;
@@ -398,31 +399,31 @@
 }
 .quick-log-sub {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
   text-align: center;
   font-weight: 600;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .quick-add-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 10px;
 }
 .quick-add-btn {
   flex: 1;
-  padding: 11px 14px;
+  padding: 9px 12px;
   background: rgba(204, 255, 0, 0.06);
   border: 1px solid rgba(204, 255, 0, 0.32);
   color: var(--primary);
   border-radius: 999px;
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   letter-spacing: 0.02em;
   text-transform: none;
   box-shadow: none;
@@ -441,12 +442,12 @@
 .quick-log-extras {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 10px;
 }
 .quick-log-extras input {
-  font-size: 0.85rem;
-  padding: 11px 12px;
+  font-size: 0.82rem;
+  padding: 9px 11px;
   background: var(--bg-elevated);
   border-radius: 10px;
 }
@@ -457,13 +458,13 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 16px;
-  margin-top: 16px;
+  padding: 13px;
+  margin-top: 10px;
   border-radius: 999px;
   background: var(--primary);
   color: var(--bg);
-  font-size: 0.85rem;
-  box-shadow: 0 0 40px rgba(204, 255, 0, 0.45);
+  font-size: 0.8rem;
+  box-shadow: 0 0 36px rgba(204, 255, 0, 0.42);
 }
 .confirm-btn::after {
   content: '⚡';
@@ -963,18 +964,41 @@
    ============================================================ */
 @media (max-width: 400px) {
   .hero {
-    padding: 40px 18px 22px;
+    padding: 20px 16px 14px;
   }
   .hero-number {
-    font-size: 4.5rem;
+    font-size: 3rem;
   }
   .hero::before {
-    font-size: 2.3rem;
+    font-size: 1.6rem;
+  }
+  .hero-title {
+    font-size: 1rem;
+    margin-top: 12px;
+  }
+  .hero-sub {
+    font-size: 0.72rem;
   }
   .quick-log-input {
-    font-size: 3.8rem;
+    font-size: 2.5rem;
   }
   .dashboard {
-    padding: 16px 14px 32px;
+    padding: 14px 14px 100px;
+  }
+}
+
+@media (max-height: 740px) {
+  .hero-sub {
+    display: none;
+  }
+  .hero-title {
+    margin-top: 10px;
+    font-size: 1rem;
+  }
+  .hero {
+    padding: 18px 18px 14px;
+  }
+  .hero-number {
+    font-size: 3rem;
   }
 }
