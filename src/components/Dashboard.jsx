@@ -5,31 +5,61 @@ import WorkoutList from './WorkoutList'
 import Profile from './Profile'
 
 const ZERO_ACHIEVEMENT = {
-  title: 'Zacznij swój streak.',
-  sub: 'Pierwsza pompka zmienia wszystko.',
+  title: 'Podłoga czeka.',
+  sub: 'Nie rozczaruj jej.',
 }
 
 const ACHIEVEMENTS = [
-  { title: 'Dobra robota.', sub: 'Każda sesja ma znaczenie.' },
-  { title: 'Energia rośnie.', sub: 'Trzymaj tempo.' },
-  { title: 'Tryb bestii.', sub: 'Aktywowany.' },
-  { title: 'Konsekwencja wygrywa.', sub: 'Kolejna cegiełka w formie.' },
-  { title: 'Jesteś w formie.', sub: 'Widać tę dyscyplinę.' },
-  { title: 'Kolejna seria za Tobą.', sub: 'Tak się buduje siłę.' },
-  { title: 'Rytm złapany.', sub: 'Tak trzymaj.' },
-  { title: 'Nic Cię nie zatrzyma.', sub: 'Idziesz jak czołg.' },
-  { title: 'Flow odblokowany.', sub: 'Jesteś w strefie.' },
-  { title: 'Mocny zapis.', sub: 'Licznik mówi sam za siebie.' },
-  { title: 'Budujesz nawyk.', sub: 'To jest droga.' },
-  { title: 'Ból jest tymczasowy.', sub: 'Duma wieczna.' },
-  { title: 'Kinetyczna siła.', sub: 'Każda pompka to inwestycja.' },
-  { title: 'Jeszcze jedna.', sub: 'I jeszcze jedna.' },
-  { title: 'Beast mode.', sub: 'Silniejszy z każdym dniem.' },
-  { title: 'Pełne zaangażowanie.', sub: 'Tak wyglądają zwycięzcy.' },
-  { title: 'Rozgrzane mięśnie.', sub: 'Rozgrzana ambicja.' },
-  { title: 'Dyscyplina > motywacja.', sub: 'Ty to rozumiesz.' },
-  { title: 'To nie przypadek.', sub: 'To Twoja praca.' },
-  { title: 'Legenda się tworzy.', sub: 'Krok po kroku.' },
+  { title: 'Grawitacja płacze.', sub: 'Ty wygrywasz.' },
+  { title: 'Podłoga ma mokro.', sub: 'Nie od deszczu.' },
+  { title: 'Kanapa tęskni.', sub: 'I dobrze że tęskni.' },
+  { title: 'Netflix poczeka.', sub: 'Pompki nie.' },
+  { title: 'Lustro ma nowy ulubiony widok.', sub: 'Ty.' },
+  { title: 'Pizza drży ze strachu.', sub: 'Wiesz co robisz.' },
+  { title: 'T-shirt M zgłasza awans.', sub: 'Już jesteś tam.' },
+  { title: 'Kto to?', sub: 'To Ty, legendo.' },
+  { title: 'Thor szuka zastępstwa.', sub: 'Masz CV gotowe.' },
+  { title: 'DNA się aktualizuje.', sub: 'Wersja 2.0 instaluje się.' },
+  { title: 'Pompki to waluta.', sub: 'Kumulujesz majątek.' },
+  { title: 'Lenistwo wysiadło.', sub: 'Na następnym przystanku.' },
+  { title: 'Dawny ja wysłał pocztówkę.', sub: 'Podziwia Cię.' },
+  { title: 'Klej grawitacyjny pęka.', sub: 'Unosisz się.' },
+  { title: 'Siłownia wysłała nominację.', sub: 'Pracownik miesiąca.' },
+  { title: 'Ramiona rosną jak akcje.', sub: 'Tylko w górę.' },
+  { title: 'Protein shake drży.', sub: 'Dasz radę bez niego.' },
+  { title: 'Kurier przyniósł siłę.', sub: 'Zostaw napiwek.' },
+  { title: 'Deska klęka.', sub: 'Zasłużyłeś.' },
+  { title: 'Bóg WFu Cię widzi.', sub: 'Jest dumny.' },
+  { title: 'Pot = naturalny glow.', sub: 'Świecisz.' },
+  { title: 'Siła ciążenia podpisała kapitulację.', sub: 'Bez negocjacji.' },
+  { title: 'Kawa poczeka.', sub: 'Najpierw seria.' },
+  { title: 'Parkiet Cię zna po imieniu.', sub: 'Stały bywalec.' },
+  { title: 'Niewidzialny trener przybił piątkę.', sub: 'Właśnie teraz.' },
+  { title: 'Ambicja: ON.', sub: 'Wymówki: OFF.' },
+  { title: 'Zegar nie śpi.', sub: 'Ty też nie.' },
+  { title: 'Ostatnia seria Cię nie złamała.', sub: 'Ta też nie złamie.' },
+  { title: 'Stare Ty się poddaje.', sub: 'Nie masz dla niego czasu.' },
+  { title: 'Dziennik treningowy płonie.', sub: 'Wpisy się sypią.' },
+  { title: 'Mięśnie wstały wcześniej niż Ty.', sub: 'I są zadowolone.' },
+  { title: 'Cardio płacze w kącie.', sub: 'Siła wygrywa.' },
+  { title: 'Dumbbelle się chowają.', sub: 'Nawet ich nie potrzebujesz.' },
+  { title: 'Kanapa napisała list rezygnacyjny.', sub: 'Odrzuć go.' },
+  { title: 'Twoja klatka = Twój zamek.', sub: 'Budujesz go.' },
+  { title: 'Powietrze też się poci.', sub: 'Ze strachu przed Tobą.' },
+  { title: 'Legenda się pisze.', sub: 'Jesteś autorem.' },
+  { title: 'Zmęczenie wysłało wymówienie.', sub: 'Wszedłeś w tryb.' },
+  { title: 'Ręce = maszyny.', sub: 'Gwarancja dożywotnia.' },
+  { title: 'Sąsiad zza ściany zapisuje wynik.', sub: 'Prowadzisz w tabeli.' },
+  { title: 'Cień nadąża z trudem.', sub: 'Za szybki jesteś.' },
+  { title: 'Spontan wziął wolne.', sub: 'Dyscyplina ma ster.' },
+  { title: 'Ból = potwierdzenie.', sub: 'Dobra robota.' },
+  { title: 'Kalendarz mówi dziękuję.', sub: 'Wypełniasz go mądrze.' },
+  { title: 'Wyjścia puste.', sub: 'Wszyscy u Ciebie na pompkach.' },
+  { title: 'Paragon z siły.', sub: 'Zbieraj punkty lojalnościowe.' },
+  { title: 'Wczorajszy Ty przegrywa.', sub: 'Jutrzejszy się boi.' },
+  { title: 'Rutyna w trybie legendary.', sub: 'Nie ma innej opcji.' },
+  { title: 'Matka Ziemia nagrywa.', sub: 'Idzie na TikToka.' },
+  { title: 'Kremówka Cię nie dogoni.', sub: 'Ucieczka sukces.' },
 ]
 
 function todayISO() {
@@ -473,7 +503,15 @@ export default function Dashboard({ session }) {
   const prevMyTotalRef = useRef(myTotal)
   useEffect(() => {
     if (myTotal > prevMyTotalRef.current && prevMyTotalRef.current > 0) {
-      setAchievementIdx((i) => (i + 1) % ACHIEVEMENTS.length)
+      setAchievementIdx((current) => {
+        // Losuj nowy indeks różny od obecnego — żeby się nie powtarzał dwa razy z rzędu
+        if (ACHIEVEMENTS.length <= 1) return 0
+        let next = current
+        while (next === current) {
+          next = Math.floor(Math.random() * ACHIEVEMENTS.length)
+        }
+        return next
+      })
     }
     prevMyTotalRef.current = myTotal
   }, [myTotal])
