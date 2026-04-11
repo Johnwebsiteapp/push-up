@@ -983,9 +983,10 @@ export default function Dashboard({ session }) {
         </div>
         <div className="avatar-menu">
           <button
-            className="avatar avatar-with-ring"
+            className={`avatar avatar-with-ring ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Menu użytkownika"
+            aria-expanded={menuOpen}
           >
             <svg className="avatar-ring" viewBox="0 0 48 48" aria-hidden="true">
               <circle cx="24" cy="24" r="21" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
@@ -1006,38 +1007,46 @@ export default function Dashboard({ session }) {
             <span className="avatar-initials">{initials}</span>
             <span className="avatar-lvl-badge">{levelInfo.level}</span>
           </button>
-          {menuOpen && (
-            <div className="avatar-dropdown level-popup">
-              <div className="level-popup-top">
-                <div className="level-popup-name">{myDisplayName}</div>
-                <div className="level-popup-rank">
-                  {getLevelTitle(levelInfo.level)}
-                </div>
+          <div
+            className={`avatar-dropdown level-popup ${menuOpen ? 'open' : ''}`}
+            aria-hidden={!menuOpen}
+          >
+            <div className="level-popup-top">
+              <div className="level-popup-name">{myDisplayName}</div>
+              <div className="level-popup-rank">
+                {getLevelTitle(levelInfo.level)}
               </div>
-              <div className="level-popup-level-box">
-                <div className="level-popup-level-label">Poziom</div>
-                <div className="level-popup-level-number">{levelInfo.level}</div>
-              </div>
-              <div className="level-popup-progress">
-                <div className="level-popup-progress-head">
-                  <span>Do LVL {levelInfo.level + 1}</span>
-                  <span>
-                    {levelInfo.inLevel} / {levelInfo.needForNext}
-                  </span>
-                </div>
-                <div className="level-popup-progress-track">
-                  <div
-                    className="level-popup-progress-fill"
-                    style={{ width: `${levelInfo.progress}%` }}
-                  />
-                </div>
-              </div>
-              <button onClick={handleSignOut} className="secondary">
-                Wyloguj
-              </button>
             </div>
-          )}
+            <div className="level-popup-level-box">
+              <div className="level-popup-level-label">Poziom</div>
+              <div className="level-popup-level-number">{levelInfo.level}</div>
+            </div>
+            <div className="level-popup-progress">
+              <div className="level-popup-progress-head">
+                <span>Do LVL {levelInfo.level + 1}</span>
+                <span>
+                  {levelInfo.inLevel} / {levelInfo.needForNext}
+                </span>
+              </div>
+              <div className="level-popup-progress-track">
+                <div
+                  className="level-popup-progress-fill"
+                  style={{ width: `${levelInfo.progress}%` }}
+                />
+              </div>
+            </div>
+            <button onClick={handleSignOut} className="secondary">
+              Wyloguj
+            </button>
+          </div>
         </div>
+        {menuOpen && (
+          <div
+            className="avatar-backdrop"
+            onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
       </header>
 
       <div

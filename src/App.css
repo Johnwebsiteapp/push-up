@@ -317,6 +317,20 @@
 
 .avatar-menu {
   position: relative;
+  z-index: 35; /* above backdrop */
+}
+.avatar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 32; /* below popup and avatar, above everything else */
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  animation: backdropFadeIn 220ms ease-out;
+}
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .avatar {
   width: 48px;
@@ -351,6 +365,17 @@
   width: 48px;
   height: 48px;
   overflow: visible;
+  transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.avatar.avatar-with-ring:active:not(:disabled) {
+  transform: scale(0.88);
+}
+.avatar.avatar-with-ring.open {
+  transform: scale(1.06);
+}
+.avatar.avatar-with-ring.open .avatar-initials {
+  color: #e0ff66;
+  text-shadow: 0 0 10px rgba(204, 255, 0, 0.6);
 }
 .avatar-ring {
   position: absolute;
@@ -480,8 +505,26 @@
   border-radius: 14px;
   padding: 14px;
   min-width: 220px;
-  z-index: 20;
+  z-index: 36;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  transform-origin: top right;
+  /* Hidden by default — hidden state */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(0.88);
+  pointer-events: none;
+  transition: opacity 220ms cubic-bezier(0.22, 0.9, 0.32, 1),
+    transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    visibility 280ms step-end;
+}
+.avatar-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition: opacity 220ms cubic-bezier(0.22, 0.9, 0.32, 1),
+    transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    visibility 0s;
 }
 .avatar-dropdown-name {
   display: block;
