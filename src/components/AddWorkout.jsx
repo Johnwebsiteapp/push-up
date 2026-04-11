@@ -12,7 +12,6 @@ function todayISO() {
 export default function AddWorkout({ user }) {
   const [count, setCount] = useState('')
   const [date, setDate] = useState(todayISO())
-  const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -45,7 +44,7 @@ export default function AddWorkout({ user }) {
       user_email: user.email,
       count: n,
       performed_at: date,
-      note: note.trim() || null,
+      note: null,
     })
     setSaving(false)
 
@@ -53,7 +52,6 @@ export default function AddWorkout({ user }) {
       setError(error.message)
     } else {
       setCount('')
-      setNote('')
       setDate(todayISO())
       // Przewiń na górę żeby użytkownik zobaczył zaktualizowany licznik
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -62,7 +60,18 @@ export default function AddWorkout({ user }) {
 
   return (
     <form onSubmit={handleSubmit} className="quick-log">
-      <div className="quick-log-title">Szybki zapis</div>
+      <div className="quick-log-header">
+        <input
+          type="date"
+          className="quick-log-date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+          aria-label="Data treningu"
+        />
+        <span className="quick-log-title-side">Szybki zapis</span>
+      </div>
+
       <div className="quick-log-big">
         <input
           className="quick-log-input"
@@ -100,24 +109,6 @@ export default function AddWorkout({ user }) {
         >
           ↺
         </button>
-      </div>
-
-      <div className="quick-log-extras">
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          aria-label="Data"
-        />
-        <input
-          type="text"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Notatka (opcjonalnie)"
-          aria-label="Notatka"
-          maxLength={200}
-        />
       </div>
 
       <button type="submit" className="confirm-btn" disabled={saving}>
