@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import AddWorkout from './AddWorkout'
 import WorkoutList from './WorkoutList'
+import Profile from './Profile'
 
 function getMotivation(total) {
   if (total === 0)
@@ -16,7 +17,7 @@ function getMotivation(total) {
     }
   if (total < 100)
     return {
-      title: 'Kinetyczna energia rośnie.',
+      title: 'Energia rośnie.',
       sub: 'Dobrze Ci idzie. Kolejna sesja przybliża Cię do pierwszej setki.',
     }
   if (total < 500)
@@ -46,14 +47,15 @@ function todayISO() {
 function calculateStreak(workouts) {
   if (workouts.length === 0) return 0
 
-  const uniqueDates = Array.from(new Set(workouts.map((w) => w.performed_at))).sort().reverse()
+  const uniqueDates = Array.from(new Set(workouts.map((w) => w.performed_at)))
+    .sort()
+    .reverse()
   if (uniqueDates.length === 0) return 0
 
   const today = new Date(todayISO())
   const last = new Date(uniqueDates[0])
   const diffFromToday = Math.round((today - last) / (1000 * 60 * 60 * 24))
 
-  // streak liczy się tylko jeśli ostatnia aktywność była dziś lub wczoraj
   if (diffFromToday > 1) return 0
 
   let streak = 1
@@ -67,17 +69,21 @@ function calculateStreak(workouts) {
   return streak
 }
 
+function streakLabel(n) {
+  if (n === 1) return '1 dzień'
+  return `${n} dni`
+}
+
 function getTitleForTotal(total) {
   if (total === 0) return 'Nowicjusz'
   if (total < 50) return 'Początkujący'
   if (total < 200) return 'Regularny'
   if (total < 500) return 'Zaawansowany'
-  if (total < 1000) return 'Power Lifter'
-  return 'Global Elite'
+  if (total < 1000) return 'Weteran'
+  return 'Legenda'
 }
 
 const DNI_SHORT = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
-
 function formatShortDate(isoDate) {
   if (!isoDate) return ''
   const [y, m, d] = isoDate.split('-').map(Number)
@@ -86,15 +92,19 @@ function formatShortDate(isoDate) {
 }
 
 export default function Dashboard({ session }) {
+  const [tab, setTab] = useState('home')
   const [workouts, setWorkouts] = useState([])
+  const [profiles, setProfiles] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [profileRefresh, setProfileRefresh] = useState(0)
 
   const user = session.user
 
+  // Pobieranie treningów
   useEffect(() => {
     let ignore = false
 
@@ -119,7 +129,24 @@ export default function Dashboard({ session }) {
     }
   }, [])
 
-  // Realtime
+  // Pobieranie profili (dla nicków w rankingu)
+  useEffect(() => {
+    let ignore = false
+    async function loadProfiles() {
+      const { data, error } = await supabase.from('profiles').select('*')
+      if (!ignore && !error && data) {
+        const map = {}
+        for (const p of data) map[p.user_id] = p
+        setProfiles(map)
+      }
+    }
+    loadProfiles()
+    return () => {
+      ignore = true
+    }
+  }, [profileRefresh])
+
+  // Realtime treningów
   useEffect(() => {
     const channel = supabase
       .channel('workouts-realtime')
@@ -138,6 +165,24 @@ export default function Dashboard({ session }) {
         { event: 'DELETE', schema: 'public', table: 'workouts' },
         (payload) => {
           setWorkouts((prev) => prev.filter((w) => w.id !== payload.old.id))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  // Realtime profili
+  useEffect(() => {
+    const channel = supabase
+      .channel('profiles-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          setProfileRefresh((v) => v + 1)
         }
       )
       .subscribe()
@@ -173,12 +218,19 @@ export default function Dashboard({ session }) {
       map.set(w.user_id, { email: w.user_email, total: prev.total + w.count })
     }
     return Array.from(map.entries())
-      .map(([user_id, v]) => ({ user_id, ...v }))
+      .map(([user_id, v]) => {
+        const prof = profiles[user_id]
+        const displayName =
+          prof?.nick || prof?.name || (v.email ? v.email.split('@')[0] : 'anon')
+        return { user_id, ...v, displayName }
+      })
       .sort((a, b) => b.total - a.total)
-  }, [workouts])
+  }, [workouts, profiles])
 
   const motivation = getMotivation(myTotal)
-  const initials = user.email ? user.email.slice(0, 2).toUpperCase() : '??'
+  const myProfile = profiles[user.id]
+  const myDisplayName = myProfile?.nick || myProfile?.name || user.email
+  const initials = myDisplayName.slice(0, 2).toUpperCase()
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -226,78 +278,102 @@ export default function Dashboard({ session }) {
         </div>
       </header>
 
-      <section className="hero">
-        <div className="hero-count">
-          <div className="hero-number">{myTotal}</div>
-          <div className="hero-label">Total Reps</div>
-        </div>
-        <h2 className="hero-title">{motivation.title}</h2>
-        <p className="hero-sub">{motivation.sub}</p>
-        <div className="stats-row">
-          <div className="stat-box primary">
-            <span className="label">Streak</span>
-            <div className="value">{streak} {streak === 1 ? 'dzień' : 'dni'}</div>
-          </div>
-          <div className="stat-box secondary">
-            <span className="label">Dziś</span>
-            <div className="value">{todayTotal} pompek</div>
-          </div>
-        </div>
-      </section>
+      {tab === 'home' ? (
+        <>
+          <section className="hero">
+            <div className="hero-count">
+              <div className="hero-number">{myTotal}</div>
+              <div className="hero-label">Pompki razem</div>
+            </div>
+            <h2 className="hero-title">{motivation.title}</h2>
+            <p className="hero-sub">{motivation.sub}</p>
+            <div className="stats-row">
+              <div className="stat-box primary">
+                <span className="label">Seria</span>
+                <div className="value">{streakLabel(streak)}</div>
+              </div>
+              <div className="stat-box secondary">
+                <span className="label">Dziś</span>
+                <div className="value">{todayTotal} pompek</div>
+              </div>
+            </div>
+          </section>
 
-      <AddWorkout user={user} />
+          <AddWorkout user={user} />
 
-      <section className="card">
-        <h3 className="card-title">
-          <span>Leaderboard</span>
-        </h3>
-        {leaderboard.length === 0 ? (
-          <p className="empty">Brak wpisów. Bądź pierwszy!</p>
-        ) : (
-          <ul className="leaderboard-list">
-            {leaderboard.map((entry, idx) => {
-              const isMe = entry.user_id === user.id
-              const init = entry.email ? entry.email.slice(0, 2).toUpperCase() : '??'
-              return (
-                <li key={entry.user_id} className="leaderboard-item">
-                  <div className={`lb-avatar ${isMe ? 'me' : ''}`}>
-                    {init}
-                    <span className="lb-rank">{idx + 1}</span>
-                  </div>
-                  <div className="lb-info">
-                    <div className="lb-name">
-                      {entry.email.split('@')[0]}
-                      {isMe && ' (Ty)'}
-                    </div>
-                    <div className="lb-title">{getTitleForTotal(entry.total)}</div>
-                  </div>
-                  <div className="lb-score-wrap">
-                    <div className="lb-score">{entry.total}</div>
-                    <span className="lb-score-unit">Reps</span>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
+          <section className="card">
+            <h3 className="card-title">
+              <span>Ranking</span>
+            </h3>
+            {leaderboard.length === 0 ? (
+              <p className="empty">Brak wpisów. Bądź pierwszy!</p>
+            ) : (
+              <ul className="leaderboard-list">
+                {leaderboard.map((entry, idx) => {
+                  const isMe = entry.user_id === user.id
+                  const init = entry.displayName
+                    ? entry.displayName.slice(0, 2).toUpperCase()
+                    : '??'
+                  return (
+                    <li key={entry.user_id} className="leaderboard-item">
+                      <div className={`lb-avatar ${isMe ? 'me' : ''}`}>
+                        {init}
+                        <span className="lb-rank">{idx + 1}</span>
+                      </div>
+                      <div className="lb-info">
+                        <div className="lb-name">
+                          {entry.displayName}
+                          {isMe && ' (Ty)'}
+                        </div>
+                        <div className="lb-title">{getTitleForTotal(entry.total)}</div>
+                      </div>
+                      <div className="lb-score-wrap">
+                        <div className="lb-score">{entry.total}</div>
+                        <span className="lb-score-unit">pompek</span>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
 
-      <section className="card">
-        <h3 className="card-title">
-          <span>Historia</span>
-        </h3>
-        {loading ? (
-          <p className="empty">Ładowanie…</p>
-        ) : error ? (
-          <p className="error">Błąd: {error}</p>
-        ) : (
-          <WorkoutList
-            workouts={workouts}
-            currentUserId={user.id}
-            onDelete={requestDelete}
-          />
-        )}
-      </section>
+          <section className="card">
+            <h3 className="card-title">
+              <span>Historia</span>
+            </h3>
+            {loading ? (
+              <p className="empty">Ładowanie…</p>
+            ) : error ? (
+              <p className="error">Błąd: {error}</p>
+            ) : (
+              <WorkoutList
+                workouts={workouts}
+                profiles={profiles}
+                currentUserId={user.id}
+                onDelete={requestDelete}
+              />
+            )}
+          </section>
+        </>
+      ) : (
+        <Profile user={user} onProfileChange={() => setProfileRefresh((v) => v + 1)} />
+      )}
+
+      <nav className="bottom-nav">
+        <button
+          className={tab === 'home' ? 'active' : ''}
+          onClick={() => setTab('home')}
+        >
+          Główna
+        </button>
+        <button
+          className={tab === 'profile' ? 'active' : ''}
+          onClick={() => setTab('profile')}
+        >
+          Profil
+        </button>
+      </nav>
 
       {deleteTarget && (
         <div

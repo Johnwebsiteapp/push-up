@@ -47,7 +47,7 @@ export default function AddWorkout({ user }) {
 
   return (
     <form onSubmit={handleSubmit} className="quick-log">
-      <div className="quick-log-title">Quick Log Session</div>
+      <div className="quick-log-title">Szybki zapis</div>
       <div className="quick-log-big">
         <input
           className="quick-log-input"
@@ -59,7 +59,7 @@ export default function AddWorkout({ user }) {
           placeholder="00"
           required
         />
-        <div className="quick-log-sub">Total Push-ups</div>
+        <div className="quick-log-sub">Liczba pompek</div>
       </div>
 
       <div className="quick-log-extras">
@@ -76,13 +76,18 @@ export default function AddWorkout({ user }) {
           onChange={(e) => setNote(e.target.value)}
           placeholder="Notatka (opcjonalnie)"
           aria-label="Notatka"
+          maxLength={200}
         />
       </div>
 
       <button type="submit" className="confirm-btn" disabled={saving}>
-        {saving ? 'Zapisywanie…' : 'Confirm Log'}
+        {saving ? 'Zapisywanie…' : 'Zapisz trening'}
       </button>
-      {error && <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>{error}</p>}
+      {error && (
+        <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
+          {error}
+        </p>
+      )}
     </form>
   )
 }

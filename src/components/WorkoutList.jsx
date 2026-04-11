@@ -1,4 +1,12 @@
-const DNI = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota']
+const DNI = [
+  'Niedziela',
+  'Poniedziałek',
+  'Wtorek',
+  'Środa',
+  'Czwartek',
+  'Piątek',
+  'Sobota',
+]
 
 function formatDate(isoDate) {
   const [y, m, d] = isoDate.split('-').map(Number)
@@ -9,7 +17,7 @@ function formatDate(isoDate) {
   return `${dayName} ${dd}.${mm}`
 }
 
-export default function WorkoutList({ workouts, currentUserId, onDelete }) {
+export default function WorkoutList({ workouts, profiles, currentUserId, onDelete }) {
   if (workouts.length === 0) {
     return <p className="empty">Jeszcze nic tu nie ma. Dodaj pierwszy trening powyżej.</p>
   }
@@ -18,16 +26,23 @@ export default function WorkoutList({ workouts, currentUserId, onDelete }) {
     <ul className="workout-list">
       {workouts.map((w) => {
         const mine = w.user_id === currentUserId
-        const name = w.user_email ? w.user_email.split('@')[0] : 'anon'
+        const prof = profiles?.[w.user_id]
+        const name =
+          prof?.nick ||
+          prof?.name ||
+          (w.user_email ? w.user_email.split('@')[0] : 'anonim')
         return (
           <li key={w.id} className={mine ? 'mine' : 'other'}>
             <div className="workout-main">
               <div className="workout-top">
-                <strong className="workout-count">{w.count} reps</strong>
+                <strong className="workout-count">{w.count} pompek</strong>
                 <span className="workout-date">{formatDate(w.performed_at)}</span>
               </div>
               <div className="workout-meta">
-                <span>{name}{mine && ' (Ty)'}</span>
+                <span>
+                  {name}
+                  {mine && ' (Ty)'}
+                </span>
                 {w.note && <span className="workout-note">— {w.note}</span>}
               </div>
             </div>

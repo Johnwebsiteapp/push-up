@@ -117,7 +117,8 @@
   min-height: 100vh;
   max-width: 480px;
   margin: 0 auto;
-  padding: 20px 18px 40px;
+  padding: 20px 18px 120px;
+  position: relative;
 }
 
 .topbar {
@@ -190,7 +191,7 @@
   overflow: hidden;
 }
 .hero::before {
-  content: 'PROGRESS';
+  content: 'POSTĘP';
   position: absolute;
   top: 14px;
   left: 50%;
@@ -578,6 +579,174 @@
   padding: 12px 0;
   color: var(--muted);
   font-size: 0.88rem;
+}
+
+/* ============================================================
+   BOTTOM NAV
+   ============================================================ */
+.bottom-nav {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 22, 22, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px;
+  display: flex;
+  gap: 4px;
+  z-index: 40;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(204, 255, 0, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.bottom-nav button {
+  background: transparent;
+  color: var(--muted);
+  padding: 11px 26px;
+  font-size: 0.72rem;
+  border-radius: 999px;
+  box-shadow: none;
+  letter-spacing: 0.12em;
+}
+.bottom-nav button:hover:not(:disabled) {
+  color: var(--text);
+  background: transparent;
+  transform: none;
+}
+.bottom-nav button.active {
+  background: var(--primary);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(204, 255, 0, 0.35);
+}
+.bottom-nav button.active:hover:not(:disabled) {
+  color: var(--bg);
+  background: var(--primary);
+}
+
+/* ============================================================
+   PROFILE SCREEN
+   ============================================================ */
+.profile-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.profile-hero {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 32px 22px 26px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.profile-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(204, 255, 0, 0.12),
+    transparent 55%
+  );
+  pointer-events: none;
+}
+.profile-hero > * {
+  position: relative;
+}
+.profile-avatar-big {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--primary);
+  display: grid;
+  place-items: center;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: var(--primary);
+  margin: 0 auto 16px;
+  box-shadow: 0 0 30px rgba(204, 255, 0, 0.25);
+}
+.profile-name {
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+}
+.profile-hero .muted {
+  font-size: 0.85rem;
+}
+
+.bmi-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 12px 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.bmi-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.bmi-value {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--primary);
+  line-height: 1;
+}
+.bmi-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.profile-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+.profile-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.profile-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.profile-form button[type='submit'] {
+  margin-top: 10px;
+  padding: 16px;
+  box-shadow: 0 0 32px rgba(204, 255, 0, 0.3);
+}
+.success {
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 /* ============================================================
