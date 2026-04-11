@@ -91,6 +91,49 @@ function formatShortDate(isoDate) {
   return `${DNI_SHORT[dateObj.getDay()]} ${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}`
 }
 
+// Płynny licznik — animuje wartość od poprzedniej do nowej z ease-out
+function AnimatedCounter({ value, duration = 750 }) {
+  const [display, setDisplay] = useState(value)
+  const prevRef = useRef(value)
+  const spanRef = useRef(null)
+
+  useEffect(() => {
+    if (value === prevRef.current) return
+    const from = prevRef.current
+    const to = value
+    const start = performance.now()
+    let raf
+
+    function tick(now) {
+      const elapsed = now - start
+      const t = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setDisplay(Math.round(from + (to - from) * eased))
+      if (t < 1) {
+        raf = requestAnimationFrame(tick)
+      } else {
+        prevRef.current = to
+      }
+    }
+    raf = requestAnimationFrame(tick)
+
+    // Pulse tylko gdy wartość ROŚNIE (np. po dodaniu treningu)
+    if (spanRef.current && to > from) {
+      spanRef.current.classList.remove('pulse')
+      void spanRef.current.offsetWidth
+      spanRef.current.classList.add('pulse')
+    }
+
+    return () => cancelAnimationFrame(raf)
+  }, [value, duration])
+
+  return (
+    <span ref={spanRef} className="animated-counter">
+      {display}
+    </span>
+  )
+}
+
 export default function Dashboard({ session }) {
   const [tab, setTab] = useState('home')
   const [workouts, setWorkouts] = useState([])
@@ -371,7 +414,9 @@ export default function Dashboard({ session }) {
           aria-label={`Razem ${myTotal} pompek`}
           title="Wszystkie Twoje pompki"
         >
-          <span className="topbar-count-value">{myTotal}</span>
+          <span className="topbar-count-value">
+            <AnimatedCounter value={myTotal} />
+          </span>
           <span className="topbar-count-label">razem</span>
         </div>
         <div className="avatar-menu">
@@ -442,7 +487,9 @@ export default function Dashboard({ session }) {
                           </div>
                         </div>
                         <div className="lb-score-wrap">
-                          <div className="lb-score">{entry.total}</div>
+                          <div className="lb-score">
+                            <AnimatedCounter value={entry.total} />
+                          </div>
                           <span className="lb-score-unit">pompek</span>
                         </div>
                       </li>
@@ -478,7 +525,9 @@ export default function Dashboard({ session }) {
           >
           <section className="hero">
             <div className="hero-count">
-              <div className="hero-number">{todayTotal}</div>
+              <div className="hero-number">
+                <AnimatedCounter value={todayTotal} />
+              </div>
               <div className="hero-label">Pompki dzisiaj</div>
             </div>
             <h2 className="hero-title">{motivation.title}</h2>
@@ -486,11 +535,16 @@ export default function Dashboard({ session }) {
             <div className="stats-row">
               <div className="stat-box primary">
                 <span className="label">Seria</span>
-                <div className="value">{streakLabel(streak)}</div>
+                <div className="value">
+                  <AnimatedCounter value={streak} />{' '}
+                  {streak === 1 ? 'dzień' : 'dni'}
+                </div>
               </div>
               <div className="stat-box secondary">
                 <span className="label">Tydzień</span>
-                <div className="value">{weekTotal} pompek</div>
+                <div className="value">
+                  <AnimatedCounter value={weekTotal} /> pompek
+                </div>
               </div>
             </div>
           </section>

@@ -46,6 +46,19 @@
 .brand-bolt {
   font-size: 1.1em;
   filter: drop-shadow(0 0 10px rgba(204, 255, 0, 0.6));
+  display: inline-block;
+  animation: boltFloat 3.4s ease-in-out infinite;
+}
+
+@keyframes boltFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.5));
+  }
+  50% {
+    transform: translateY(-2px) rotate(-6deg) scale(1.06);
+    filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.85));
+  }
 }
 
 .auth-card h1 {
@@ -151,6 +164,18 @@
   box-shadow: 0 0 20px rgba(204, 255, 0, 0.12);
   cursor: default;
   flex-shrink: 0;
+  animation: chipGlow 3.6s ease-in-out infinite;
+}
+
+@keyframes chipGlow {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(204, 255, 0, 0.12);
+    border-color: rgba(204, 255, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(204, 255, 0, 0.3);
+    border-color: rgba(204, 255, 0, 0.55);
+  }
 }
 .topbar-count-value {
   font-family: 'Lexend', sans-serif;
@@ -237,6 +262,28 @@
 /* ============================================================
    HERO (big count + stats)
    ============================================================ */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .hero {
   position: relative;
   padding: 22px 20px 18px;
@@ -245,6 +292,7 @@
   border-radius: 24px;
   margin-bottom: 12px;
   overflow: hidden;
+  animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 60ms backwards;
 }
 .hero::before {
   content: 'POSTĘP';
@@ -287,6 +335,42 @@
   color: var(--primary);
   text-shadow: 0 0 40px rgba(204, 255, 0, 0.5),
     0 0 10px rgba(204, 255, 0, 0.35);
+  animation: numberBreath 4.2s ease-in-out infinite;
+}
+
+@keyframes numberBreath {
+  0%, 100% {
+    text-shadow: 0 0 40px rgba(204, 255, 0, 0.5),
+      0 0 10px rgba(204, 255, 0, 0.35);
+  }
+  50% {
+    text-shadow: 0 0 64px rgba(204, 255, 0, 0.85),
+      0 0 18px rgba(204, 255, 0, 0.6);
+  }
+}
+
+/* Płynny licznik (używany w hero, topbar, stats, leaderboard) */
+.animated-counter {
+  display: inline-block;
+  transform-origin: center;
+}
+.animated-counter.pulse {
+  animation: counterPulse 560ms cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+
+@keyframes counterPulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  35% {
+    transform: scale(1.14);
+    filter: brightness(1.35);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
 }
 .hero-label {
   font-family: 'Space Grotesk', sans-serif;
@@ -357,6 +441,19 @@
   padding: 16px 18px 18px;
   margin-bottom: 12px;
   box-shadow: 0 0 40px rgba(204, 255, 0, 0.08);
+  animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 160ms backwards,
+    dashBreathe 6s ease-in-out 540ms infinite;
+}
+
+@keyframes dashBreathe {
+  0%, 100% {
+    border-color: rgba(204, 255, 0, 0.35);
+    box-shadow: 0 0 30px rgba(204, 255, 0, 0.08);
+  }
+  50% {
+    border-color: rgba(204, 255, 0, 0.55);
+    box-shadow: 0 0 50px rgba(204, 255, 0, 0.18);
+  }
 }
 .quick-log-title {
   font-family: 'Space Grotesk', sans-serif;
@@ -496,6 +593,17 @@
   color: var(--bg);
   font-size: 0.8rem;
   box-shadow: 0 0 36px rgba(204, 255, 0, 0.42);
+  animation: confirmGlow 3s ease-in-out infinite;
+}
+
+@keyframes confirmGlow {
+  0%, 100% {
+    box-shadow: 0 0 32px rgba(204, 255, 0, 0.38);
+  }
+  50% {
+    box-shadow: 0 0 48px rgba(204, 255, 0, 0.6),
+      0 0 12px rgba(204, 255, 0, 0.4);
+  }
 }
 .confirm-btn::after {
   content: '⚡';
@@ -511,6 +619,10 @@
   border-radius: 22px;
   padding: 22px;
   margin-bottom: 16px;
+  animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 200ms backwards;
+}
+.card + .card {
+  animation-delay: 260ms;
 }
 .card-title {
   font-family: 'Space Grotesk', sans-serif;
@@ -540,7 +652,14 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  animation: fadeSlideRight 460ms cubic-bezier(0.22, 0.9, 0.32, 1) backwards;
 }
+.leaderboard-item:nth-child(1) { animation-delay: 120ms; }
+.leaderboard-item:nth-child(2) { animation-delay: 180ms; }
+.leaderboard-item:nth-child(3) { animation-delay: 240ms; }
+.leaderboard-item:nth-child(4) { animation-delay: 300ms; }
+.leaderboard-item:nth-child(5) { animation-delay: 360ms; }
+.leaderboard-item:nth-child(n + 6) { animation-delay: 420ms; }
 .lb-avatar {
   position: relative;
   width: 46px;
@@ -638,7 +757,14 @@
   background: var(--bg-elevated);
   border-radius: 14px;
   border-left: 3px solid var(--border);
+  animation: fadeSlideRight 440ms cubic-bezier(0.22, 0.9, 0.32, 1) backwards;
 }
+.workout-list li:nth-child(1) { animation-delay: 80ms; }
+.workout-list li:nth-child(2) { animation-delay: 130ms; }
+.workout-list li:nth-child(3) { animation-delay: 180ms; }
+.workout-list li:nth-child(4) { animation-delay: 230ms; }
+.workout-list li:nth-child(5) { animation-delay: 280ms; }
+.workout-list li:nth-child(n + 6) { animation-delay: 330ms; }
 .workout-list li.mine {
   border-left-color: var(--primary);
 }
