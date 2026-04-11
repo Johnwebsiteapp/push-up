@@ -10,6 +10,8 @@ export default function Profile({ user, onProfileChange }) {
     name: '',
     height_cm: '',
     weight_kg: '',
+    daily_goal: '',
+    weekly_goal: '',
   })
 
   useEffect(() => {
@@ -34,6 +36,8 @@ export default function Profile({ user, onProfileChange }) {
             name: data.name ?? '',
             height_cm: data.height_cm ?? '',
             weight_kg: data.weight_kg ?? '',
+            daily_goal: data.daily_goal ?? '',
+            weekly_goal: data.weekly_goal ?? '',
           })
         } else {
           // Profil jeszcze nie istnieje — pre-fill nickiem z rejestracji
@@ -66,6 +70,8 @@ export default function Profile({ user, onProfileChange }) {
       name: form.name.trim() || null,
       height_cm: form.height_cm ? parseInt(form.height_cm, 10) : null,
       weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
+      daily_goal: form.daily_goal ? parseInt(form.daily_goal, 10) : null,
+      weekly_goal: form.weekly_goal ? parseInt(form.weekly_goal, 10) : null,
       updated_at: new Date().toISOString(),
     }
 
@@ -174,6 +180,36 @@ export default function Profile({ user, onProfileChange }) {
               placeholder="np. 75.5"
               min="20"
               max="300"
+            />
+          </label>
+        </div>
+
+        <div className="profile-section-divider">
+          <span>Cele</span>
+        </div>
+
+        <div className="profile-row">
+          <label>
+            Cel dzienny
+            <input
+              type="number"
+              value={form.daily_goal}
+              onChange={update('daily_goal')}
+              placeholder="np. 30"
+              min="0"
+              max="9999"
+            />
+          </label>
+
+          <label>
+            Cel tygodniowy
+            <input
+              type="number"
+              value={form.weekly_goal}
+              onChange={update('weekly_goal')}
+              placeholder="np. 150"
+              min="0"
+              max="69999"
             />
           </label>
         </div>

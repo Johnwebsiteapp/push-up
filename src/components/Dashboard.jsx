@@ -417,6 +417,55 @@ export default function Dashboard({ session }) {
 
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
 
+  // Cele z profilu (defaultowe jeśli brak)
+  const myProfileData = profiles[user.id]
+  const dailyGoal = myProfileData?.daily_goal || 30
+  const weeklyGoal = myProfileData?.weekly_goal || 150
+  const dailyProgress = Math.min(100, Math.round((todayTotal / dailyGoal) * 100))
+  const weeklyProgress = Math.min(
+    100,
+    Math.round((weekTotal / weeklyGoal) * 100)
+  )
+  const dailyMet = todayTotal >= dailyGoal && dailyGoal > 0
+  const weeklyMet = weekTotal >= weeklyGoal && weeklyGoal > 0
+
+  // Celebracja — banner gdy po raz pierwszy osiągnięto cel dziś/tydzień
+  const [celebration, setCelebration] = useState(null)
+
+  useEffect(() => {
+    if (dailyMet) {
+      const key = `goal-daily-${todayISO()}-${user.id}`
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1')
+        setCelebration({
+          type: 'daily',
+          text: `Cel dzienny osiągnięty! ${todayTotal} / ${dailyGoal} pompek`,
+        })
+        setTimeout(() => setCelebration(null), 5000)
+      }
+    }
+  }, [dailyMet, todayTotal, dailyGoal, user.id])
+
+  useEffect(() => {
+    if (weeklyMet) {
+      // Klucz tygodnia — ISO week (YYYY-Www)
+      const now = new Date()
+      const yearStart = new Date(now.getFullYear(), 0, 1)
+      const weekNum = Math.ceil(
+        ((now - yearStart) / 86400000 + yearStart.getDay() + 1) / 7
+      )
+      const key = `goal-weekly-${now.getFullYear()}-W${weekNum}-${user.id}`
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1')
+        setCelebration({
+          type: 'weekly',
+          text: `Cel tygodniowy osiągnięty! ${weekTotal} / ${weeklyGoal} pompek`,
+        })
+        setTimeout(() => setCelebration(null), 6000)
+      }
+    }
+  }, [weeklyMet, weekTotal, weeklyGoal, user.id])
+
   // Achievement rotation — nowy tekst przy każdym dodaniu pompek
   const [achievementIdx, setAchievementIdx] = useState(() =>
     Math.floor(Math.random() * ACHIEVEMENTS.length)
@@ -661,10 +710,48 @@ export default function Dashboard({ session }) {
               <h2 className="hero-title">{achievement.title}</h2>
               <p className="hero-sub">{achievement.sub}</p>
             </div>
+
+            <div className="goal-bars">
+              <div className={`goal-bar ${dailyMet ? 'met' : ''}`}>
+                <div className="goal-bar-head">
+                  <span className="label">
+                    Cel dzienny {dailyMet && '✓'}
+                  </span>
+                  <span className="goal-bar-value">
+                    <AnimatedCounter value={todayTotal} /> / {dailyGoal}
+                  </span>
+                </div>
+                <div className="goal-bar-track">
+                  <div
+                    className="goal-bar-fill"
+                    style={{ width: `${dailyProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className={`goal-bar ${weeklyMet ? 'met' : ''}`}>
+                <div className="goal-bar-head">
+                  <span className="label secondary">
+                    Cel tygodniowy {weeklyMet && '✓'}
+                  </span>
+                  <span className="goal-bar-value">
+                    <AnimatedCounter value={weekTotal} /> / {weeklyGoal}
+                  </span>
+                </div>
+                <div className="goal-bar-track">
+                  <div
+                    className="goal-bar-fill secondary"
+                    style={{ width: `${weeklyProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="stats-row">
               <div className="stat-box primary">
                 <span className="label">Seria</span>
                 <div className="value">
+                  {streak > 0 && <span className="streak-flame">🔥</span>}
                   <AnimatedCounter value={streak} />{' '}
                   {streak === 1 ? 'dzień' : 'dni'}
                 </div>
@@ -714,6 +801,18 @@ export default function Dashboard({ session }) {
           Profil
         </button>
       </nav>
+
+      {celebration && (
+        <div
+          className={`celebration-toast celebration-${celebration.type}`}
+          onClick={() => setCelebration(null)}
+        >
+          <span className="celebration-icon">
+            {celebration.type === 'daily' ? '🎯' : '🏆'}
+          </span>
+          <span className="celebration-text">{celebration.text}</span>
+        </div>
+      )}
 
       {needsNick && (
         <div className="modal-backdrop" onClick={(e) => e.stopPropagation()}>
