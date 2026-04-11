@@ -5,6 +5,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
+  const [dataExpanded, setDataExpanded] = useState(false)
   const [form, setForm] = useState({
     nick: '',
     name: '',
@@ -187,127 +188,6 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
         )}
       </section>
 
-      <form onSubmit={handleSubmit} className="card profile-form">
-        <h3 className="card-title">
-          <span>Dane osobowe</span>
-        </h3>
-
-        <div className="profile-row">
-          <label style={{ flex: 2 }}>
-            Nick
-            <input
-              type="text"
-              value={form.nick}
-              onChange={update('nick')}
-              placeholder="Jak Cię zwać"
-              maxLength={30}
-            />
-          </label>
-          <label style={{ flex: 1 }}>
-            Inicjały
-            <input
-              type="text"
-              value={form.initials}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  initials: e.target.value.toUpperCase().slice(0, 4),
-                }))
-              }
-              placeholder="auto"
-              maxLength={4}
-              style={{ textAlign: 'center', letterSpacing: '0.1em' }}
-            />
-          </label>
-        </div>
-
-        <label>
-          Imię
-          <input
-            type="text"
-            value={form.name}
-            onChange={update('name')}
-            placeholder="Twoje imię"
-            maxLength={50}
-          />
-        </label>
-
-        <label>
-          E-mail
-          <input type="email" value={user.email} disabled />
-        </label>
-
-        <div className="profile-row">
-          <label>
-            Wzrost (cm)
-            <input
-              type="number"
-              value={form.height_cm}
-              onChange={update('height_cm')}
-              placeholder="np. 180"
-              min="50"
-              max="250"
-            />
-          </label>
-
-          <label>
-            Waga (kg)
-            <input
-              type="number"
-              step="0.1"
-              value={form.weight_kg}
-              onChange={update('weight_kg')}
-              placeholder="np. 75.5"
-              min="20"
-              max="300"
-            />
-          </label>
-        </div>
-
-        <div className="profile-section-divider">
-          <span>Cele</span>
-        </div>
-
-        <div className="profile-row">
-          <label>
-            Cel dzienny
-            <input
-              type="number"
-              value={form.daily_goal}
-              onChange={update('daily_goal')}
-              placeholder="np. 30"
-              min="0"
-              max="9999"
-            />
-          </label>
-
-          <label>
-            Cel tygodniowy
-            <input
-              type="number"
-              value={form.weekly_goal}
-              onChange={update('weekly_goal')}
-              placeholder="np. 150"
-              min="0"
-              max="69999"
-            />
-          </label>
-        </div>
-
-        <button type="submit" disabled={saving}>
-          {saving ? 'Zapisywanie…' : 'Zapisz zmiany'}
-        </button>
-
-        {message && (
-          <p
-            className={message.type === 'error' ? 'error' : 'success'}
-            style={{ marginTop: 12, textAlign: 'center' }}
-          >
-            {message.text}
-          </p>
-        )}
-      </form>
-
       {badges.length > 0 && (
         <section className="card">
           <h3 className="card-title">
@@ -329,6 +209,137 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
           </div>
         </section>
       )}
+
+      <section className="card collapsible-card">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => setDataExpanded((v) => !v)}
+          aria-expanded={dataExpanded}
+        >
+          <span>Dane osobiste</span>
+          <span className={`chevron ${dataExpanded ? 'open' : ''}`}>▾</span>
+        </button>
+
+        {dataExpanded && (
+          <form onSubmit={handleSubmit} className="profile-form collapsible-content">
+            <div className="profile-row">
+              <label style={{ flex: 2 }}>
+                Nick
+                <input
+                  type="text"
+                  value={form.nick}
+                  onChange={update('nick')}
+                  placeholder="Jak Cię zwać"
+                  maxLength={30}
+                />
+              </label>
+              <label style={{ flex: 1 }}>
+                Inicjały
+                <input
+                  type="text"
+                  value={form.initials}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      initials: e.target.value.toUpperCase().slice(0, 4),
+                    }))
+                  }
+                  placeholder="auto"
+                  maxLength={4}
+                  style={{ textAlign: 'center', letterSpacing: '0.1em' }}
+                />
+              </label>
+            </div>
+
+            <label>
+              Imię
+              <input
+                type="text"
+                value={form.name}
+                onChange={update('name')}
+                placeholder="Twoje imię"
+                maxLength={50}
+              />
+            </label>
+
+            <label>
+              E-mail
+              <input type="email" value={user.email} disabled />
+            </label>
+
+            <div className="profile-row">
+              <label>
+                Wzrost (cm)
+                <input
+                  type="number"
+                  value={form.height_cm}
+                  onChange={update('height_cm')}
+                  placeholder="np. 180"
+                  min="50"
+                  max="250"
+                />
+              </label>
+
+              <label>
+                Waga (kg)
+                <input
+                  type="number"
+                  step="0.1"
+                  value={form.weight_kg}
+                  onChange={update('weight_kg')}
+                  placeholder="np. 75.5"
+                  min="20"
+                  max="300"
+                />
+              </label>
+            </div>
+
+            <div className="profile-section-divider">
+              <span>Cele</span>
+            </div>
+
+            <div className="profile-row">
+              <label>
+                Cel dzienny
+                <input
+                  type="number"
+                  value={form.daily_goal}
+                  onChange={update('daily_goal')}
+                  placeholder="np. 30"
+                  min="0"
+                  max="9999"
+                />
+              </label>
+
+              <label>
+                Cel tygodniowy
+                <input
+                  type="number"
+                  value={form.weekly_goal}
+                  onChange={update('weekly_goal')}
+                  placeholder="np. 150"
+                  min="0"
+                  max="69999"
+                />
+              </label>
+            </div>
+
+            <button type="submit" disabled={saving}>
+              {saving ? 'Zapisywanie…' : 'Zapisz zmiany'}
+            </button>
+
+            {message && (
+              <p
+                className={message.type === 'error' ? 'error' : 'success'}
+                style={{ marginTop: 12, textAlign: 'center' }}
+              >
+                {message.text}
+              </p>
+            )}
+          </form>
+        )}
+      </section>
     </div>
   )
 }

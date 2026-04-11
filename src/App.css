@@ -1042,16 +1042,19 @@
   position: absolute;
   top: -4px;
   left: -4px;
-  width: 20px;
+  min-width: 22px;
   height: 20px;
-  border-radius: 50%;
+  padding: 0 5px;
+  border-radius: 999px;
   background: var(--primary);
   color: var(--bg);
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 800;
   display: grid;
   place-items: center;
+  letter-spacing: 0;
+  line-height: 1;
 }
 .lb-info {
   flex: 1;
@@ -1462,6 +1465,59 @@
 .bmi-dot.over { background: rgba(255, 180, 0, 0.8); }
 .bmi-dot.obese { background: rgba(255, 77, 77, 0.8); }
 
+/* Collapsible card (Dane osobiste w Profilu) */
+.collapsible-card {
+  padding: 0;
+  overflow: hidden;
+}
+.collapsible-header {
+  width: 100%;
+  padding: 20px 22px;
+  background: transparent;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: none;
+  border-radius: 22px;
+  transition: background 200ms ease;
+  text-align: left;
+}
+.collapsible-header:hover:not(:disabled) {
+  background: var(--bg-elevated);
+  transform: none;
+}
+.chevron {
+  display: inline-block;
+  font-size: 1rem;
+  color: var(--muted);
+  transition: transform 260ms cubic-bezier(0.22, 0.9, 0.32, 1),
+    color 200ms ease;
+}
+.chevron.open {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+.collapsible-content {
+  padding: 4px 22px 22px;
+  animation: collapseSlide 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+@keyframes collapseSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .profile-form {
   display: flex;
   flex-direction: column;
@@ -1657,9 +1713,11 @@
 .stats-modal h3 {
   font-size: 1.3rem;
   margin-bottom: 4px;
+  padding-right: 44px; /* miejsce na X żeby nie nachodził */
 }
 .stats-modal .muted {
   margin-bottom: 22px;
+  padding-right: 44px;
 }
 .modal-close {
   position: absolute;

@@ -134,22 +134,51 @@ function getLevelInfo(total) {
 }
 
 const BADGE_DEFS = [
+  // Total pompek
   { id: 'first', icon: '🥉', name: 'Pierwszy krok', desc: 'Dodaj pierwszy trening' },
   { id: 'hundred', icon: '💯', name: 'Setka', desc: '100 pompek w sumie' },
   { id: 'half-k', icon: '🥈', name: 'Pół tysiąca', desc: '500 pompek w sumie' },
   { id: 'thousand', icon: '🏅', name: 'Tysiąc', desc: '1000 pompek w sumie' },
+  { id: 'three-k', icon: '🎖', name: 'Trzy tysiące', desc: '3000 pompek w sumie' },
   { id: 'five-k', icon: '👑', name: 'Pięć tysięcy', desc: '5000 pompek w sumie' },
+  { id: 'ten-k', icon: '💎', name: 'Diament', desc: '10 000 pompek w sumie' },
+  // Streak
   { id: 'streak3', icon: '🔥', name: 'Trzy dni', desc: '3 dni z rzędu' },
   { id: 'streak7', icon: '🔥', name: 'Tydzień siły', desc: '7 dni z rzędu' },
   { id: 'streak14', icon: '🌟', name: 'Dwa tygodnie', desc: '14 dni z rzędu' },
   { id: 'streak30', icon: '⭐', name: 'Miesiąc siły', desc: '30 dni z rzędu' },
-  { id: 'big30', icon: '💪', name: 'Pół setki', desc: '30 pompek w jednej sesji' },
+  { id: 'streak60', icon: '🌠', name: 'Dwa miesiące', desc: '60 dni z rzędu' },
+  { id: 'streak100', icon: '☄️', name: 'Stu dni klub', desc: '100 dni z rzędu' },
+  // Max sesja
+  { id: 'big30', icon: '💪', name: 'Trzydziestka', desc: '30 pompek w jednej sesji' },
   { id: 'big50', icon: '💥', name: 'Pięćdziesiątka', desc: '50 pompek w jednej sesji' },
   { id: 'big100', icon: '🚀', name: 'Setka naraz', desc: '100 pompek w jednej sesji' },
+  { id: 'big200', icon: '🌋', name: 'Wulkan', desc: '200 pompek w jednej sesji' },
+  // Max dzień
+  { id: 'day100', icon: '☀️', name: 'Dzień chwały', desc: '100 pompek w jednym dniu' },
+  { id: 'day300', icon: '⚡', name: 'Iskra', desc: '300 pompek w jednym dniu' },
+  // Max tydzień
+  { id: 'week300', icon: '📅', name: 'Tydzień mocy', desc: '300 pompek w 7 dni' },
+  { id: 'week1000', icon: '🏔', name: 'Szczyt tygodnia', desc: '1000 pompek w 7 dni' },
+  // Dni aktywne
+  { id: 'active10', icon: '🎯', name: 'Dyscyplina', desc: '10 aktywnych dni' },
+  { id: 'active30', icon: '🗓', name: 'Miesiąc treningu', desc: '30 aktywnych dni' },
+  { id: 'active100', icon: '🏆', name: 'Weteran', desc: '100 aktywnych dni' },
+  // Liczba sesji
+  { id: 'sessions50', icon: '🎪', name: 'Pół setki sesji', desc: '50 zapisanych sesji' },
+  { id: 'sessions200', icon: '🎭', name: 'Dwieście sesji', desc: '200 zapisanych sesji' },
 ]
 
 function computeBadges(stats) {
-  const { total, maxStreak, maxSession } = stats
+  const {
+    total,
+    maxStreak,
+    maxSession,
+    maxDay,
+    maxWeek,
+    daysActive,
+    sessionsCount,
+  } = stats
   return BADGE_DEFS.map((b) => {
     let unlocked = false
     switch (b.id) {
@@ -157,14 +186,28 @@ function computeBadges(stats) {
       case 'hundred': unlocked = total >= 100; break
       case 'half-k': unlocked = total >= 500; break
       case 'thousand': unlocked = total >= 1000; break
+      case 'three-k': unlocked = total >= 3000; break
       case 'five-k': unlocked = total >= 5000; break
+      case 'ten-k': unlocked = total >= 10000; break
       case 'streak3': unlocked = maxStreak >= 3; break
       case 'streak7': unlocked = maxStreak >= 7; break
       case 'streak14': unlocked = maxStreak >= 14; break
       case 'streak30': unlocked = maxStreak >= 30; break
+      case 'streak60': unlocked = maxStreak >= 60; break
+      case 'streak100': unlocked = maxStreak >= 100; break
       case 'big30': unlocked = maxSession >= 30; break
       case 'big50': unlocked = maxSession >= 50; break
       case 'big100': unlocked = maxSession >= 100; break
+      case 'big200': unlocked = maxSession >= 200; break
+      case 'day100': unlocked = maxDay >= 100; break
+      case 'day300': unlocked = maxDay >= 300; break
+      case 'week300': unlocked = maxWeek >= 300; break
+      case 'week1000': unlocked = maxWeek >= 1000; break
+      case 'active10': unlocked = daysActive >= 10; break
+      case 'active30': unlocked = daysActive >= 30; break
+      case 'active100': unlocked = daysActive >= 100; break
+      case 'sessions50': unlocked = sessionsCount >= 50; break
+      case 'sessions200': unlocked = sessionsCount >= 200; break
       default: unlocked = false
     }
     return { ...b, unlocked }
@@ -178,13 +221,19 @@ function streakLabel(n) {
   return `${n} dni`
 }
 
-function getTitleForTotal(total) {
-  if (total === 0) return 'Nowicjusz'
-  if (total < 50) return 'Początkujący'
-  if (total < 200) return 'Regularny'
-  if (total < 500) return 'Zaawansowany'
-  if (total < 1000) return 'Weteran'
+function getLevelTitle(level) {
+  if (level <= 2) return 'Nowicjusz'
+  if (level <= 5) return 'Początkujący'
+  if (level <= 9) return 'Regularny'
+  if (level <= 14) return 'Zaawansowany'
+  if (level <= 19) return 'Weteran'
   return 'Legenda'
+}
+
+// Pozostawione dla kompatybilności — zwraca tytuł na bazie systemu poziomów
+function getTitleForTotal(total) {
+  const { level } = getLevelInfo(total)
+  return getLevelTitle(level)
 }
 
 const DNI_SHORT = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
@@ -527,13 +576,19 @@ export default function Dashboard({ session }) {
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
   const maxStreak = useMemo(() => calculateMaxStreak(myWorkouts), [myWorkouts])
 
-  // Wykres tygodniowy — ostatnie 7 dni
+  // Wykres tygodniowy — aktualny tydzień od poniedziałku do niedzieli
   const weeklyChart = useMemo(() => {
     const days = []
     const now = new Date()
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now)
-      d.setDate(now.getDate() - i)
+    const todayDay = now.getDay() // 0=Nd, 1=Pn, ..., 6=Sb
+    const daysSinceMonday = (todayDay + 6) % 7 // Pn=0, Nd=6
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - daysSinceMonday)
+
+    const todayIso = todayISO()
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       const count = myWorkouts
         .filter((w) => w.performed_at === iso)
@@ -542,17 +597,25 @@ export default function Dashboard({ session }) {
         iso,
         dayName: DNI_CHART[d.getDay()],
         count,
-        isToday: i === 0,
+        isToday: iso === todayIso,
       })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
     return { days, max }
   }, [myWorkouts])
 
-  // Rekordy osobiste
+  // Rekordy osobiste + dodatkowe statystyki potrzebne do odznak
   const records = useMemo(() => {
     if (myWorkouts.length === 0) {
-      return { maxSession: 0, maxDay: 0, maxWeek: 0, maxSessionDate: null, maxDayDate: null }
+      return {
+        maxSession: 0,
+        maxDay: 0,
+        maxWeek: 0,
+        maxSessionDate: null,
+        maxDayDate: null,
+        daysActive: 0,
+        sessionsCount: 0,
+      }
     }
     const maxSession = Math.max(...myWorkouts.map((w) => w.count))
     const maxSessionEntry = myWorkouts.find((w) => w.count === maxSession)
@@ -591,6 +654,8 @@ export default function Dashboard({ session }) {
       maxDay,
       maxDayDate,
       maxWeek,
+      daysActive: Object.keys(byDay).length,
+      sessionsCount: myWorkouts.length,
     }
   }, [myWorkouts])
 
@@ -602,8 +667,12 @@ export default function Dashboard({ session }) {
         total: myTotal,
         maxStreak,
         maxSession: records.maxSession,
+        maxDay: records.maxDay,
+        maxWeek: records.maxWeek,
+        daysActive: records.daysActive,
+        sessionsCount: records.sessionsCount,
       }),
-    [myTotal, maxStreak, records.maxSession]
+    [myTotal, maxStreak, records]
   )
 
   // Cele z profilu (defaultowe jeśli brak)
@@ -704,7 +773,15 @@ export default function Dashboard({ session }) {
           .slice(0, 2)
           .toUpperCase()
         const avatarInitials = customInitials || derivedInitials
-        return { user_id, ...v, displayName, avatarInitials }
+        const entryLevel = getLevelInfo(v.total).level
+        return {
+          user_id,
+          ...v,
+          displayName,
+          avatarInitials,
+          level: entryLevel,
+          levelTitle: getLevelTitle(entryLevel),
+        }
       })
       .sort((a, b) => b.total - a.total)
   }, [workouts, profiles])
@@ -828,7 +905,7 @@ export default function Dashboard({ session }) {
               <div className="level-popup-top">
                 <div className="level-popup-name">{myDisplayName}</div>
                 <div className="level-popup-rank">
-                  {getTitleForTotal(myTotal)}
+                  {getLevelTitle(levelInfo.level)}
                 </div>
               </div>
               <div className="level-popup-level-box">
@@ -891,7 +968,7 @@ export default function Dashboard({ session }) {
                       <li key={entry.user_id} className="leaderboard-item">
                         <div className={`lb-avatar ${isMe ? 'me' : ''}`}>
                           {entry.avatarInitials || '??'}
-                          <span className="lb-rank">{idx + 1}</span>
+                          <span className="lb-rank">#{idx + 1}</span>
                         </div>
                         <div className="lb-info">
                           <div className="lb-name">
@@ -899,7 +976,7 @@ export default function Dashboard({ session }) {
                             {isMe && ' (Ty)'}
                           </div>
                           <div className="lb-title">
-                            {getTitleForTotal(entry.total)}
+                            LVL {entry.level} · {entry.levelTitle}
                           </div>
                         </div>
                         <div className="lb-score-wrap">
