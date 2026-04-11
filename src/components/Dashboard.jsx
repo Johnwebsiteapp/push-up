@@ -76,11 +76,22 @@ function getTitleForTotal(total) {
   return 'Global Elite'
 }
 
+const DNI_SHORT = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
+
+function formatShortDate(isoDate) {
+  if (!isoDate) return ''
+  const [y, m, d] = isoDate.split('-').map(Number)
+  const dateObj = new Date(y, m - 1, d)
+  return `${DNI_SHORT[dateObj.getDay()]} ${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}`
+}
+
 export default function Dashboard({ session }) {
   const [workouts, setWorkouts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const user = session.user
 
@@ -173,9 +184,20 @@ export default function Dashboard({ session }) {
     await supabase.auth.signOut()
   }
 
-  async function handleDelete(id) {
-    const { error } = await supabase.from('workouts').delete().eq('id', id)
-    if (error) alert('Błąd usuwania: ' + error.message)
+  function requestDelete(workout) {
+    setDeleteTarget(workout)
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const { error } = await supabase.from('workouts').delete().eq('id', deleteTarget.id)
+    setDeleting(false)
+    if (error) {
+      alert('Błąd usuwania: ' + error.message)
+    } else {
+      setDeleteTarget(null)
+    }
   }
 
   return (
@@ -272,10 +294,44 @@ export default function Dashboard({ session }) {
           <WorkoutList
             workouts={workouts}
             currentUserId={user.id}
-            onDelete={handleDelete}
+            onDelete={requestDelete}
           />
         )}
       </section>
+
+      {deleteTarget && (
+        <div
+          className="modal-backdrop"
+          onClick={() => !deleting && setDeleteTarget(null)}
+        >
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Usunąć trening?</h3>
+            <p>
+              <strong className="modal-highlight">{deleteTarget.count} pompek</strong>
+              {' '}z dnia {formatShortDate(deleteTarget.performed_at)}
+              {deleteTarget.note && <> — „{deleteTarget.note}"</>}
+              <br />
+              Tej akcji nie można cofnąć.
+            </p>
+            <div className="modal-actions">
+              <button
+                className="secondary"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
+                Anuluj
+              </button>
+              <button
+                className="danger"
+                onClick={confirmDelete}
+                disabled={deleting}
+              >
+                {deleting ? 'Usuwanie…' : 'Usuń'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -581,6 +581,100 @@
 }
 
 /* ============================================================
+   MODAL (delete confirmation)
+   ============================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 7, 7, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 20px;
+  animation: modalFadeIn 140ms ease;
+}
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px 26px 22px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  animation: modalSlideUp 180ms ease;
+  position: relative;
+  overflow: hidden;
+}
+.modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 100% 0%,
+    rgba(255, 77, 77, 0.12),
+    transparent 50%
+  );
+  pointer-events: none;
+}
+.modal > * {
+  position: relative;
+}
+.modal h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.modal p {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+.modal-highlight {
+  color: var(--primary);
+  font-family: 'Lexend', sans-serif;
+  font-weight: 700;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+.modal-actions button {
+  flex: 1;
+  padding: 15px;
+  font-size: 0.75rem;
+}
+.modal-actions .danger {
+  background: var(--danger);
+  color: white;
+  box-shadow: 0 0 30px rgba(255, 77, 77, 0.35);
+}
+.modal-actions .danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 400px) {

@@ -34,7 +34,7 @@ export default function WorkoutList({ workouts, currentUserId, onDelete }) {
             {mine && (
               <button
                 className="icon-button"
-                onClick={() => onDelete(w.id)}
+                onClick={() => onDelete(w)}
                 title="Usuń"
                 aria-label="Usuń"
               >
