@@ -252,7 +252,17 @@ export default function Dashboard({ session }) {
   useEffect(() => {
     let ignore = false
     async function loadProfiles() {
-      const { data, error } = await supabase.from('profiles').select('*')
+      let data = null
+      let error = null
+      try {
+        const res = await supabase.from('profiles').select('*')
+        data = res.data
+        error = res.error
+      } catch (err) {
+        console.warn('loadProfiles crashed:', err)
+        if (!ignore) setProfilesLoaded(true)
+        return
+      }
       if (ignore) return
 
       if (error) {
@@ -414,13 +424,19 @@ export default function Dashboard({ session }) {
   const leaderboard = useMemo(() => {
     const map = new Map()
     for (const w of workouts) {
-      const prev = map.get(w.user_id) ?? { total: 0 }
-      map.set(w.user_id, { total: prev.total + w.count })
+      const prev = map.get(w.user_id) ?? { total: 0, email: w.user_email }
+      map.set(w.user_id, {
+        total: prev.total + w.count,
+        email: prev.email || w.user_email,
+      })
     }
     return Array.from(map.entries())
       .map(([user_id, v]) => {
         const prof = profiles[user_id]
-        const displayName = prof?.nick || prof?.name || 'Użytkownik'
+        const displayName =
+          prof?.nick ||
+          prof?.name ||
+          (v.email ? v.email.split('@')[0] : 'Użytkownik')
         return { user_id, ...v, displayName }
       })
       .sort((a, b) => b.total - a.total)
@@ -428,8 +444,16 @@ export default function Dashboard({ session }) {
 
   const motivation = getMotivation(myTotal)
   const myProfile = profiles[user.id]
-  const myDisplayName = myProfile?.nick || myProfile?.name || 'Użytkownik'
-  const initials = (myProfile?.nick || myProfile?.name || '??')
+  const myDisplayName =
+    myProfile?.nick ||
+    myProfile?.name ||
+    (user.email ? user.email.split('@')[0] : 'Użytkownik')
+  const initials = (
+    myProfile?.nick ||
+    myProfile?.name ||
+    user.email ||
+    '??'
+  )
     .slice(0, 2)
     .toUpperCase()
 
