@@ -1293,18 +1293,19 @@ export default function Dashboard({ session }) {
             className="modal stats-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              className="modal-close"
-              onClick={closeStatsModal}
-              aria-label="Zamknij"
-            >
-              ✕
-            </button>
-
             {statsModal === 'chart' && (
               <>
-                <h3>Wykres tygodniowy</h3>
+                <div className="stats-modal-header">
+                  <h3>Wykres tygodniowy</h3>
+                  <button
+                    type="button"
+                    className="modal-close"
+                    onClick={closeStatsModal}
+                    aria-label="Zamknij"
+                  >
+                    ✕
+                  </button>
+                </div>
                 <p className="muted">Pompki z ostatnich 7 dni</p>
                 <div className="chart-bars">
                   {weeklyChart.days.map((d) => {
@@ -1338,7 +1339,17 @@ export default function Dashboard({ session }) {
 
             {statsModal === 'records' && (
               <>
-                <h3>Rekordy osobiste</h3>
+                <div className="stats-modal-header">
+                  <h3>Rekordy osobiste</h3>
+                  <button
+                    type="button"
+                    className="modal-close"
+                    onClick={closeStatsModal}
+                    aria-label="Zamknij"
+                  >
+                    ✕
+                  </button>
+                </div>
                 <p className="muted">Twoje najlepsze wyniki do tej pory</p>
                 <div className="records-grid">
                   <div className="record">

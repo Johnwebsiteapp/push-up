@@ -2002,14 +2002,30 @@
   opacity: 1;
   transform: translateY(0) scale(1);
 }
-.stats-modal h3 {
-  font-size: 1.3rem;
+.stats-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 4px;
-  padding-right: 44px; /* miejsce na X żeby nie nachodził */
+}
+.stats-modal-header h3 {
+  font-size: 1.3rem;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.2;
+}
+/* Override .modal-close absolute positioning gdy jest w stats-modal-header */
+.stats-modal-header .modal-close {
+  position: static;
+  top: auto;
+  right: auto;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 .stats-modal .muted {
   margin-bottom: 22px;
-  padding-right: 44px;
 }
 .modal-close {
   position: absolute;
