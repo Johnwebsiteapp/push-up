@@ -351,6 +351,16 @@ export default function Dashboard({ session }) {
   const [nickPromptSaving, setNickPromptSaving] = useState(false)
   const [nickPromptError, setNickPromptError] = useState(null)
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
+  const [statsClosing, setStatsClosing] = useState(false)
+
+  function closeStatsModal() {
+    if (statsClosing) return
+    setStatsClosing(true)
+    setTimeout(() => {
+      setStatsModal(null)
+      setStatsClosing(false)
+    }, 240)
+  }
   const [confettiKey, setConfettiKey] = useState(0)
   const [confettiActive, setConfettiActive] = useState(false)
   const [newBadge, setNewBadge] = useState(null)
@@ -1265,8 +1275,11 @@ export default function Dashboard({ session }) {
         </button>
       </nav>
 
-      {statsModal === 'chart' && (
-        <div className="modal-backdrop" onClick={() => setStatsModal(null)}>
+      {statsModal && (
+        <div
+          className={`modal-backdrop stats-backdrop ${statsClosing ? 'closing' : ''}`}
+          onClick={closeStatsModal}
+        >
           <div
             className="modal stats-modal"
             onClick={(e) => e.stopPropagation()}
@@ -1274,100 +1287,99 @@ export default function Dashboard({ session }) {
             <button
               type="button"
               className="modal-close"
-              onClick={() => setStatsModal(null)}
+              onClick={closeStatsModal}
               aria-label="Zamknij"
             >
               ✕
             </button>
-            <h3>Wykres tygodniowy</h3>
-            <p className="muted">Pompki z ostatnich 7 dni</p>
-            <div className="chart-bars">
-              {weeklyChart.days.map((d) => {
-                const heightPct =
-                  d.count === 0
-                    ? 2
-                    : Math.max(6, (d.count / weeklyChart.max) * 100)
-                return (
-                  <div className="chart-col" key={d.iso}>
-                    <span className="chart-value">{d.count}</span>
-                    <div
-                      className={`chart-bar ${d.isToday ? 'today' : ''}`}
-                      style={{ height: `${heightPct}%` }}
-                    />
-                    <span className={`chart-day ${d.isToday ? 'today' : ''}`}>
-                      {d.dayName}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="chart-total">
-              Razem: <strong>{weeklyChart.days.reduce((s, d) => s + d.count, 0)}</strong> pompek
-            </div>
-          </div>
-        </div>
-      )}
 
-      {statsModal === 'records' && (
-        <div className="modal-backdrop" onClick={() => setStatsModal(null)}>
-          <div
-            className="modal stats-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="modal-close"
-              onClick={() => setStatsModal(null)}
-              aria-label="Zamknij"
-            >
-              ✕
-            </button>
-            <h3>Rekordy osobiste</h3>
-            <p className="muted">Twoje najlepsze wyniki do tej pory</p>
-            <div className="records-grid">
-              <div className="record">
-                <span className="record-icon">💪</span>
-                <div className="record-label">Max sesja</div>
-                <div className="record-value">
-                  {records.maxSession}
-                  <span className="record-unit"> reps</span>
+            {statsModal === 'chart' && (
+              <>
+                <h3>Wykres tygodniowy</h3>
+                <p className="muted">Pompki z ostatnich 7 dni</p>
+                <div className="chart-bars">
+                  {weeklyChart.days.map((d) => {
+                    const heightPct =
+                      d.count === 0
+                        ? 2
+                        : Math.max(6, (d.count / weeklyChart.max) * 100)
+                    return (
+                      <div className="chart-col" key={d.iso}>
+                        <span className="chart-value">{d.count}</span>
+                        <div
+                          className={`chart-bar ${d.isToday ? 'today' : ''}`}
+                          style={{ height: `${heightPct}%` }}
+                        />
+                        <span className={`chart-day ${d.isToday ? 'today' : ''}`}>
+                          {d.dayName}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
-                {records.maxSessionDate && (
-                  <div className="record-date">
-                    {formatShortDate(records.maxSessionDate)}
+                <div className="chart-total">
+                  Razem:{' '}
+                  <strong>
+                    {weeklyChart.days.reduce((s, d) => s + d.count, 0)}
+                  </strong>{' '}
+                  pompek
+                </div>
+              </>
+            )}
+
+            {statsModal === 'records' && (
+              <>
+                <h3>Rekordy osobiste</h3>
+                <p className="muted">Twoje najlepsze wyniki do tej pory</p>
+                <div className="records-grid">
+                  <div className="record">
+                    <span className="record-icon">💪</span>
+                    <div className="record-label">Max sesja</div>
+                    <div className="record-value">
+                      {records.maxSession}
+                      <span className="record-unit"> reps</span>
+                    </div>
+                    {records.maxSessionDate && (
+                      <div className="record-date">
+                        {formatShortDate(records.maxSessionDate)}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="record">
-                <span className="record-icon">☀️</span>
-                <div className="record-label">Max dzień</div>
-                <div className="record-value">
-                  {records.maxDay}
-                  <span className="record-unit"> reps</span>
-                </div>
-                {records.maxDayDate && (
-                  <div className="record-date">
-                    {formatShortDate(records.maxDayDate)}
+                  <div className="record">
+                    <span className="record-icon">☀️</span>
+                    <div className="record-label">Max dzień</div>
+                    <div className="record-value">
+                      {records.maxDay}
+                      <span className="record-unit"> reps</span>
+                    </div>
+                    {records.maxDayDate && (
+                      <div className="record-date">
+                        {formatShortDate(records.maxDayDate)}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="record">
-                <span className="record-icon">📅</span>
-                <div className="record-label">Max 7 dni</div>
-                <div className="record-value">
-                  {records.maxWeek}
-                  <span className="record-unit"> reps</span>
+                  <div className="record">
+                    <span className="record-icon">📅</span>
+                    <div className="record-label">Max 7 dni</div>
+                    <div className="record-value">
+                      {records.maxWeek}
+                      <span className="record-unit"> reps</span>
+                    </div>
+                  </div>
+                  <div className="record">
+                    <span className="record-icon">🔥</span>
+                    <div className="record-label">Najdłuższa seria</div>
+                    <div className="record-value">
+                      {maxStreak}
+                      <span className="record-unit">
+                        {' '}
+                        {maxStreak === 1 ? 'dzień' : 'dni'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="record">
-                <span className="record-icon">🔥</span>
-                <div className="record-label">Najdłuższa seria</div>
-                <div className="record-value">
-                  {maxStreak}
-                  <span className="record-unit"> {maxStreak === 1 ? 'dzień' : 'dni'}</span>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}
