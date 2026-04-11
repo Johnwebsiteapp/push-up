@@ -118,8 +118,10 @@ export default function Auth() {
       if (!data?.session) {
         setMessage({
           type: 'info',
-          text: 'Konto utworzone. Zaloguj się aby kontynuować.',
+          text: `Wysłaliśmy link weryfikacyjny na ${email}. Sprawdź skrzynkę (również SPAM) i kliknij "Potwierdź konto" aby się zalogować.`,
         })
+        // Wyczyść pole hasła żeby użytkownik nie myślał że może się teraz zalogować
+        setPassword('')
       }
     } catch (err) {
       setMessage({ type: 'error', text: 'Błąd: ' + err.message })
