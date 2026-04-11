@@ -295,6 +295,14 @@ export default function Dashboard({ session }) {
           <span className="brand-bolt">⚡</span>
           <span>POMPKI</span>
         </div>
+        <div
+          className="topbar-count"
+          aria-label={`Razem ${myTotal} pompek`}
+          title="Wszystkie Twoje pompki"
+        >
+          <span className="topbar-count-value">{myTotal}</span>
+          <span className="topbar-count-label">razem</span>
+        </div>
         <div className="avatar-menu">
           <button
             className="avatar"

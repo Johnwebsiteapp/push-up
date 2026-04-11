@@ -42,6 +42,8 @@ export default function AddWorkout({ user }) {
       setCount('')
       setNote('')
       setDate(todayISO())
+      // Przewiń na górę żeby użytkownik zobaczył zaktualizowany licznik
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
