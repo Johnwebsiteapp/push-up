@@ -359,7 +359,7 @@ export default function Dashboard({ session }) {
     setTimeout(() => {
       setStatsModal(null)
       setStatsClosing(false)
-    }, 240)
+    }, 260)
   }
   const [confettiKey, setConfettiKey] = useState(0)
   const [confettiActive, setConfettiActive] = useState(false)
