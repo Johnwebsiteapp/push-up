@@ -24,6 +24,11 @@ export default function AddWorkout({ user }) {
     if (error) setError(null)
   }
 
+  function resetCount() {
+    setCount('')
+    if (error) setError(null)
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
@@ -85,6 +90,16 @@ export default function AddWorkout({ user }) {
             +{n}
           </button>
         ))}
+        <button
+          type="button"
+          className="quick-add-reset"
+          onClick={resetCount}
+          disabled={saving || !count}
+          aria-label="Wyczyść licznik"
+          title="Wyczyść"
+        >
+          ↺
+        </button>
       </div>
 
       <div className="quick-log-extras">
