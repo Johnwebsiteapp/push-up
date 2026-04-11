@@ -94,6 +94,43 @@
   box-shadow: 0 0 32px rgba(204, 255, 0, 0.35);
 }
 
+/* Pole hasła z przyciskiem pokaż/ukryj */
+.password-field {
+  position: relative;
+  width: 100%;
+}
+.password-field input {
+  padding-right: 46px;
+}
+.password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  box-shadow: none;
+  border-radius: 8px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.password-toggle:hover:not(:disabled),
+.password-toggle:focus-visible {
+  color: var(--primary);
+  background: rgba(204, 255, 0, 0.08);
+  transform: translateY(-50%);
+  outline: none;
+}
+.password-toggle:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.9);
+}
+
 .link-button {
   background: transparent;
   color: var(--primary);
@@ -630,7 +667,8 @@
   margin-top: 10px;
 }
 .quick-log-extras input {
-  font-size: 0.82rem;
+  /* 16px wymagane przeciw iOS zoom */
+  font-size: 16px;
   padding: 9px 11px;
   background: var(--bg-elevated);
   border-radius: 10px;

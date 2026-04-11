@@ -119,6 +119,8 @@ button.ghost:hover:not(:disabled) {
 input {
   font: inherit;
   font-family: 'Manrope', sans-serif;
+  /* 16px wymagane żeby iOS Safari nie przybliżał przy focusie */
+  font-size: 16px;
   width: 100%;
   padding: 13px 14px;
   border-radius: 12px;
