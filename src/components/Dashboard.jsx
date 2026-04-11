@@ -304,6 +304,18 @@ export default function Dashboard({ session }) {
       .reduce((sum, w) => sum + w.count, 0)
   }, [myWorkouts])
 
+  const weekTotal = useMemo(() => {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - 6)
+    cutoff.setHours(0, 0, 0, 0)
+    return myWorkouts
+      .filter((w) => {
+        const d = new Date(w.performed_at)
+        return d >= cutoff
+      })
+      .reduce((sum, w) => sum + w.count, 0)
+  }, [myWorkouts])
+
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
 
   const leaderboard = useMemo(() => {
@@ -466,8 +478,8 @@ export default function Dashboard({ session }) {
           >
           <section className="hero">
             <div className="hero-count">
-              <div className="hero-number">{myTotal}</div>
-              <div className="hero-label">Pompki razem</div>
+              <div className="hero-number">{todayTotal}</div>
+              <div className="hero-label">Pompki dzisiaj</div>
             </div>
             <h2 className="hero-title">{motivation.title}</h2>
             <p className="hero-sub">{motivation.sub}</p>
@@ -477,8 +489,8 @@ export default function Dashboard({ session }) {
                 <div className="value">{streakLabel(streak)}</div>
               </div>
               <div className="stat-box secondary">
-                <span className="label">Dziś</span>
-                <div className="value">{todayTotal} pompek</div>
+                <span className="label">Tydzień</span>
+                <div className="value">{weekTotal} pompek</div>
               </div>
             </div>
           </section>
