@@ -638,38 +638,32 @@
 }
 
 /* ============================================================
-   TAB CONTENT (swipeable)
+   TABS CAROUSEL (live-drag swipe)
    ============================================================ */
-.tab-content {
-  touch-action: pan-y;
-  will-change: transform, opacity;
-}
-.tab-content.slide-home {
-  animation: tabSlideFromLeft 300ms cubic-bezier(0.22, 0.9, 0.3, 1);
-}
-.tab-content.slide-profile {
-  animation: tabSlideFromRight 300ms cubic-bezier(0.22, 0.9, 0.3, 1);
+.tabs-viewport {
+  width: 100%;
+  overflow-x: clip;
+  overflow-y: visible;
+  position: relative;
 }
 
-@keyframes tabSlideFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.tabs-track {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  touch-action: pan-y;
+  will-change: transform;
+  transition: transform 520ms cubic-bezier(0.22, 0.9, 0.32, 1);
 }
-@keyframes tabSlideFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.tabs-track.dragging {
+  transition: none;
+}
+
+.tab-panel {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100vh - 260px);
 }
 
 /* ============================================================

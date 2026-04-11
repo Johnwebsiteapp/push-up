@@ -102,42 +102,74 @@ export default function Dashboard({ session }) {
   const [deleting, setDeleting] = useState(false)
   const [profileRefresh, setProfileRefresh] = useState(0)
 
-  const touchStartRef = useRef({ x: 0, y: 0 })
-  const touchEndRef = useRef({ x: 0, y: 0 })
+  // Live-drag state
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragDelta, setDragDelta] = useState(0)
+  const viewportRef = useRef(null)
+  const touchRef = useRef({ startX: 0, startY: 0, lockDir: null })
 
   const user = session.user
 
   const TABS = ['home', 'profile']
-  const SWIPE_THRESHOLD = 60
+  const tabIndex = TABS.indexOf(tab)
+
+  function changeTab(newTab) {
+    setTab(newTab)
+    // Reset scroll żeby content nie wypadał poza ekran na innym panelu
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   function onTouchStart(e) {
+    if (deleteTarget || menuOpen) return
     const t = e.targetTouches[0]
-    touchStartRef.current = { x: t.clientX, y: t.clientY }
-    touchEndRef.current = { x: t.clientX, y: t.clientY }
+    touchRef.current = { startX: t.clientX, startY: t.clientY, lockDir: null }
+    setIsDragging(true)
   }
 
   function onTouchMove(e) {
+    if (!isDragging) return
     const t = e.targetTouches[0]
-    touchEndRef.current = { x: t.clientX, y: t.clientY }
+    const dx = t.clientX - touchRef.current.startX
+    const dy = t.clientY - touchRef.current.startY
+
+    // Określ kierunek gestu po pierwszych ~10px
+    if (touchRef.current.lockDir === null) {
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        touchRef.current.lockDir = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+      }
+      return
+    }
+
+    if (touchRef.current.lockDir !== 'x') return
+
+    // Opór gumowy na krawędziach
+    let offset = dx
+    if ((dx > 0 && tabIndex === 0) || (dx < 0 && tabIndex === TABS.length - 1)) {
+      offset = dx * 0.3
+    }
+
+    setDragDelta(offset)
   }
 
   function onTouchEnd() {
-    if (deleteTarget || menuOpen) return
-    const dx = touchStartRef.current.x - touchEndRef.current.x
-    const dy = touchStartRef.current.y - touchEndRef.current.y
+    if (!isDragging) return
+    setIsDragging(false)
 
-    // Ignoruj, gdy ruch jest bardziej pionowy niż poziomy (scroll)
-    if (Math.abs(dx) < Math.abs(dy)) return
-    if (Math.abs(dx) < SWIPE_THRESHOLD) return
-
-    const idx = TABS.indexOf(tab)
-    if (dx > 0 && idx < TABS.length - 1) {
-      // swipe w lewo → następna zakładka
-      setTab(TABS[idx + 1])
-    } else if (dx < 0 && idx > 0) {
-      // swipe w prawo → poprzednia zakładka
-      setTab(TABS[idx - 1])
+    if (touchRef.current.lockDir !== 'x') {
+      setDragDelta(0)
+      return
     }
+
+    const width = viewportRef.current?.offsetWidth || window.innerWidth
+    const threshold = width * 0.2 // 20% szerokości ekranu
+
+    if (dragDelta < -threshold && tabIndex < TABS.length - 1) {
+      setTab(TABS[tabIndex + 1])
+    } else if (dragDelta > threshold && tabIndex > 0) {
+      setTab(TABS[tabIndex - 1])
+    }
+
+    setDragDelta(0)
   }
 
   // Pobieranie treningów
@@ -322,15 +354,18 @@ export default function Dashboard({ session }) {
         </div>
       </header>
 
-      <div
-        className={`tab-content slide-${tab}`}
-        key={tab}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-      {tab === 'home' ? (
-        <>
+      <div ref={viewportRef} className="tabs-viewport">
+        <div
+          className={`tabs-track ${isDragging ? 'dragging' : ''}`}
+          style={{
+            transform: `translate3d(calc(${tabIndex * -100}% + ${dragDelta}px), 0, 0)`,
+          }}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onTouchCancel={onTouchEnd}
+        >
+          <div className="tab-panel" aria-hidden={tab !== 'home'}>
           <section className="hero">
             <div className="hero-count">
               <div className="hero-number">{myTotal}</div>
@@ -406,22 +441,27 @@ export default function Dashboard({ session }) {
               />
             )}
           </section>
-        </>
-      ) : (
-        <Profile user={user} onProfileChange={() => setProfileRefresh((v) => v + 1)} />
-      )}
+          </div>
+
+          <div className="tab-panel" aria-hidden={tab !== 'profile'}>
+            <Profile
+              user={user}
+              onProfileChange={() => setProfileRefresh((v) => v + 1)}
+            />
+          </div>
+        </div>
       </div>
 
       <nav className="bottom-nav">
         <button
           className={tab === 'home' ? 'active' : ''}
-          onClick={() => setTab('home')}
+          onClick={() => changeTab('home')}
         >
           Główna
         </button>
         <button
           className={tab === 'profile' ? 'active' : ''}
-          onClick={() => setTab('profile')}
+          onClick={() => changeTab('profile')}
         >
           Profil
         </button>
