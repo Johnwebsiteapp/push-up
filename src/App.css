@@ -582,6 +582,41 @@
 }
 
 /* ============================================================
+   TAB CONTENT (swipeable)
+   ============================================================ */
+.tab-content {
+  touch-action: pan-y;
+  will-change: transform, opacity;
+}
+.tab-content.slide-home {
+  animation: tabSlideFromLeft 300ms cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+.tab-content.slide-profile {
+  animation: tabSlideFromRight 300ms cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+@keyframes tabSlideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes tabSlideFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================================
    BOTTOM NAV
    ============================================================ */
 .bottom-nav {

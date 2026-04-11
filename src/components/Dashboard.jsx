@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import AddWorkout from './AddWorkout'
 import WorkoutList from './WorkoutList'
@@ -102,7 +102,43 @@ export default function Dashboard({ session }) {
   const [deleting, setDeleting] = useState(false)
   const [profileRefresh, setProfileRefresh] = useState(0)
 
+  const touchStartRef = useRef({ x: 0, y: 0 })
+  const touchEndRef = useRef({ x: 0, y: 0 })
+
   const user = session.user
+
+  const TABS = ['home', 'profile']
+  const SWIPE_THRESHOLD = 60
+
+  function onTouchStart(e) {
+    const t = e.targetTouches[0]
+    touchStartRef.current = { x: t.clientX, y: t.clientY }
+    touchEndRef.current = { x: t.clientX, y: t.clientY }
+  }
+
+  function onTouchMove(e) {
+    const t = e.targetTouches[0]
+    touchEndRef.current = { x: t.clientX, y: t.clientY }
+  }
+
+  function onTouchEnd() {
+    if (deleteTarget || menuOpen) return
+    const dx = touchStartRef.current.x - touchEndRef.current.x
+    const dy = touchStartRef.current.y - touchEndRef.current.y
+
+    // Ignoruj, gdy ruch jest bardziej pionowy niż poziomy (scroll)
+    if (Math.abs(dx) < Math.abs(dy)) return
+    if (Math.abs(dx) < SWIPE_THRESHOLD) return
+
+    const idx = TABS.indexOf(tab)
+    if (dx > 0 && idx < TABS.length - 1) {
+      // swipe w lewo → następna zakładka
+      setTab(TABS[idx + 1])
+    } else if (dx < 0 && idx > 0) {
+      // swipe w prawo → poprzednia zakładka
+      setTab(TABS[idx - 1])
+    }
+  }
 
   // Pobieranie treningów
   useEffect(() => {
@@ -278,6 +314,13 @@ export default function Dashboard({ session }) {
         </div>
       </header>
 
+      <div
+        className={`tab-content slide-${tab}`}
+        key={tab}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
       {tab === 'home' ? (
         <>
           <section className="hero">
@@ -359,6 +402,7 @@ export default function Dashboard({ session }) {
       ) : (
         <Profile user={user} onProfileChange={() => setProfileRefresh((v) => v + 1)} />
       )}
+      </div>
 
       <nav className="bottom-nav">
         <button
