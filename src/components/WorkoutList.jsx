@@ -27,10 +27,7 @@ export default function WorkoutList({ workouts, profiles, currentUserId, onDelet
       {workouts.map((w) => {
         const mine = w.user_id === currentUserId
         const prof = profiles?.[w.user_id]
-        const name =
-          prof?.nick ||
-          prof?.name ||
-          (w.user_email ? w.user_email.split('@')[0] : 'anonim')
+        const name = prof?.nick || prof?.name || 'Użytkownik'
         return (
           <li key={w.id} className={mine ? 'mine' : 'other'}>
             <div className="workout-main">

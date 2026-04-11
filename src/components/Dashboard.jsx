@@ -364,14 +364,13 @@ export default function Dashboard({ session }) {
   const leaderboard = useMemo(() => {
     const map = new Map()
     for (const w of workouts) {
-      const prev = map.get(w.user_id) ?? { email: w.user_email, total: 0 }
-      map.set(w.user_id, { email: w.user_email, total: prev.total + w.count })
+      const prev = map.get(w.user_id) ?? { total: 0 }
+      map.set(w.user_id, { total: prev.total + w.count })
     }
     return Array.from(map.entries())
       .map(([user_id, v]) => {
         const prof = profiles[user_id]
-        const displayName =
-          prof?.nick || prof?.name || (v.email ? v.email.split('@')[0] : 'anon')
+        const displayName = prof?.nick || prof?.name || 'Użytkownik'
         return { user_id, ...v, displayName }
       })
       .sort((a, b) => b.total - a.total)
@@ -379,8 +378,10 @@ export default function Dashboard({ session }) {
 
   const motivation = getMotivation(myTotal)
   const myProfile = profiles[user.id]
-  const myDisplayName = myProfile?.nick || myProfile?.name || user.email
-  const initials = myDisplayName.slice(0, 2).toUpperCase()
+  const myDisplayName = myProfile?.nick || myProfile?.name || 'Użytkownik'
+  const initials = (myProfile?.nick || myProfile?.name || '??')
+    .slice(0, 2)
+    .toUpperCase()
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -429,7 +430,7 @@ export default function Dashboard({ session }) {
           </button>
           {menuOpen && (
             <div className="avatar-dropdown">
-              <span className="avatar-dropdown-email">{user.email}</span>
+              <span className="avatar-dropdown-name">{myDisplayName}</span>
               <button onClick={handleSignOut} className="secondary">
                 Wyloguj
               </button>
