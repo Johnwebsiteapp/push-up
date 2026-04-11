@@ -303,8 +303,8 @@
   position: relative;
 }
 .avatar {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -323,6 +323,136 @@
   border-color: var(--primary);
   transform: none;
   background: var(--bg-elevated);
+}
+
+/* Avatar with progress ring around it */
+.avatar.avatar-with-ring {
+  position: relative;
+  background: transparent;
+  border: none;
+  width: 48px;
+  height: 48px;
+  overflow: visible;
+}
+.avatar-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.avatar-initials {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--primary);
+  letter-spacing: 0;
+}
+.avatar-lvl-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--primary);
+  color: var(--bg);
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 0.58rem;
+  display: grid;
+  place-items: center;
+  letter-spacing: 0;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
+}
+
+/* Level popup (replaces old simple dropdown when avatar clicked) */
+.level-popup {
+  min-width: 260px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.level-popup-top {
+  text-align: center;
+}
+.level-popup-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.level-popup-rank {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+  font-weight: 600;
+}
+.level-popup-level-box {
+  text-align: center;
+  padding: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.level-popup-level-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+.level-popup-level-number {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 2.6rem;
+  color: var(--primary);
+  line-height: 1;
+  text-shadow: 0 0 24px rgba(204, 255, 0, 0.5);
+}
+.level-popup-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.level-popup-progress-head {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.level-popup-progress-head :last-child {
+  color: var(--text-dim);
+}
+.level-popup-progress-track {
+  height: 8px;
+  background: rgba(38, 40, 40, 0.8);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.level-popup-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #e0ff66);
+  border-radius: 999px;
+  transition: width 500ms ease;
+  box-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
 }
 .avatar-dropdown {
   position: absolute;
@@ -1458,6 +1588,282 @@
   color: var(--primary);
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+/* ============================================================
+   STATS TILES (clickable cards on Ranking tab)
+   ============================================================ */
+.stats-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stats-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+  box-shadow: none;
+  color: var(--text);
+  transition: border-color 200ms ease, transform 200ms ease,
+    box-shadow 200ms ease;
+}
+.stats-tile:hover:not(:disabled),
+.stats-tile:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 24px rgba(204, 255, 0, 0.18);
+  transform: translateY(-1px);
+  background: var(--bg-card);
+  outline: none;
+}
+.stats-tile:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.stats-tile-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.35));
+}
+.stats-tile-label {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+.stats-tile-hint {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ============================================================
+   STATS MODAL (chart/records viewer)
+   ============================================================ */
+.stats-modal {
+  max-width: 400px;
+  padding: 24px 22px 22px;
+  text-align: left;
+}
+.stats-modal h3 {
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+.stats-modal .muted {
+  margin-bottom: 22px;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  box-shadow: none;
+  letter-spacing: 0;
+  text-transform: none;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+.modal-close:hover:not(:disabled) {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: transparent;
+  transform: none;
+}
+
+/* Weekly chart */
+.chart-bars {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+  height: 160px;
+  margin: 10px 2px 16px;
+}
+.chart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.chart-value {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+.chart-bar {
+  width: 100%;
+  background: linear-gradient(180deg, var(--primary), #a0cc00);
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 0 14px rgba(204, 255, 0, 0.35);
+  min-height: 4px;
+  animation: chartBarGrow 600ms cubic-bezier(0.22, 0.9, 0.32, 1) backwards;
+}
+.chart-bar.today {
+  box-shadow: 0 0 22px rgba(204, 255, 0, 0.7);
+}
+@keyframes chartBarGrow {
+  from {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  to {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+.chart-col:nth-child(1) .chart-bar { animation-delay: 40ms; }
+.chart-col:nth-child(2) .chart-bar { animation-delay: 100ms; }
+.chart-col:nth-child(3) .chart-bar { animation-delay: 160ms; }
+.chart-col:nth-child(4) .chart-bar { animation-delay: 220ms; }
+.chart-col:nth-child(5) .chart-bar { animation-delay: 280ms; }
+.chart-col:nth-child(6) .chart-bar { animation-delay: 340ms; }
+.chart-col:nth-child(7) .chart-bar { animation-delay: 400ms; }
+.chart-day {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+.chart-day.today {
+  color: var(--primary);
+  font-weight: 700;
+}
+.chart-total {
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.chart-total strong {
+  color: var(--primary);
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+}
+
+/* Records grid */
+.records-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+.record {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 14px;
+  position: relative;
+}
+.record-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 1rem;
+  opacity: 0.7;
+}
+.record-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.record-value {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--primary);
+  line-height: 1;
+  text-shadow: 0 0 16px rgba(204, 255, 0, 0.35);
+}
+.record-unit {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.record-date {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   BADGES (in Profile)
+   ============================================================ */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 8px;
+}
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.badge-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.badge.unlocked .badge-icon {
+  background: linear-gradient(135deg, rgba(204, 255, 0, 0.18), rgba(204, 255, 0, 0.04));
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(204, 255, 0, 0.35);
+}
+.badge.unlocked .badge-icon:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 0 30px rgba(204, 255, 0, 0.55);
+}
+.badge.locked .badge-icon {
+  opacity: 0.3;
+  filter: grayscale(0.8);
+}
+.badge-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.badge.locked .badge-name {
+  color: var(--muted);
 }
 
 /* ============================================================

@@ -95,6 +95,84 @@ function calculateStreak(workouts) {
   return streak
 }
 
+function calculateMaxStreak(workouts) {
+  if (workouts.length === 0) return 0
+  const uniqueDates = Array.from(new Set(workouts.map((w) => w.performed_at))).sort()
+  if (uniqueDates.length === 0) return 0
+
+  let maxStreak = 1
+  let currentStreak = 1
+  for (let i = 1; i < uniqueDates.length; i++) {
+    const prev = new Date(uniqueDates[i - 1])
+    const curr = new Date(uniqueDates[i])
+    const diff = Math.round((curr - prev) / (1000 * 60 * 60 * 24))
+    if (diff === 1) {
+      currentStreak++
+      if (currentStreak > maxStreak) maxStreak = currentStreak
+    } else {
+      currentStreak = 1
+    }
+  }
+  return maxStreak
+}
+
+// Poziom — im więcej pompek w sumie, tym wyższy level.
+// Wzór: threshold dla LVL N = 15 * N * (N+1) → 30, 90, 180, 300, 450, 630, 840, 1080, 1350...
+function getLevelInfo(total) {
+  let level = 1
+  let currentStart = 0
+  let nextThreshold = 30
+  while (total >= nextThreshold) {
+    level++
+    currentStart = nextThreshold
+    nextThreshold = 15 * level * (level + 1)
+  }
+  const inLevel = total - currentStart
+  const needForNext = nextThreshold - currentStart
+  const progress = Math.max(0, Math.min(100, (inLevel / needForNext) * 100))
+  return { level, currentStart, nextThreshold, inLevel, needForNext, progress }
+}
+
+const BADGE_DEFS = [
+  { id: 'first', icon: '🥉', name: 'Pierwszy krok', desc: 'Dodaj pierwszy trening' },
+  { id: 'hundred', icon: '💯', name: 'Setka', desc: '100 pompek w sumie' },
+  { id: 'half-k', icon: '🥈', name: 'Pół tysiąca', desc: '500 pompek w sumie' },
+  { id: 'thousand', icon: '🏅', name: 'Tysiąc', desc: '1000 pompek w sumie' },
+  { id: 'five-k', icon: '👑', name: 'Pięć tysięcy', desc: '5000 pompek w sumie' },
+  { id: 'streak3', icon: '🔥', name: 'Trzy dni', desc: '3 dni z rzędu' },
+  { id: 'streak7', icon: '🔥', name: 'Tydzień siły', desc: '7 dni z rzędu' },
+  { id: 'streak14', icon: '🌟', name: 'Dwa tygodnie', desc: '14 dni z rzędu' },
+  { id: 'streak30', icon: '⭐', name: 'Miesiąc siły', desc: '30 dni z rzędu' },
+  { id: 'big30', icon: '💪', name: 'Pół setki', desc: '30 pompek w jednej sesji' },
+  { id: 'big50', icon: '💥', name: 'Pięćdziesiątka', desc: '50 pompek w jednej sesji' },
+  { id: 'big100', icon: '🚀', name: 'Setka naraz', desc: '100 pompek w jednej sesji' },
+]
+
+function computeBadges(stats) {
+  const { total, maxStreak, maxSession } = stats
+  return BADGE_DEFS.map((b) => {
+    let unlocked = false
+    switch (b.id) {
+      case 'first': unlocked = total >= 1; break
+      case 'hundred': unlocked = total >= 100; break
+      case 'half-k': unlocked = total >= 500; break
+      case 'thousand': unlocked = total >= 1000; break
+      case 'five-k': unlocked = total >= 5000; break
+      case 'streak3': unlocked = maxStreak >= 3; break
+      case 'streak7': unlocked = maxStreak >= 7; break
+      case 'streak14': unlocked = maxStreak >= 14; break
+      case 'streak30': unlocked = maxStreak >= 30; break
+      case 'big30': unlocked = maxSession >= 30; break
+      case 'big50': unlocked = maxSession >= 50; break
+      case 'big100': unlocked = maxSession >= 100; break
+      default: unlocked = false
+    }
+    return { ...b, unlocked }
+  })
+}
+
+const DNI_CHART = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
+
 function streakLabel(n) {
   if (n === 1) return '1 dzień'
   return `${n} dni`
@@ -174,6 +252,7 @@ export default function Dashboard({ session }) {
   const [nickPromptNick, setNickPromptNick] = useState('')
   const [nickPromptSaving, setNickPromptSaving] = useState(false)
   const [nickPromptError, setNickPromptError] = useState(null)
+  const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
 
   // Live-drag state
   const [isDragging, setIsDragging] = useState(false)
@@ -446,6 +525,86 @@ export default function Dashboard({ session }) {
   }, [myWorkouts])
 
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
+  const maxStreak = useMemo(() => calculateMaxStreak(myWorkouts), [myWorkouts])
+
+  // Wykres tygodniowy — ostatnie 7 dni
+  const weeklyChart = useMemo(() => {
+    const days = []
+    const now = new Date()
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now)
+      d.setDate(now.getDate() - i)
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      const count = myWorkouts
+        .filter((w) => w.performed_at === iso)
+        .reduce((sum, w) => sum + w.count, 0)
+      days.push({
+        iso,
+        dayName: DNI_CHART[d.getDay()],
+        count,
+        isToday: i === 0,
+      })
+    }
+    const max = Math.max(1, ...days.map((d) => d.count))
+    return { days, max }
+  }, [myWorkouts])
+
+  // Rekordy osobiste
+  const records = useMemo(() => {
+    if (myWorkouts.length === 0) {
+      return { maxSession: 0, maxDay: 0, maxWeek: 0, maxSessionDate: null, maxDayDate: null }
+    }
+    const maxSession = Math.max(...myWorkouts.map((w) => w.count))
+    const maxSessionEntry = myWorkouts.find((w) => w.count === maxSession)
+
+    const byDay = {}
+    for (const w of myWorkouts) {
+      byDay[w.performed_at] = (byDay[w.performed_at] || 0) + w.count
+    }
+    let maxDay = 0
+    let maxDayDate = null
+    for (const [date, count] of Object.entries(byDay)) {
+      if (count > maxDay) {
+        maxDay = count
+        maxDayDate = date
+      }
+    }
+
+    // Max z 7-dniowego okna
+    const sortedDates = Object.keys(byDay).sort()
+    let maxWeek = 0
+    for (let i = 0; i < sortedDates.length; i++) {
+      const windowStart = new Date(sortedDates[i])
+      let sum = 0
+      for (let j = i; j < sortedDates.length; j++) {
+        const d = new Date(sortedDates[j])
+        const diff = Math.round((d - windowStart) / (1000 * 60 * 60 * 24))
+        if (diff > 6) break
+        sum += byDay[sortedDates[j]]
+      }
+      if (sum > maxWeek) maxWeek = sum
+    }
+
+    return {
+      maxSession,
+      maxSessionDate: maxSessionEntry?.performed_at,
+      maxDay,
+      maxDayDate,
+      maxWeek,
+    }
+  }, [myWorkouts])
+
+  const levelInfo = useMemo(() => getLevelInfo(myTotal), [myTotal])
+
+  const badges = useMemo(
+    () =>
+      computeBadges({
+        total: myTotal,
+        maxStreak,
+        maxSession: records.maxSession,
+      }),
+    [myTotal, maxStreak, records.maxSession]
+  )
 
   // Cele z profilu (defaultowe jeśli brak)
   const myProfileData = profiles[user.id]
@@ -641,15 +800,55 @@ export default function Dashboard({ session }) {
         </div>
         <div className="avatar-menu">
           <button
-            className="avatar"
+            className="avatar avatar-with-ring"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Menu użytkownika"
           >
-            {initials}
+            <svg className="avatar-ring" viewBox="0 0 48 48" aria-hidden="true">
+              <circle cx="24" cy="24" r="21" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+              <circle
+                cx="24"
+                cy="24"
+                r="21"
+                fill="none"
+                stroke="#CCFF00"
+                strokeWidth="3"
+                strokeDasharray={2 * Math.PI * 21}
+                strokeDashoffset={(2 * Math.PI * 21) * (1 - levelInfo.progress / 100)}
+                strokeLinecap="round"
+                transform="rotate(-90 24 24)"
+                style={{ filter: 'drop-shadow(0 0 4px rgba(204,255,0,0.6))' }}
+              />
+            </svg>
+            <span className="avatar-initials">{initials}</span>
+            <span className="avatar-lvl-badge">{levelInfo.level}</span>
           </button>
           {menuOpen && (
-            <div className="avatar-dropdown">
-              <span className="avatar-dropdown-name">{myDisplayName}</span>
+            <div className="avatar-dropdown level-popup">
+              <div className="level-popup-top">
+                <div className="level-popup-name">{myDisplayName}</div>
+                <div className="level-popup-rank">
+                  {getTitleForTotal(myTotal)}
+                </div>
+              </div>
+              <div className="level-popup-level-box">
+                <div className="level-popup-level-label">Poziom</div>
+                <div className="level-popup-level-number">{levelInfo.level}</div>
+              </div>
+              <div className="level-popup-progress">
+                <div className="level-popup-progress-head">
+                  <span>Do LVL {levelInfo.level + 1}</span>
+                  <span>
+                    {levelInfo.inLevel} / {levelInfo.needForNext}
+                  </span>
+                </div>
+                <div className="level-popup-progress-track">
+                  <div
+                    className="level-popup-progress-fill"
+                    style={{ width: `${levelInfo.progress}%` }}
+                  />
+                </div>
+              </div>
               <button onClick={handleSignOut} className="secondary">
                 Wyloguj
               </button>
@@ -715,6 +914,27 @@ export default function Dashboard({ session }) {
                 </ul>
               )}
             </section>
+
+            <div className="stats-tiles">
+              <button
+                type="button"
+                className="stats-tile"
+                onClick={() => setStatsModal('chart')}
+              >
+                <span className="stats-tile-icon">📊</span>
+                <span className="stats-tile-label">Wykres tygodniowy</span>
+                <span className="stats-tile-hint">Ostatnie 7 dni</span>
+              </button>
+              <button
+                type="button"
+                className="stats-tile"
+                onClick={() => setStatsModal('records')}
+              >
+                <span className="stats-tile-icon">🏆</span>
+                <span className="stats-tile-label">Rekordy osobiste</span>
+                <span className="stats-tile-hint">Twoje najlepsze</span>
+              </button>
+            </div>
 
             <section className="card">
               <h3 className="card-title">
@@ -816,6 +1036,8 @@ export default function Dashboard({ session }) {
           >
             <Profile
               user={user}
+              badges={badges}
+              levelInfo={levelInfo}
               onProfileChange={() => setProfileRefresh((v) => v + 1)}
             />
           </div>
@@ -842,6 +1064,113 @@ export default function Dashboard({ session }) {
           Profil
         </button>
       </nav>
+
+      {statsModal === 'chart' && (
+        <div className="modal-backdrop" onClick={() => setStatsModal(null)}>
+          <div
+            className="modal stats-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setStatsModal(null)}
+              aria-label="Zamknij"
+            >
+              ✕
+            </button>
+            <h3>Wykres tygodniowy</h3>
+            <p className="muted">Pompki z ostatnich 7 dni</p>
+            <div className="chart-bars">
+              {weeklyChart.days.map((d) => {
+                const heightPct =
+                  d.count === 0
+                    ? 2
+                    : Math.max(6, (d.count / weeklyChart.max) * 100)
+                return (
+                  <div className="chart-col" key={d.iso}>
+                    <span className="chart-value">{d.count}</span>
+                    <div
+                      className={`chart-bar ${d.isToday ? 'today' : ''}`}
+                      style={{ height: `${heightPct}%` }}
+                    />
+                    <span className={`chart-day ${d.isToday ? 'today' : ''}`}>
+                      {d.dayName}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="chart-total">
+              Razem: <strong>{weeklyChart.days.reduce((s, d) => s + d.count, 0)}</strong> pompek
+            </div>
+          </div>
+        </div>
+      )}
+
+      {statsModal === 'records' && (
+        <div className="modal-backdrop" onClick={() => setStatsModal(null)}>
+          <div
+            className="modal stats-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setStatsModal(null)}
+              aria-label="Zamknij"
+            >
+              ✕
+            </button>
+            <h3>Rekordy osobiste</h3>
+            <p className="muted">Twoje najlepsze wyniki do tej pory</p>
+            <div className="records-grid">
+              <div className="record">
+                <span className="record-icon">💪</span>
+                <div className="record-label">Max sesja</div>
+                <div className="record-value">
+                  {records.maxSession}
+                  <span className="record-unit"> reps</span>
+                </div>
+                {records.maxSessionDate && (
+                  <div className="record-date">
+                    {formatShortDate(records.maxSessionDate)}
+                  </div>
+                )}
+              </div>
+              <div className="record">
+                <span className="record-icon">☀️</span>
+                <div className="record-label">Max dzień</div>
+                <div className="record-value">
+                  {records.maxDay}
+                  <span className="record-unit"> reps</span>
+                </div>
+                {records.maxDayDate && (
+                  <div className="record-date">
+                    {formatShortDate(records.maxDayDate)}
+                  </div>
+                )}
+              </div>
+              <div className="record">
+                <span className="record-icon">📅</span>
+                <div className="record-label">Max 7 dni</div>
+                <div className="record-value">
+                  {records.maxWeek}
+                  <span className="record-unit"> reps</span>
+                </div>
+              </div>
+              <div className="record">
+                <span className="record-icon">🔥</span>
+                <div className="record-label">Najdłuższa seria</div>
+                <div className="record-value">
+                  {maxStreak}
+                  <span className="record-unit"> {maxStreak === 1 ? 'dzień' : 'dni'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {celebration && (
         <div

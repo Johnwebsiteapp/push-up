@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 
-export default function Profile({ user, onProfileChange }) {
+export default function Profile({ user, badges = [], levelInfo, onProfileChange }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
@@ -307,6 +307,28 @@ export default function Profile({ user, onProfileChange }) {
           </p>
         )}
       </form>
+
+      {badges.length > 0 && (
+        <section className="card">
+          <h3 className="card-title">
+            <span>
+              Odznaki · {badges.filter((b) => b.unlocked).length}/{badges.length}
+            </span>
+          </h3>
+          <div className="badges-grid">
+            {badges.map((b) => (
+              <div
+                key={b.id}
+                className={`badge ${b.unlocked ? 'unlocked' : 'locked'}`}
+                title={b.desc}
+              >
+                <div className="badge-icon">{b.icon}</div>
+                <div className="badge-name">{b.name}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
