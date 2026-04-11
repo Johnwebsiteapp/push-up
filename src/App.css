@@ -45,7 +45,6 @@
 }
 .brand-bolt {
   font-size: 1.1em;
-  filter: drop-shadow(0 0 10px rgba(204, 255, 0, 0.6));
   display: inline-block;
   animation: boltFloat 3.4s ease-in-out infinite;
 }
@@ -53,11 +52,9 @@
 @keyframes boltFloat {
   0%, 100% {
     transform: translateY(0) rotate(0deg) scale(1);
-    filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.5));
   }
   50% {
     transform: translateY(-2px) rotate(-6deg) scale(1.06);
-    filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.85));
   }
 }
 
@@ -248,24 +245,11 @@
   align-items: baseline;
   gap: 7px;
   padding: 9px 16px;
-  background: rgba(204, 255, 0, 0.1);
-  border: 1px solid rgba(204, 255, 0, 0.35);
+  background: rgba(204, 255, 0, 0.08);
+  border: 1px solid rgba(204, 255, 0, 0.3);
   border-radius: 999px;
-  box-shadow: 0 0 20px rgba(204, 255, 0, 0.12);
   cursor: default;
   flex-shrink: 0;
-  animation: chipGlow 3.6s ease-in-out infinite;
-}
-
-@keyframes chipGlow {
-  0%, 100% {
-    box-shadow: 0 0 18px rgba(204, 255, 0, 0.12);
-    border-color: rgba(204, 255, 0, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 32px rgba(204, 255, 0, 0.3);
-    border-color: rgba(204, 255, 0, 0.55);
-  }
 }
 .topbar-count-value {
   font-family: 'Lexend', sans-serif;
@@ -372,7 +356,6 @@
   place-items: center;
   letter-spacing: 0;
   line-height: 1;
-  box-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
 }
 
 /* Level popup (replaces old simple dropdown when avatar clicked) */
@@ -774,17 +757,7 @@
   border-radius: 22px;
   padding: 12px 16px 14px;
   margin-bottom: 12px;
-  animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 160ms backwards,
-    dashBreathe 6s ease-in-out 540ms infinite;
-}
-
-@keyframes dashBreathe {
-  0%, 100% {
-    border-color: rgba(204, 255, 0, 0.35);
-  }
-  50% {
-    border-color: rgba(204, 255, 0, 0.55);
-  }
+  animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 160ms backwards;
 }
 .quick-log-header {
   display: flex;
@@ -952,17 +925,19 @@
   background: var(--primary);
   color: var(--bg);
   font-size: 0.8rem;
-  box-shadow: 0 0 36px rgba(204, 255, 0, 0.42);
-  animation: confirmGlow 3s ease-in-out infinite;
+  box-shadow: 0 0 40px rgba(204, 255, 0, 0.55);
+  animation: confirmGlow 2.6s ease-in-out infinite;
 }
 
+/* Pill-shaped pulsing glow — widoczny, okrągły, follow border-radius: 999px */
 @keyframes confirmGlow {
   0%, 100% {
-    box-shadow: 0 0 32px rgba(204, 255, 0, 0.38);
+    box-shadow: 0 0 36px rgba(204, 255, 0, 0.5),
+      0 0 10px rgba(204, 255, 0, 0.35);
   }
   50% {
-    box-shadow: 0 0 48px rgba(204, 255, 0, 0.6),
-      0 0 12px rgba(204, 255, 0, 0.4);
+    box-shadow: 0 0 72px rgba(204, 255, 0, 0.85),
+      0 0 28px rgba(204, 255, 0, 0.6);
   }
 }
 .confirm-btn::after {

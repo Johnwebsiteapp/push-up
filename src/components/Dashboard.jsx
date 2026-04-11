@@ -894,7 +894,7 @@ export default function Dashboard({ session }) {
                 strokeDashoffset={(2 * Math.PI * 21) * (1 - levelInfo.progress / 100)}
                 strokeLinecap="round"
                 transform="rotate(-90 24 24)"
-                style={{ filter: 'drop-shadow(0 0 4px rgba(204,255,0,0.6))' }}
+                style={{ filter: 'drop-shadow(0 0 2px rgba(204,255,0,0.35))' }}
               />
             </svg>
             <span className="avatar-initials">{initials}</span>
