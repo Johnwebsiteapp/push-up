@@ -103,6 +103,23 @@ export default function Profile({ user, onProfileChange }) {
     return 'Otyłość'
   }
 
+  function bmiCategoryClass(v) {
+    const n = parseFloat(v)
+    if (n < 18.5) return 'under'
+    if (n < 25) return 'normal'
+    if (n < 30) return 'over'
+    return 'obese'
+  }
+
+  // Pozycja markera na skali 0-100% (BMI 15 → 0%, BMI 35 → 100%)
+  function bmiMarkerPosition(v) {
+    const n = parseFloat(v)
+    const min = 15
+    const max = 35
+    const pct = ((n - min) / (max - min)) * 100
+    return Math.max(2, Math.min(98, pct))
+  }
+
   const displayName = form.nick || form.name || user.email.split('@')[0]
   const initials =
     (form.initials && form.initials.trim().toUpperCase()) ||
@@ -120,12 +137,52 @@ export default function Profile({ user, onProfileChange }) {
         <p className="muted">{user.email}</p>
 
         {bmi && (
-          <div className="bmi-card">
-            <div className="bmi-main">
-              <span className="label">BMI</span>
-              <span className="bmi-value">{bmi}</span>
+          <div className="bmi-wrap">
+            <div className={`bmi-card ${bmiCategoryClass(bmi)}`}>
+              <div className="bmi-main">
+                <span className="label">BMI</span>
+                <span className="bmi-value">{bmi}</span>
+              </div>
+              <span className="bmi-label">{bmiLabel(bmi)}</span>
             </div>
-            <span className="bmi-label">{bmiLabel(bmi)}</span>
+
+            <div className="bmi-scale">
+              <div className="bmi-scale-track">
+                <div className="bmi-seg bmi-seg-under" />
+                <div className="bmi-seg bmi-seg-normal" />
+                <div className="bmi-seg bmi-seg-over" />
+                <div className="bmi-seg bmi-seg-obese" />
+                <div
+                  className="bmi-marker"
+                  style={{ left: `${bmiMarkerPosition(bmi)}%` }}
+                />
+              </div>
+              <div className="bmi-scale-labels">
+                <span>&lt;18.5</span>
+                <span>18.5</span>
+                <span>25</span>
+                <span>30</span>
+                <span>35+</span>
+              </div>
+              <div className="bmi-ranges">
+                <div>
+                  <span className="bmi-dot under" />
+                  Niedowaga
+                </div>
+                <div>
+                  <span className="bmi-dot normal" />
+                  Norma
+                </div>
+                <div>
+                  <span className="bmi-dot over" />
+                  Nadwaga
+                </div>
+                <div>
+                  <span className="bmi-dot obese" />
+                  Otyłość
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </section>
