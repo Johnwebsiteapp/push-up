@@ -107,13 +107,14 @@ export default function Dashboard({ session }) {
   const [dragDelta, setDragDelta] = useState(0)
   const [viewportHeight, setViewportHeight] = useState(null)
   const viewportRef = useRef(null)
+  const rankingPanelRef = useRef(null)
   const homePanelRef = useRef(null)
   const profilePanelRef = useRef(null)
   const touchRef = useRef({ startX: 0, startY: 0, lockDir: null })
 
   const user = session.user
 
-  const TABS = ['home', 'profile']
+  const TABS = ['ranking', 'home', 'profile']
   const tabIndex = TABS.indexOf(tab)
 
   function changeTab(newTab) {
@@ -247,7 +248,11 @@ export default function Dashboard({ session }) {
 
   // Mierzenie wysokości aktywnego panelu (żeby viewport się dopasowywał)
   useEffect(() => {
-    const panels = [homePanelRef.current, profilePanelRef.current]
+    const panels = [
+      rankingPanelRef.current,
+      homePanelRef.current,
+      profilePanelRef.current,
+    ]
     const active = panels[tabIndex]
     if (!active) return
 
@@ -393,6 +398,69 @@ export default function Dashboard({ session }) {
         >
           <div
             className="tab-panel"
+            ref={rankingPanelRef}
+            aria-hidden={tab !== 'ranking'}
+          >
+            <section className="card">
+              <h3 className="card-title">
+                <span>Ranking</span>
+              </h3>
+              {leaderboard.length === 0 ? (
+                <p className="empty">Brak wpisów. Bądź pierwszy!</p>
+              ) : (
+                <ul className="leaderboard-list">
+                  {leaderboard.map((entry, idx) => {
+                    const isMe = entry.user_id === user.id
+                    const init = entry.displayName
+                      ? entry.displayName.slice(0, 2).toUpperCase()
+                      : '??'
+                    return (
+                      <li key={entry.user_id} className="leaderboard-item">
+                        <div className={`lb-avatar ${isMe ? 'me' : ''}`}>
+                          {init}
+                          <span className="lb-rank">{idx + 1}</span>
+                        </div>
+                        <div className="lb-info">
+                          <div className="lb-name">
+                            {entry.displayName}
+                            {isMe && ' (Ty)'}
+                          </div>
+                          <div className="lb-title">
+                            {getTitleForTotal(entry.total)}
+                          </div>
+                        </div>
+                        <div className="lb-score-wrap">
+                          <div className="lb-score">{entry.total}</div>
+                          <span className="lb-score-unit">pompek</span>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
+
+            <section className="card">
+              <h3 className="card-title">
+                <span>Historia</span>
+              </h3>
+              {loading ? (
+                <p className="empty">Ładowanie…</p>
+              ) : error ? (
+                <p className="error">Błąd: {error}</p>
+              ) : (
+                <WorkoutList
+                  workouts={workouts}
+                  profiles={profiles}
+                  currentUserId={user.id}
+                  onDelete={requestDelete}
+                />
+              )}
+            </section>
+          </div>
+
+          <div
+            className="tab-panel"
             ref={homePanelRef}
             aria-hidden={tab !== 'home'}
           >
@@ -416,61 +484,6 @@ export default function Dashboard({ session }) {
           </section>
 
           <AddWorkout user={user} />
-
-          <section className="card">
-            <h3 className="card-title">
-              <span>Ranking</span>
-            </h3>
-            {leaderboard.length === 0 ? (
-              <p className="empty">Brak wpisów. Bądź pierwszy!</p>
-            ) : (
-              <ul className="leaderboard-list">
-                {leaderboard.map((entry, idx) => {
-                  const isMe = entry.user_id === user.id
-                  const init = entry.displayName
-                    ? entry.displayName.slice(0, 2).toUpperCase()
-                    : '??'
-                  return (
-                    <li key={entry.user_id} className="leaderboard-item">
-                      <div className={`lb-avatar ${isMe ? 'me' : ''}`}>
-                        {init}
-                        <span className="lb-rank">{idx + 1}</span>
-                      </div>
-                      <div className="lb-info">
-                        <div className="lb-name">
-                          {entry.displayName}
-                          {isMe && ' (Ty)'}
-                        </div>
-                        <div className="lb-title">{getTitleForTotal(entry.total)}</div>
-                      </div>
-                      <div className="lb-score-wrap">
-                        <div className="lb-score">{entry.total}</div>
-                        <span className="lb-score-unit">pompek</span>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
-
-          <section className="card">
-            <h3 className="card-title">
-              <span>Historia</span>
-            </h3>
-            {loading ? (
-              <p className="empty">Ładowanie…</p>
-            ) : error ? (
-              <p className="error">Błąd: {error}</p>
-            ) : (
-              <WorkoutList
-                workouts={workouts}
-                profiles={profiles}
-                currentUserId={user.id}
-                onDelete={requestDelete}
-              />
-            )}
-          </section>
           </div>
 
           <div
@@ -487,6 +500,12 @@ export default function Dashboard({ session }) {
       </div>
 
       <nav className="bottom-nav">
+        <button
+          className={tab === 'ranking' ? 'active' : ''}
+          onClick={() => changeTab('ranking')}
+        >
+          Ranking
+        </button>
         <button
           className={tab === 'home' ? 'active' : ''}
           onClick={() => changeTab('home')}
