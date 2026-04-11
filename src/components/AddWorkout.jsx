@@ -46,41 +46,43 @@ export default function AddWorkout({ user }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="add-form">
-      <label>
-        Liczba pompek
+    <form onSubmit={handleSubmit} className="quick-log">
+      <div className="quick-log-title">Quick Log Session</div>
+      <div className="quick-log-big">
         <input
+          className="quick-log-input"
           type="number"
           min="1"
           inputMode="numeric"
           value={count}
           onChange={(e) => setCount(e.target.value)}
-          placeholder="np. 50"
+          placeholder="00"
           required
         />
-      </label>
-      <label>
-        Data
+        <div className="quick-log-sub">Total Push-ups</div>
+      </div>
+
+      <div className="quick-log-extras">
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           required
+          aria-label="Data"
         />
-      </label>
-      <label>
-        Notatka (opcjonalnie)
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="np. Rano, 3 serie"
+          placeholder="Notatka (opcjonalnie)"
+          aria-label="Notatka"
         />
-      </label>
-      <button type="submit" disabled={saving}>
-        {saving ? 'Zapisywanie…' : 'Dodaj'}
+      </div>
+
+      <button type="submit" className="confirm-btn" disabled={saving}>
+        {saving ? 'Zapisywanie…' : 'Confirm Log'}
       </button>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>{error}</p>}
     </form>
   )
 }

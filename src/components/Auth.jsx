@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 
 export default function Auth() {
-  const [mode, setMode] = useState('signin') // 'signin' | 'signup'
+  const [mode, setMode] = useState('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,7 +17,9 @@ export default function Auth() {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        setMessage('Konto utworzone! Sprawdź e-mail aby potwierdzić (lub zaloguj się od razu jeśli potwierdzenie wyłączone).')
+        setMessage(
+          'Konto utworzone! Możesz się teraz zalogować.'
+        )
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -32,9 +34,15 @@ export default function Auth() {
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
-        <h1>💪 Aplikacja Pompki</h1>
+        <div className="brand">
+          <span className="brand-bolt">⚡</span>
+          <span>POMPKI</span>
+        </div>
+        <h1>{mode === 'signin' ? 'Witaj ponownie.' : 'Dołącz do ruchu.'}</h1>
         <p className="muted">
-          {mode === 'signin' ? 'Zaloguj się aby zacząć liczyć pompki' : 'Załóż konto'}
+          {mode === 'signin'
+            ? 'Zaloguj się aby kontynuować swój streak'
+            : 'Załóż konto i zacznij śledzić progres'}
         </p>
 
         <form onSubmit={handleSubmit} className="auth-form">
