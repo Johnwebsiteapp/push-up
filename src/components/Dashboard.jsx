@@ -4,37 +4,33 @@ import AddWorkout from './AddWorkout'
 import WorkoutList from './WorkoutList'
 import Profile from './Profile'
 
-function getMotivation(total) {
-  if (total === 0)
-    return {
-      title: 'Zacznij swój streak.',
-      sub: 'Każda wielka historia zaczyna się od pierwszej powtórki. Dodaj swój pierwszy trening.',
-    }
-  if (total < 20)
-    return {
-      title: 'Rozgrzewka w toku.',
-      sub: 'Świetny start — trzymaj tempo i buduj nawyk każdego dnia.',
-    }
-  if (total < 100)
-    return {
-      title: 'Energia rośnie.',
-      sub: 'Dobrze Ci idzie. Kolejna sesja przybliża Cię do pierwszej setki.',
-    }
-  if (total < 500)
-    return {
-      title: 'Jesteś w formie.',
-      sub: 'Każda powtórka to inwestycja w siłę. Kontynuuj ten rytm.',
-    }
-  if (total < 1000)
-    return {
-      title: 'Mistrzowska dyscyplina.',
-      sub: 'Dotarłeś dalej niż większość. Trzymaj ten flow.',
-    }
-  return {
-    title: 'Legendarny poziom.',
-    sub: 'Inspirujesz innych swoim tempem. Konsekwencja = rezultat.',
-  }
+const ZERO_ACHIEVEMENT = {
+  title: 'Zacznij swój streak.',
+  sub: 'Pierwsza pompka zmienia wszystko.',
 }
+
+const ACHIEVEMENTS = [
+  { title: 'Dobra robota.', sub: 'Każda sesja ma znaczenie.' },
+  { title: 'Energia rośnie.', sub: 'Trzymaj tempo.' },
+  { title: 'Tryb bestii.', sub: 'Aktywowany.' },
+  { title: 'Konsekwencja wygrywa.', sub: 'Kolejna cegiełka w formie.' },
+  { title: 'Jesteś w formie.', sub: 'Widać tę dyscyplinę.' },
+  { title: 'Kolejna seria za Tobą.', sub: 'Tak się buduje siłę.' },
+  { title: 'Rytm złapany.', sub: 'Tak trzymaj.' },
+  { title: 'Nic Cię nie zatrzyma.', sub: 'Idziesz jak czołg.' },
+  { title: 'Flow odblokowany.', sub: 'Jesteś w strefie.' },
+  { title: 'Mocny zapis.', sub: 'Licznik mówi sam za siebie.' },
+  { title: 'Budujesz nawyk.', sub: 'To jest droga.' },
+  { title: 'Ból jest tymczasowy.', sub: 'Duma wieczna.' },
+  { title: 'Kinetyczna siła.', sub: 'Każda pompka to inwestycja.' },
+  { title: 'Jeszcze jedna.', sub: 'I jeszcze jedna.' },
+  { title: 'Beast mode.', sub: 'Silniejszy z każdym dniem.' },
+  { title: 'Pełne zaangażowanie.', sub: 'Tak wyglądają zwycięzcy.' },
+  { title: 'Rozgrzane mięśnie.', sub: 'Rozgrzana ambicja.' },
+  { title: 'Dyscyplina > motywacja.', sub: 'Ty to rozumiesz.' },
+  { title: 'To nie przypadek.', sub: 'To Twoja praca.' },
+  { title: 'Legenda się tworzy.', sub: 'Krok po kroku.' },
+]
 
 function todayISO() {
   const d = new Date()
@@ -421,6 +417,22 @@ export default function Dashboard({ session }) {
 
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
 
+  // Achievement rotation — nowy tekst przy każdym dodaniu pompek
+  const [achievementIdx, setAchievementIdx] = useState(() =>
+    Math.floor(Math.random() * ACHIEVEMENTS.length)
+  )
+  const prevMyTotalRef = useRef(myTotal)
+  useEffect(() => {
+    if (myTotal > prevMyTotalRef.current && prevMyTotalRef.current > 0) {
+      setAchievementIdx((i) => (i + 1) % ACHIEVEMENTS.length)
+    }
+    prevMyTotalRef.current = myTotal
+  }, [myTotal])
+
+  const achievement =
+    myTotal === 0 ? ZERO_ACHIEVEMENT : ACHIEVEMENTS[achievementIdx]
+  const achievementKey = myTotal === 0 ? 'zero' : `a-${achievementIdx}`
+
   const leaderboard = useMemo(() => {
     const map = new Map()
     for (const w of workouts) {
@@ -442,7 +454,6 @@ export default function Dashboard({ session }) {
       .sort((a, b) => b.total - a.total)
   }, [workouts, profiles])
 
-  const motivation = getMotivation(myTotal)
   const myProfile = profiles[user.id]
   const myDisplayName =
     myProfile?.nick ||
@@ -646,8 +657,10 @@ export default function Dashboard({ session }) {
               </div>
               <div className="hero-label">Pompki dzisiaj</div>
             </div>
-            <h2 className="hero-title">{motivation.title}</h2>
-            <p className="hero-sub">{motivation.sub}</p>
+            <div className="hero-motivation" key={achievementKey}>
+              <h2 className="hero-title">{achievement.title}</h2>
+              <p className="hero-sub">{achievement.sub}</p>
+            </div>
             <div className="stats-row">
               <div className="stat-box primary">
                 <span className="label">Seria</span>

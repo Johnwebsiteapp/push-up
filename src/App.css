@@ -475,10 +475,32 @@
   font-weight: 600;
 }
 
+.hero-motivation {
+  margin-top: 14px;
+  animation: achievementIn 680ms cubic-bezier(0.22, 0.9, 0.32, 1);
+  will-change: transform, opacity, filter;
+}
+
+@keyframes achievementIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(8px);
+  }
+  55% {
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
 .hero-title {
   text-align: center;
   font-size: 1.1rem;
-  margin-top: 14px;
+  margin: 0;
   line-height: 1.2;
 }
 .hero-sub {
