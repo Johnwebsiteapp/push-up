@@ -43,10 +43,42 @@
   color: var(--primary);
   letter-spacing: 0.04em;
 }
-.brand-bolt {
-  font-size: 1.1em;
+/* Brand bolt z lightning trail (3 warstwy) */
+.brand-bolt-wrap {
+  position: relative;
   display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+}
+.brand-bolt,
+.brand-bolt-trail {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.1em;
+  line-height: 1;
   animation: boltFloat 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(204, 255, 0, 0.7));
+}
+.brand-bolt-trail {
+  pointer-events: none;
+}
+.brand-bolt-trail-1 {
+  opacity: 0.45;
+  filter: blur(3px) drop-shadow(0 0 10px rgba(204, 255, 0, 0.6));
+  animation-delay: -0.1s;
+  z-index: 1;
+}
+.brand-bolt-trail-2 {
+  opacity: 0.22;
+  filter: blur(6px) drop-shadow(0 0 14px rgba(204, 255, 0, 0.5));
+  animation-delay: -0.2s;
+  z-index: 0;
+}
+.brand-bolt {
+  z-index: 2;
 }
 
 @keyframes boltFloat {
@@ -580,6 +612,56 @@
     filter: brightness(1);
   }
 }
+
+/* Confetti burst at milestone */
+.hero-number {
+  position: relative;
+}
+.confetti-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.confetti-particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 2px;
+  transform: translate(-50%, -50%) scale(0);
+  animation: confettiBurst 1.7s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  animation-delay: var(--delay);
+}
+@keyframes confettiBurst {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) scale(0);
+    opacity: 1;
+  }
+  8% {
+    transform: translate(
+        calc(var(--tx) * 0.3 - 50%),
+        calc(var(--ty) * 0.3 - 50%)
+      )
+      rotate(calc(var(--rot) * 0.3)) scale(1);
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(var(--tx) * 1.1 - 50%),
+        calc(var(--ty) * 1.1 - 50% + 80px)
+      )
+      rotate(var(--rot)) scale(0.6);
+    opacity: 0;
+  }
+}
 .hero-label {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.62rem;
@@ -696,6 +778,37 @@
   }
   50% {
     box-shadow: 0 0 24px rgba(204, 255, 0, 0.9);
+  }
+}
+
+/* Goal check spin animation */
+.goal-check {
+  display: inline-block;
+  margin-left: 6px;
+  color: var(--primary);
+  font-weight: 800;
+  animation: goalCheckSpin 700ms cubic-bezier(0.22, 0.9, 0.32, 1) backwards;
+  transform-origin: center;
+}
+.goal-bar.met .label.secondary .goal-check,
+.goal-bar.met .goal-check {
+  animation: goalCheckSpin 700ms cubic-bezier(0.22, 0.9, 0.32, 1) backwards;
+}
+@keyframes goalCheckSpin {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.6) rotate(180deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.95) rotate(340deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
   }
 }
 
@@ -860,6 +973,30 @@
   box-shadow: none;
   transition: background 120ms ease, transform 120ms ease,
     border-color 120ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ripple effect injected dynamically on click */
+.quick-add-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(204, 255, 0, 0.4);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  width: 20px;
+  height: 20px;
+  animation: quickAddRipple 600ms ease-out forwards;
+}
+@keyframes quickAddRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(14);
+    opacity: 0;
+  }
 }
 @media (hover: hover) {
   .quick-add-btn:hover:not(:disabled) {
@@ -1539,6 +1676,101 @@
   text-transform: uppercase;
   color: var(--muted);
   font-weight: 700;
+}
+
+/* Achievement badge popup — slides in from right when new badge unlocked */
+.badge-popup {
+  position: fixed;
+  top: 90px;
+  right: 16px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px 14px 14px;
+  background: var(--bg-card);
+  border: 2px solid var(--primary);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(204, 255, 0, 0.35);
+  cursor: pointer;
+  max-width: calc(100vw - 32px);
+  animation: badgePopSlide 4.5s cubic-bezier(0.22, 0.9, 0.32, 1) forwards;
+}
+.badge-popup-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(204, 255, 0, 0.2),
+    rgba(204, 255, 0, 0.05)
+  );
+  border: 2px solid var(--primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.7rem;
+  box-shadow: 0 0 20px rgba(204, 255, 0, 0.5);
+  animation: badgeIconSpin 1.2s cubic-bezier(0.22, 0.9, 0.32, 1) 0.25s backwards;
+  flex-shrink: 0;
+}
+.badge-popup-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.badge-popup-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+  font-weight: 700;
+}
+.badge-popup-name {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes badgePopSlide {
+  0% {
+    transform: translateX(120%) scale(0.8);
+    opacity: 0;
+  }
+  12% {
+    transform: translateX(-6%) scale(1.05);
+    opacity: 1;
+  }
+  18% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  85% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes badgeIconSpin {
+  0% {
+    transform: rotate(-180deg) scale(0);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.3);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 /* Celebration toast */

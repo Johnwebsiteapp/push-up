@@ -216,6 +216,55 @@ function computeBadges(stats) {
 
 const DNI_CHART = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
 
+const MILESTONES = [100, 250, 500, 1000, 2000, 3000, 5000, 7500, 10000, 15000, 25000]
+
+// Confetti component — rendered when triggered
+function ConfettiBurst({ onDone }) {
+  useEffect(() => {
+    const t = setTimeout(() => onDone && onDone(), 1800)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  const particles = useMemo(() => {
+    const colors = ['#CCFF00', '#00FDFF', '#FF5C00']
+    const list = []
+    for (let i = 0; i < 32; i++) {
+      const angle = (Math.PI * 2 * i) / 32 + (Math.random() - 0.5) * 0.3
+      const distance = 80 + Math.random() * 120
+      list.push({
+        id: i,
+        tx: Math.cos(angle) * distance,
+        ty: Math.sin(angle) * distance,
+        rot: Math.random() * 720 - 360,
+        color: colors[i % 3],
+        delay: Math.random() * 180,
+        size: 5 + Math.random() * 5,
+      })
+    }
+    return list
+  }, [])
+
+  return (
+    <div className="confetti-burst" aria-hidden="true">
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          className="confetti-particle"
+          style={{
+            '--tx': `${p.tx}px`,
+            '--ty': `${p.ty}px`,
+            '--rot': `${p.rot}deg`,
+            '--delay': `${p.delay}ms`,
+            '--size': `${p.size}px`,
+            background: p.color,
+            boxShadow: `0 0 8px ${p.color}`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 function streakLabel(n) {
   if (n === 1) return '1 dzień'
   return `${n} dni`
@@ -302,6 +351,10 @@ export default function Dashboard({ session }) {
   const [nickPromptSaving, setNickPromptSaving] = useState(false)
   const [nickPromptError, setNickPromptError] = useState(null)
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
+  const [confettiKey, setConfettiKey] = useState(0)
+  const [confettiActive, setConfettiActive] = useState(false)
+  const [newBadge, setNewBadge] = useState(null)
+  const prevTotalForMilestoneRef = useRef(null)
 
   // Live-drag state
   const [isDragging, setIsDragging] = useState(false)
@@ -748,6 +801,55 @@ export default function Dashboard({ session }) {
     myTotal === 0 ? ZERO_ACHIEVEMENT : ACHIEVEMENTS[achievementIdx]
   const achievementKey = myTotal === 0 ? 'zero' : `a-${achievementIdx}`
 
+  // Milestone detection — confetti burst when crossing a milestone
+  useEffect(() => {
+    // Initial load: set baseline, no celebration
+    if (prevTotalForMilestoneRef.current === null) {
+      prevTotalForMilestoneRef.current = myTotal
+      return
+    }
+    const prev = prevTotalForMilestoneRef.current
+    if (myTotal > prev) {
+      const crossed = MILESTONES.find((m) => prev < m && myTotal >= m)
+      if (crossed) {
+        const key = `milestone-${crossed}-${user.id}`
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, '1')
+          setConfettiKey((k) => k + 1)
+          setConfettiActive(true)
+          setCelebration({
+            type: 'milestone',
+            text: `${crossed} POMPEK! Milestone odblokowany!`,
+          })
+          setTimeout(() => setCelebration(null), 5500)
+        }
+      }
+    }
+    prevTotalForMilestoneRef.current = myTotal
+  }, [myTotal, user.id])
+
+  // Badge unlock detection — new badge popup
+  const prevBadgesRef = useRef(null)
+  useEffect(() => {
+    if (prevBadgesRef.current === null) {
+      prevBadgesRef.current = badges
+      return
+    }
+    const prev = prevBadgesRef.current
+    for (let i = 0; i < badges.length; i++) {
+      if (badges[i].unlocked && !prev[i]?.unlocked) {
+        const key = `badge-${badges[i].id}-${user.id}`
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, '1')
+          setNewBadge(badges[i])
+          setTimeout(() => setNewBadge(null), 4500)
+          break // show only first newly unlocked
+        }
+      }
+    }
+    prevBadgesRef.current = badges
+  }, [badges, user.id])
+
   const leaderboard = useMemo(() => {
     const map = new Map()
     for (const w of workouts) {
@@ -862,7 +964,11 @@ export default function Dashboard({ session }) {
     <div className="dashboard" data-tab={tab}>
       <header className="topbar">
         <div className="brand">
-          <span className="brand-bolt">⚡</span>
+          <span className="brand-bolt-wrap" aria-hidden="true">
+            <span className="brand-bolt-trail brand-bolt-trail-2">⚡</span>
+            <span className="brand-bolt-trail brand-bolt-trail-1">⚡</span>
+            <span className="brand-bolt">⚡</span>
+          </span>
           <span>POMPKI</span>
         </div>
         <div
@@ -1041,6 +1147,12 @@ export default function Dashboard({ session }) {
             <div className="hero-count">
               <div className="hero-number">
                 <AnimatedCounter value={todayTotal} />
+                {confettiActive && (
+                  <ConfettiBurst
+                    key={confettiKey}
+                    onDone={() => setConfettiActive(false)}
+                  />
+                )}
               </div>
               <div className="hero-label">Pompki dzisiaj</div>
             </div>
@@ -1053,7 +1165,8 @@ export default function Dashboard({ session }) {
               <div className={`goal-bar ${dailyMet ? 'met' : ''}`}>
                 <div className="goal-bar-head">
                   <span className="label">
-                    Cel dzienny {dailyMet && '✓'}
+                    Cel dzienny
+                    {dailyMet && <span className="goal-check">✓</span>}
                   </span>
                   <span className="goal-bar-value">
                     <AnimatedCounter value={todayTotal} /> / {dailyGoal}
@@ -1070,7 +1183,8 @@ export default function Dashboard({ session }) {
               <div className={`goal-bar ${weeklyMet ? 'met' : ''}`}>
                 <div className="goal-bar-head">
                   <span className="label secondary">
-                    Cel tygodniowy {weeklyMet && '✓'}
+                    Cel tygodniowy
+                    {weeklyMet && <span className="goal-check">✓</span>}
                   </span>
                   <span className="goal-bar-value">
                     <AnimatedCounter value={weekTotal} /> / {weeklyGoal}
@@ -1245,6 +1359,20 @@ export default function Dashboard({ session }) {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {newBadge && (
+        <div
+          className="badge-popup"
+          onClick={() => setNewBadge(null)}
+          role="button"
+        >
+          <div className="badge-popup-icon">{newBadge.icon}</div>
+          <div className="badge-popup-info">
+            <div className="badge-popup-label">Odblokowane!</div>
+            <div className="badge-popup-name">{newBadge.name}</div>
           </div>
         </div>
       )}

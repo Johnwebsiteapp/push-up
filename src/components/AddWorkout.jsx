@@ -17,10 +17,26 @@ export default function AddWorkout({ user }) {
 
   const QUICK_ADDS = [10, 15, 20]
 
-  function quickAdd(n) {
+  function quickAdd(n, event) {
     const current = parseInt(count, 10) || 0
     setCount(String(current + n))
     if (error) setError(null)
+
+    // Ripple effect — create element at click position
+    if (event && event.currentTarget) {
+      const btn = event.currentTarget
+      const rect = btn.getBoundingClientRect()
+      const x = (event.clientX || rect.left + rect.width / 2) - rect.left
+      const y = (event.clientY || rect.top + rect.height / 2) - rect.top
+      const ripple = document.createElement('span')
+      ripple.className = 'quick-add-ripple'
+      ripple.style.left = `${x}px`
+      ripple.style.top = `${y}px`
+      btn.appendChild(ripple)
+      setTimeout(() => {
+        if (ripple.parentNode) ripple.parentNode.removeChild(ripple)
+      }, 650)
+    }
   }
 
   function resetCount() {
@@ -92,7 +108,7 @@ export default function AddWorkout({ user }) {
             key={n}
             type="button"
             className="quick-add-btn"
-            onClick={() => quickAdd(n)}
+            onClick={(e) => quickAdd(n, e)}
             disabled={saving}
             aria-label={`Dodaj ${n} pompek`}
           >
