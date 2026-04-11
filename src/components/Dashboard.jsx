@@ -351,15 +351,24 @@ export default function Dashboard({ session }) {
   const [nickPromptSaving, setNickPromptSaving] = useState(false)
   const [nickPromptError, setNickPromptError] = useState(null)
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
-  const [statsClosing, setStatsClosing] = useState(false)
+  const [statsVisible, setStatsVisible] = useState(false)
+
+  // Trigger transition IN after mount — double RAF ensures browser paints hidden state first
+  useEffect(() => {
+    if (statsModal) {
+      const id = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setStatsVisible(true))
+      })
+      return () => cancelAnimationFrame(id)
+    }
+  }, [statsModal])
 
   function closeStatsModal() {
-    if (statsClosing) return
-    setStatsClosing(true)
+    if (!statsVisible) return
+    setStatsVisible(false) // transition OUT starts immediately
     setTimeout(() => {
       setStatsModal(null)
-      setStatsClosing(false)
-    }, 260)
+    }, 320)
   }
   const [confettiKey, setConfettiKey] = useState(0)
   const [confettiActive, setConfettiActive] = useState(false)
@@ -1277,7 +1286,7 @@ export default function Dashboard({ session }) {
 
       {statsModal && (
         <div
-          className={`modal-backdrop stats-backdrop ${statsClosing ? 'closing' : ''}`}
+          className={`modal-backdrop stats-backdrop ${statsVisible ? 'visible' : ''}`}
           onClick={closeStatsModal}
         >
           <div
