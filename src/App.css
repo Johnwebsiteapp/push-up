@@ -1070,22 +1070,20 @@
   box-shadow: none;
 }
 
-/* Pulsujący pill-shaped glow aktywny TYLKO gdy data-tab="home" na dashboardzie.
-   Glow jest przesunięty W DÓŁ (positive Y offset) żeby wystawał poniżej
-   dashed border karty, tworząc widoczny pill-shaped halo pod Zapisz trening. */
+/* Ta sama animacja co przy celu dziennym (.goal-bar.met + goalPulse),
+   zastosowana 1:1 na confirm button — tylko gdy aktywna zakładka to Home. */
 .dashboard[data-tab='home'] .confirm-btn {
-  box-shadow: 0 16px 36px 0 rgba(204, 255, 0, 0.4);
-  animation: confirmGlow 2.8s ease-in-out infinite;
+  animation: confirmGlow 1.6s ease-in-out infinite;
 }
 
 @keyframes confirmGlow {
   0%, 100% {
-    box-shadow: 0 14px 32px 0 rgba(204, 255, 0, 0.38),
-      0 8px 16px 0 rgba(204, 255, 0, 0.3);
+    box-shadow: 0 0 20px rgba(204, 255, 0, 0.25),
+      0 0 12px rgba(204, 255, 0, 0.5);
   }
   50% {
-    box-shadow: 0 20px 56px 4px rgba(204, 255, 0, 0.65),
-      0 12px 28px 0 rgba(204, 255, 0, 0.5);
+    box-shadow: 0 0 20px rgba(204, 255, 0, 0.25),
+      0 0 24px rgba(204, 255, 0, 0.9);
   }
 }
 .confirm-btn::after {
