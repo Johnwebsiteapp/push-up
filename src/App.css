@@ -642,9 +642,9 @@
    ============================================================ */
 .tabs-viewport {
   width: 100%;
-  overflow-x: clip;
-  overflow-y: visible;
+  overflow: hidden;
   position: relative;
+  transition: height 460ms cubic-bezier(0.22, 0.9, 0.32, 1);
 }
 
 .tabs-track {
@@ -663,7 +663,6 @@
   flex: 0 0 100%;
   width: 100%;
   min-width: 0;
-  min-height: calc(100vh - 260px);
 }
 
 /* ============================================================

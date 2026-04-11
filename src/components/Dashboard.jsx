@@ -105,7 +105,10 @@ export default function Dashboard({ session }) {
   // Live-drag state
   const [isDragging, setIsDragging] = useState(false)
   const [dragDelta, setDragDelta] = useState(0)
+  const [viewportHeight, setViewportHeight] = useState(null)
   const viewportRef = useRef(null)
+  const homePanelRef = useRef(null)
+  const profilePanelRef = useRef(null)
   const touchRef = useRef({ startX: 0, startY: 0, lockDir: null })
 
   const user = session.user
@@ -164,9 +167,9 @@ export default function Dashboard({ session }) {
     const threshold = width * 0.2 // 20% szerokości ekranu
 
     if (dragDelta < -threshold && tabIndex < TABS.length - 1) {
-      setTab(TABS[tabIndex + 1])
+      changeTab(TABS[tabIndex + 1])
     } else if (dragDelta > threshold && tabIndex > 0) {
-      setTab(TABS[tabIndex - 1])
+      changeTab(TABS[tabIndex - 1])
     }
 
     setDragDelta(0)
@@ -241,6 +244,25 @@ export default function Dashboard({ session }) {
       supabase.removeChannel(channel)
     }
   }, [])
+
+  // Mierzenie wysokości aktywnego panelu (żeby viewport się dopasowywał)
+  useEffect(() => {
+    const panels = [homePanelRef.current, profilePanelRef.current]
+    const active = panels[tabIndex]
+    if (!active) return
+
+    function measure() {
+      setViewportHeight(active.offsetHeight)
+    }
+
+    measure()
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(measure)
+      observer.observe(active)
+      return () => observer.disconnect()
+    }
+  }, [tabIndex, workouts, profiles])
 
   // Realtime profili
   useEffect(() => {
@@ -354,7 +376,11 @@ export default function Dashboard({ session }) {
         </div>
       </header>
 
-      <div ref={viewportRef} className="tabs-viewport">
+      <div
+        ref={viewportRef}
+        className="tabs-viewport"
+        style={viewportHeight ? { height: `${viewportHeight}px` } : undefined}
+      >
         <div
           className={`tabs-track ${isDragging ? 'dragging' : ''}`}
           style={{
@@ -365,7 +391,11 @@ export default function Dashboard({ session }) {
           onTouchEnd={onTouchEnd}
           onTouchCancel={onTouchEnd}
         >
-          <div className="tab-panel" aria-hidden={tab !== 'home'}>
+          <div
+            className="tab-panel"
+            ref={homePanelRef}
+            aria-hidden={tab !== 'home'}
+          >
           <section className="hero">
             <div className="hero-count">
               <div className="hero-number">{myTotal}</div>
@@ -443,7 +473,11 @@ export default function Dashboard({ session }) {
           </section>
           </div>
 
-          <div className="tab-panel" aria-hidden={tab !== 'profile'}>
+          <div
+            className="tab-panel"
+            ref={profilePanelRef}
+            aria-hidden={tab !== 'profile'}
+          >
             <Profile
               user={user}
               onProfileChange={() => setProfileRefresh((v) => v + 1)}
