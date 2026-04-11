@@ -39,10 +39,10 @@ body {
   background: var(--bg);
   background-image: radial-gradient(
       circle at 50% -10%,
-      rgba(204, 255, 0, 0.08),
+      rgba(204, 255, 0, 0.04),
       transparent 55%
     ),
-    radial-gradient(circle at 90% 110%, rgba(0, 253, 255, 0.04), transparent 45%);
+    radial-gradient(circle at 90% 110%, rgba(0, 253, 255, 0.025), transparent 45%);
   background-attachment: fixed;
 }
 

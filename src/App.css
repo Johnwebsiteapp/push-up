@@ -319,10 +319,12 @@
   text-transform: uppercase;
   letter-spacing: 0;
 }
-.avatar:hover:not(:disabled) {
-  border-color: var(--primary);
-  transform: none;
-  background: var(--bg-elevated);
+@media (hover: hover) {
+  .avatar:hover:not(:disabled) {
+    border-color: var(--primary);
+    transform: none;
+    background: var(--bg-elevated);
+  }
 }
 
 /* Avatar with progress ring around it */
@@ -885,10 +887,12 @@
   transition: background 120ms ease, transform 120ms ease,
     border-color 120ms ease;
 }
-.quick-add-btn:hover:not(:disabled) {
-  background: rgba(204, 255, 0, 0.14);
-  border-color: rgba(204, 255, 0, 0.55);
-  transform: none;
+@media (hover: hover) {
+  .quick-add-btn:hover:not(:disabled) {
+    background: rgba(204, 255, 0, 0.14);
+    border-color: rgba(204, 255, 0, 0.55);
+    transform: none;
+  }
 }
 .quick-add-btn:active:not(:disabled) {
   transform: scale(0.95);
@@ -1036,7 +1040,7 @@
 }
 .lb-avatar.me {
   border-color: var(--primary);
-  box-shadow: 0 0 18px rgba(204, 255, 0, 0.35);
+  box-shadow: 0 0 10px rgba(204, 255, 0, 0.18);
 }
 .lb-rank {
   position: absolute;
@@ -1253,7 +1257,7 @@
 .bottom-nav button.active {
   background: var(--primary);
   color: var(--bg);
-  box-shadow: 0 0 24px rgba(204, 255, 0, 0.35);
+  box-shadow: 0 0 14px rgba(204, 255, 0, 0.2);
 }
 .bottom-nav button.active:hover:not(:disabled) {
   color: var(--bg);
@@ -1674,20 +1678,25 @@
   transition: border-color 200ms ease, transform 200ms ease,
     box-shadow 200ms ease;
 }
-.stats-tile:hover:not(:disabled),
+/* Hover tylko dla myszki (nie dotyku) — żeby na iOS nie przyklejał się glow po tapnięciu */
+@media (hover: hover) {
+  .stats-tile:hover:not(:disabled) {
+    border-color: var(--primary);
+    box-shadow: 0 0 24px rgba(204, 255, 0, 0.18);
+    transform: translateY(-1px);
+    background: var(--bg-card);
+  }
+}
 .stats-tile:focus-visible {
-  border-color: var(--primary);
-  box-shadow: 0 0 24px rgba(204, 255, 0, 0.18);
-  transform: translateY(-1px);
-  background: var(--bg-card);
   outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(204, 255, 0, 0.14);
 }
 .stats-tile:active:not(:disabled) {
   transform: scale(0.97);
 }
 .stats-tile-icon {
   font-size: 1.5rem;
-  filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.35));
 }
 .stats-tile-label {
   font-weight: 700;
