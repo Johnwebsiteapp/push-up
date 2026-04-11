@@ -253,10 +253,19 @@ export default function Dashboard({ session }) {
     let ignore = false
     async function loadProfiles() {
       const { data, error } = await supabase.from('profiles').select('*')
-      if (ignore || error || !data) return
+      if (ignore) return
+
+      if (error) {
+        console.warn('Błąd ładowania profili:', error.message)
+        // Mimo błędu pozwól modalowi nicka się pojawić
+        setProfilesLoaded(true)
+        return
+      }
 
       const map = {}
-      for (const p of data) map[p.user_id] = p
+      if (data) {
+        for (const p of data) map[p.user_id] = p
+      }
 
       // Fallback dla bieżącego użytkownika — jeśli nie ma w tabeli,
       // a w user_metadata jest nick (np. zaraz po rejestracji), użyj go
@@ -289,8 +298,16 @@ export default function Dashboard({ session }) {
       setProfilesLoaded(true)
     }
     loadProfiles()
+
+    // Safety net — jeśli z jakiegoś powodu nie doczekamy się load'a,
+    // po 3 sekundach i tak pokaż modal nicka
+    const safetyTimer = setTimeout(() => {
+      if (!ignore) setProfilesLoaded(true)
+    }, 3000)
+
     return () => {
       ignore = true
+      clearTimeout(safetyTimer)
     }
   }, [profileRefresh, user.id, user.user_metadata])
 
