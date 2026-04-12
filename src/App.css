@@ -1907,6 +1907,146 @@
 }
 
 /* ============================================================
+   RANKING DETAIL POPUP (click on leaderboard item)
+   ============================================================ */
+.leaderboard-item.clickable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 150ms ease, transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.leaderboard-item.clickable:active {
+  transform: scale(0.97);
+  background: rgba(204, 255, 0, 0.04);
+}
+
+.ranking-detail {
+  max-width: 360px;
+  padding: 22px 20px 18px;
+  text-align: center;
+}
+.rd-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  margin-bottom: 18px;
+}
+.rd-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.rd-avatar.me {
+  border-color: var(--primary);
+  box-shadow: 0 0 14px rgba(204, 255, 0, 0.25);
+}
+.rd-info {
+  flex: 1;
+  min-width: 0;
+}
+.rd-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.rd-level {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.rd-close {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  flex-shrink: 0;
+}
+
+.rd-today {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 16px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.rd-today-number {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 3.2rem;
+  color: var(--primary);
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(204, 255, 0, 0.45);
+  animation: numberBreath 4.2s ease-in-out infinite;
+}
+.rd-today-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.rd-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rd-stat {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.rd-stat-value {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--primary);
+  line-height: 1;
+}
+.rd-stat-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.rd-footer {
+  margin-top: 14px;
+  text-align: center;
+}
+.rd-footer-stat {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
    STATS TILES (clickable cards on Ranking tab)
    ============================================================ */
 .stats-tiles {

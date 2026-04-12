@@ -352,6 +352,7 @@ export default function Dashboard({ session }) {
   const [nickPromptError, setNickPromptError] = useState(null)
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
   const [statsVisible, setStatsVisible] = useState(false)
+  const [rankingDetail, setRankingDetail] = useState(null) // leaderboard entry or null
 
   // Trigger transition IN after mount — double RAF ensures browser paints hidden state first
   useEffect(() => {
@@ -878,6 +879,7 @@ export default function Dashboard({ session }) {
         email: prev.email || w.user_email,
       })
     }
+    const t = todayISO()
     return Array.from(map.entries())
       .map(([user_id, v]) => {
         const prof = profiles[user_id]
@@ -895,6 +897,19 @@ export default function Dashboard({ session }) {
           .toUpperCase()
         const avatarInitials = customInitials || derivedInitials
         const entryLevel = getLevelInfo(v.total).level
+
+        // Per-user dodatkowe statystyki
+        const userWorkouts = workouts.filter((w) => w.user_id === user_id)
+        const todayCount = userWorkouts
+          .filter((w) => w.performed_at === t)
+          .reduce((s, w) => s + w.count, 0)
+        const daysActive = new Set(userWorkouts.map((w) => w.performed_at)).size
+        const maxSession = userWorkouts.length
+          ? Math.max(...userWorkouts.map((w) => w.count))
+          : 0
+        const userStreak = calculateStreak(userWorkouts)
+        const sessionsCount = userWorkouts.length
+
         return {
           user_id,
           ...v,
@@ -902,6 +917,11 @@ export default function Dashboard({ session }) {
           avatarInitials,
           level: entryLevel,
           levelTitle: getLevelTitle(entryLevel),
+          todayCount,
+          daysActive,
+          maxSession,
+          streak: userStreak,
+          sessionsCount,
         }
       })
       .sort((a, b) => b.total - a.total)
@@ -1099,7 +1119,13 @@ export default function Dashboard({ session }) {
                   {leaderboard.map((entry, idx) => {
                     const isMe = entry.user_id === user.id
                     return (
-                      <li key={entry.user_id} className="leaderboard-item">
+                      <li
+                        key={entry.user_id}
+                        className="leaderboard-item clickable"
+                        onClick={() => setRankingDetail(entry)}
+                        role="button"
+                        tabIndex={0}
+                      >
                         <div className={`lb-avatar ${isMe ? 'me' : ''}`}>
                           {entry.avatarInitials || '??'}
                           <span className="lb-rank">#{idx + 1}</span>
@@ -1283,6 +1309,72 @@ export default function Dashboard({ session }) {
           Profil
         </button>
       </nav>
+
+      {rankingDetail && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setRankingDetail(null)}
+        >
+          <div
+            className="modal ranking-detail"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="rd-header">
+              <div className={`rd-avatar ${rankingDetail.user_id === user.id ? 'me' : ''}`}>
+                {rankingDetail.avatarInitials}
+              </div>
+              <div className="rd-info">
+                <div className="rd-name">
+                  {rankingDetail.displayName}
+                  {rankingDetail.user_id === user.id && ' (Ty)'}
+                </div>
+                <div className="rd-level">
+                  LVL {rankingDetail.level} · {rankingDetail.levelTitle}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="modal-close rd-close"
+                onClick={() => setRankingDetail(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="rd-today">
+              <span className="rd-today-number">{rankingDetail.todayCount}</span>
+              <span className="rd-today-label">pompek dzisiaj</span>
+            </div>
+
+            <div className="rd-stats">
+              <div className="rd-stat">
+                <span className="rd-stat-value">{rankingDetail.total}</span>
+                <span className="rd-stat-label">Razem</span>
+              </div>
+              <div className="rd-stat">
+                <span className="rd-stat-value">
+                  {rankingDetail.streak > 0 && '🔥 '}{rankingDetail.streak}
+                </span>
+                <span className="rd-stat-label">Seria dni</span>
+              </div>
+              <div className="rd-stat">
+                <span className="rd-stat-value">{rankingDetail.maxSession}</span>
+                <span className="rd-stat-label">Max sesja</span>
+              </div>
+              <div className="rd-stat">
+                <span className="rd-stat-value">{rankingDetail.daysActive}</span>
+                <span className="rd-stat-label">Dni aktywne</span>
+              </div>
+            </div>
+
+            <div className="rd-footer">
+              <span className="rd-footer-stat">
+                {rankingDetail.sessionsCount} sesji łącznie
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {statsModal && (
         <div
