@@ -604,15 +604,17 @@ export default function Dashboard({ session }) {
       .reduce((sum, w) => sum + w.count, 0)
   }, [myWorkouts])
 
+  // Tydzień = od poniedziałku do dziś (spójne z wykresem tygodniowym)
   const weekTotal = useMemo(() => {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 6)
-    cutoff.setHours(0, 0, 0, 0)
+    const now = new Date()
+    const todayDay = now.getDay() // 0=Nd, 1=Pn, ..., 6=Sb
+    const daysSinceMonday = (todayDay + 6) % 7
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - daysSinceMonday)
+    const mondayISO = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+
     return myWorkouts
-      .filter((w) => {
-        const d = new Date(w.performed_at)
-        return d >= cutoff
-      })
+      .filter((w) => w.performed_at >= mondayISO)
       .reduce((sum, w) => sum + w.count, 0)
   }, [myWorkouts])
 
