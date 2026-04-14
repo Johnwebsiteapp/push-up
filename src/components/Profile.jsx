@@ -1,11 +1,48 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import {
+  enablePushNotifications,
+  disablePushNotifications,
+  isSubscribed,
+  pushSupported,
+} from '../notifications'
 
 export default function Profile({ user, badges = [], levelInfo, onProfileChange }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
   const [dataExpanded, setDataExpanded] = useState(false)
+  const [pushOn, setPushOn] = useState(false)
+  const [pushBusy, setPushBusy] = useState(false)
+  const [pushError, setPushError] = useState(null)
+
+  useEffect(() => {
+    let ignore = false
+    isSubscribed().then((v) => {
+      if (!ignore) setPushOn(v)
+    })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  async function togglePush() {
+    setPushBusy(true)
+    setPushError(null)
+    try {
+      if (pushOn) {
+        await disablePushNotifications(user.id)
+        setPushOn(false)
+      } else {
+        await enablePushNotifications(user.id)
+        setPushOn(true)
+      }
+    } catch (err) {
+      setPushError(err.message)
+    } finally {
+      setPushBusy(false)
+    }
+  }
   const [form, setForm] = useState({
     nick: '',
     name: '',
@@ -207,6 +244,35 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {pushSupported() && (
+        <section className="card notifications-card">
+          <div className="notif-row">
+            <div className="notif-info">
+              <div className="notif-title">Powiadomienia</div>
+              <div className="notif-desc">
+                {pushOn
+                  ? 'Będziesz dostawać przypomnienia o pompkach'
+                  : 'Codzienne przypomnienia o celu (nawet gdy apka zamknięta)'}
+              </div>
+            </div>
+            <button
+              type="button"
+              className={`notif-toggle ${pushOn ? 'on' : ''}`}
+              onClick={togglePush}
+              disabled={pushBusy}
+              aria-pressed={pushOn}
+            >
+              <span className="notif-toggle-knob" />
+            </button>
+          </div>
+          {pushError && (
+            <p className="error" style={{ marginTop: 10, fontSize: '0.82rem' }}>
+              {pushError}
+            </p>
+          )}
         </section>
       )}
 

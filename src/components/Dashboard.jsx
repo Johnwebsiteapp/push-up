@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient'
 import AddWorkout from './AddWorkout'
 import WorkoutList from './WorkoutList'
 import Profile from './Profile'
-import { requestNotificationPermission, showReminder } from '../notifications'
+import { showReminder } from '../notifications'
 
 const ZERO_ACHIEVEMENT = {
   title: 'Podłoga czeka.',
@@ -793,19 +793,6 @@ export default function Dashboard({ session }) {
   const achievement =
     myTotal === 0 ? ZERO_ACHIEVEMENT : ACHIEVEMENTS[achievementIdx]
   const achievementKey = myTotal === 0 ? 'zero' : `a-${achievementIdx}`
-
-  // Jednorazowa prośba o zgodę na powiadomienia (przy pierwszym wejściu)
-  useEffect(() => {
-    const asked = localStorage.getItem('pompki-notif-asked')
-    if (!asked) {
-      // Małe opóźnienie żeby apka się załadowała zanim przeglądarka pokaże dialog
-      const t = setTimeout(() => {
-        requestNotificationPermission()
-        localStorage.setItem('pompki-notif-asked', '1')
-      }, 2000)
-      return () => clearTimeout(t)
-    }
-  }, [])
 
   // Przypomnienie gdy wracasz do apki i nie zrobiłeś celu
   useEffect(() => {
