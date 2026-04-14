@@ -75,7 +75,19 @@ function buildNotification(
 
   switch (type) {
     case 'morning': {
-      // 9:00 — pozdrowienie poranne, motywacja do startu dnia
+      // 10:00 weekend — pozdrowienie poranne
+      if (todayTotal >= dailyGoal) {
+        // Cel zrobiony przed 10:00? Szacun dla porannego ptaszka
+        const pool = [
+          `🌅 Poranny ptaszek! Cel już zrobiony: ${todayTotal}/${dailyGoal}.`,
+          `💪 ${todayTotal} pompek przed 10:00 — świetny start weekendu!`,
+          `🔥 Cel o tej godzinie? Masz tempo.`,
+        ]
+        return {
+          title: 'POMPKI ⚡',
+          body: pool[Math.floor(Math.random() * pool.length)],
+        }
+      }
       if (streak >= 3) {
         return {
           title: 'POMPKI ⚡',
@@ -89,12 +101,27 @@ function buildNotification(
     }
 
     case 'midday': {
-      // 13:00 — przerwa na pompki / pochwała postępu
-      if (todayTotal >= dailyGoal) return null // cel już osiągnięty
+      // 15:00 Pn-Pt (po pracy) — przerwa / pochwała postępu / gratulacje
+      if (todayTotal >= dailyGoal) {
+        // Cel osiągnięty wcześniej niż 15:00 — chwalimy
+        const pool = [
+          `🔥 Cel już zrobiony! ${todayTotal}/${dailyGoal}. Szybki byłeś.`,
+          `💪 ${todayTotal} pompek przed 15:00. Szacun.`,
+          `🎯 Cel dzienny już za Tobą. ${todayTotal} pompek.`,
+          `🚀 Zaczynasz dzień mocno: ${todayTotal}/${dailyGoal}!`,
+        ]
+        if (streak >= 3) {
+          pool.push(`🔥 Cel + seria ${streak} dni. Forma jest.`)
+        }
+        return {
+          title: 'POMPKI ⚡',
+          body: pool[Math.floor(Math.random() * pool.length)],
+        }
+      }
       if (todayTotal === 0) {
         return {
           title: 'POMPKI ⚡',
-          body: 'Przerwa na pompki? Idealny moment.',
+          body: 'Po pracy? Idealny moment na pompki.',
         }
       }
       const pct = Math.round((todayTotal / dailyGoal) * 100)
@@ -105,8 +132,48 @@ function buildNotification(
     }
 
     case 'evening': {
-      // 21:00 — ostatnia szansa / streak warning
-      if (todayTotal >= dailyGoal) return null // cel ok, nie spamuj
+      // 18:15 — ostatnia szansa / streak warning / gratulacje jeśli zrobiony
+      if (todayTotal >= dailyGoal) {
+        // Wariant GRATULACJE — cel zrobiony, chwalimy
+        const over = todayTotal - dailyGoal
+        const exceeds50 = over >= dailyGoal * 0.5
+        const exceedsDouble = over >= dailyGoal
+
+        const pool: string[] = [
+          `🎯 Cel dzienny zrobiony! ${todayTotal} pompek za Tobą.`,
+          `🏆 ${todayTotal}/${dailyGoal} — świetna robota!`,
+          `💪 Dzień zamknięty: ${todayTotal} pompek. Odpoczywaj.`,
+          `🎉 Super! Dziś ${todayTotal} pompek za Tobą.`,
+          `✅ Zrobione. ${todayTotal} pompek w kieszeni.`,
+        ]
+
+        if (over > 0 && !exceeds50) {
+          pool.push(`🚀 Cel przebity! ${todayTotal} pompek (o ${over} więcej).`)
+        }
+        if (exceeds50 && !exceedsDouble) {
+          pool.push(`🔥 Mocno! ${todayTotal} pompek — znacznie ponad cel.`)
+        }
+        if (exceedsDouble) {
+          pool.push(
+            `🌋 Wulkan! ${todayTotal} pompek — dwa razy tyle co cel!`
+          )
+        }
+        if (streak >= 3) {
+          pool.push(`🔥 Cel + seria ${streak} dni leci dalej!`)
+        }
+        if (streak >= 7) {
+          pool.push(
+            `⭐ Seria ${streak} dni i ${todayTotal} pompek dziś. Legenda.`
+          )
+        }
+
+        return {
+          title: 'POMPKI ⚡',
+          body: pool[Math.floor(Math.random() * pool.length)],
+        }
+      }
+
+      // Wariant PRZYPOMNIENIE — cel nie zrobiony
       if (streak >= 3 && todayTotal === 0) {
         return {
           title: 'POMPKI ⚡',
