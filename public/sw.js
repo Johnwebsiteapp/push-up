@@ -33,6 +33,9 @@ self.addEventListener('push', (event) => {
       badge: '/favicon-32.png',
       tag: data.tag || 'pompki-push',
       renotify: true,
+      silent: false,
+      requireInteraction: false,
+      vibrate: [200, 100, 200, 100, 200],
       data: { url: data.url || '/' },
     })
   )
