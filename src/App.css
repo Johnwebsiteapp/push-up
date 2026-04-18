@@ -598,7 +598,7 @@
 
 .hero {
   position: relative;
-  padding: 46px 16px 14px;
+  padding: 44px 16px 14px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -607,19 +607,20 @@
   animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 60ms backwards;
 }
 
-/* Hero mode switch — góra karty hero, wyśrodkowany */
+/* Hero mode switch — wewnątrz karty, przy górnej krawędzi, wyśrodkowany */
 .hero-mode-switch {
   position: absolute;
-  top: 2px;
+  top: 6px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
   display: inline-flex;
+  gap: 2px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 2px;
-  gap: 2px;
+  white-space: nowrap;
 }
 .hero-mode-btn {
   padding: 6px 12px;
