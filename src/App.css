@@ -272,7 +272,7 @@
   flex-shrink: 0;
 }
 
-/* Topbar chips container — two pills side by side */
+/* Topbar chips container — prawa strona topbara */
 .topbar-chips {
   display: flex;
   align-items: center;
@@ -280,6 +280,7 @@
   flex-shrink: 1;
   min-width: 0;
   overflow: hidden;
+  margin-left: auto;
 }
 .topbar-count {
   display: flex;
@@ -347,6 +348,8 @@
 .avatar-menu {
   position: relative;
   z-index: 35; /* above backdrop */
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 .avatar-backdrop {
   position: fixed;
