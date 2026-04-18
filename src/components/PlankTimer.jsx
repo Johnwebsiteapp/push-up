@@ -15,13 +15,24 @@ export default function PlankTimer({ onSave, onClose }) {
   const startRef = useRef(null)
   const intervalRef = useRef(null)
 
-  // Auto-start immediately on mount
+  // Auto-start immediately on mount + blokada wygaszania ekranu
   useEffect(() => {
     startRef.current = Date.now()
     intervalRef.current = setInterval(() => {
       setSeconds(Math.floor((Date.now() - startRef.current) / 1000))
     }, 100)
-    return () => clearInterval(intervalRef.current)
+
+    let wakeLock = null
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then((lock) => {
+        wakeLock = lock
+      }).catch(() => {}) // brak uprawnień — ignoruj cicho
+    }
+
+    return () => {
+      clearInterval(intervalRef.current)
+      wakeLock?.release()
+    }
   }, [])
 
   async function handleStop() {
