@@ -598,7 +598,7 @@
 
 .hero {
   position: relative;
-  padding: 10px 16px 12px;
+  padding: 46px 16px 14px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -607,10 +607,13 @@
   animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 60ms backwards;
 }
 
-/* Hero mode switch — lewy górny róg nad kartą */
+/* Hero mode switch — lewy górny róg karty hero */
 .hero-mode-switch {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 3;
   display: inline-flex;
-  margin-bottom: 8px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -678,12 +681,12 @@
 
 .hero-count {
   text-align: center;
-  margin-top: 2px;
+  margin-top: 0;
 }
 .hero-number {
   font-family: 'Lexend', sans-serif;
   font-weight: 800;
-  font-size: 2.6rem;
+  font-size: 3.0rem;
   line-height: 1;
   color: var(--primary);
   text-shadow: 0 0 40px rgba(204, 255, 0, 0.5),
@@ -698,7 +701,7 @@
     0 0 10px rgba(0, 253, 255, 0.3);
   animation: numberBreathPlank 4.2s ease-in-out infinite;
   font-variant-numeric: tabular-nums;
-  font-size: 2.4rem;
+  font-size: 2.7rem;
 }
 @keyframes numberBreathPlank {
   0%, 100% {
@@ -826,7 +829,7 @@
 }
 
 .hero-motivation {
-  margin-top: 6px;
+  margin-top: 10px;
   animation: achievementIn 680ms cubic-bezier(0.22, 0.9, 0.32, 1);
   will-change: transform, opacity, filter;
 }
@@ -849,7 +852,7 @@
 
 .hero-title {
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   margin: 0;
   line-height: 1.2;
   display: inline-flex;
@@ -881,9 +884,9 @@
 .hero-sub {
   text-align: center;
   color: var(--muted);
-  font-size: 0.72rem;
-  line-height: 1.3;
-  margin-top: 3px;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 4px;
   max-width: 280px;
   margin-left: auto;
   margin-right: auto;
@@ -893,8 +896,8 @@
 .goal-bars {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 7px;
+  margin-top: 10px;
 }
 
 /* Rząd z dwoma compact goal bars deski side-by-side */
@@ -923,7 +926,7 @@
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 7px 12px;
+  padding: 8px 12px;
   transition: border-color 400ms ease, box-shadow 400ms ease;
 }
 .goal-bar.met {
@@ -934,7 +937,7 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 .goal-bar-head .label {
   font-size: 0.6rem;
@@ -1033,14 +1036,14 @@
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-top: 10px;
 }
 .stat-box {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 7px 12px;
+  padding: 8px 12px;
 }
 .stat-box .label {
   display: block;
@@ -1130,7 +1133,7 @@
   text-align: center;
 }
 .plank-launch-icon {
-  font-size: 2rem;
+  font-size: 2.4rem;
   line-height: 1;
 }
 .plank-launch-text {
@@ -1178,7 +1181,7 @@
   width: 100%;
   text-align: center;
   font-family: 'Lexend', sans-serif;
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 800;
   background: transparent;
   border: none;
@@ -1215,11 +1218,11 @@
   display: flex;
   gap: 8px;
   justify-content: center;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 .quick-add-btn {
   flex: 1;
-  padding: 7px 12px;
+  padding: 8px 12px;
   background: rgba(204, 255, 0, 0.06);
   border: 1px solid rgba(204, 255, 0, 0.32);
   color: var(--primary);
@@ -1319,8 +1322,8 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 10px;
-  margin-top: 8px;
+  padding: 12px;
+  margin-top: 9px;
   border-radius: 999px;
   background: var(--primary);
   color: var(--bg);

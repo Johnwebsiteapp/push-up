@@ -1266,6 +1266,26 @@ export default function Dashboard({ session }) {
             aria-hidden={tab !== 'home'}
           >
           <section className={`hero hero-${exerciseMode}`}>
+            <div className="hero-mode-switch" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={exerciseMode === 'pushup'}
+                className={`hero-mode-btn ${exerciseMode === 'pushup' ? 'active' : ''}`}
+                onClick={() => setExerciseMode('pushup')}
+              >
+                💪 Pompki
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={exerciseMode === 'plank'}
+                className={`hero-mode-btn ${exerciseMode === 'plank' ? 'active' : ''}`}
+                onClick={() => setExerciseMode('plank')}
+              >
+                🧘 Deska
+              </button>
+            </div>
 
             {exerciseMode === 'pushup' ? (
               <>
