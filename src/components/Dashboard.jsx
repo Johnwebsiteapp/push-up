@@ -667,6 +667,8 @@ export default function Dashboard({ session }) {
   }, [myPlanks, mondayISOVal])
 
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
+  const pushupStreak = useMemo(() => calculateStreak(myPushups), [myPushups])
+  const plankStreak = useMemo(() => calculateStreak(myPlanks), [myPlanks])
   const maxStreak = useMemo(() => calculateMaxStreak(myWorkouts), [myWorkouts])
 
   // Wykres tygodniowy — aktualny tydzień od poniedziałku do niedzieli
@@ -1309,9 +1311,9 @@ export default function Dashboard({ session }) {
                   <div className="stat-box primary">
                     <span className="label">Seria</span>
                     <div className="value">
-                      {streak > 0 && <span className="streak-flame">🔥</span>}
-                      <AnimatedCounter value={streak} />{' '}
-                      {streak === 1 ? 'dzień' : 'dni'}
+                      {pushupStreak > 0 && <span className="streak-flame">🔥</span>}
+                      <AnimatedCounter value={pushupStreak} />{' '}
+                      {pushupStreak === 1 ? 'dzień' : 'dni'}
                     </div>
                   </div>
                   <div className="stat-box secondary">
@@ -1375,9 +1377,9 @@ export default function Dashboard({ session }) {
                   <div className="stat-box primary">
                     <span className="label">Seria</span>
                     <div className="value">
-                      {streak > 0 && <span className="streak-flame">🔥</span>}
-                      <AnimatedCounter value={streak} />{' '}
-                      {streak === 1 ? 'dzień' : 'dni'}
+                      {plankStreak > 0 && <span className="streak-flame">🔥</span>}
+                      <AnimatedCounter value={plankStreak} />{' '}
+                      {plankStreak === 1 ? 'dzień' : 'dni'}
                     </div>
                   </div>
                   <div className="stat-box secondary">
