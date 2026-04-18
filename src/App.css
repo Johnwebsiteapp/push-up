@@ -254,10 +254,9 @@
 }
 
 .topbar {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 10px;
   position: sticky;
   top: 0;
   z-index: 30;
@@ -269,15 +268,15 @@
   border-bottom: 1px solid rgba(38, 40, 40, 0.5);
 }
 .topbar .brand {
-  flex-shrink: 0;
+  justify-self: start;
 }
 
-/* Topbar chips container — lewa strona topbara (przy brandzie) */
+/* Topbar chips container — sam środek topbara */
 .topbar-chips {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  flex-shrink: 1;
   min-width: 0;
   overflow: hidden;
 }
@@ -347,8 +346,7 @@
 .avatar-menu {
   position: relative;
   z-index: 35; /* above backdrop */
-  margin-left: auto;
-  flex-shrink: 0;
+  justify-self: end;
 }
 .avatar-backdrop {
   position: fixed;
