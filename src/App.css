@@ -607,11 +607,12 @@
   animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 60ms backwards;
 }
 
-/* Hero mode switch — lewy górny róg karty hero */
+/* Hero mode switch — góra karty hero, wyśrodkowany */
 .hero-mode-switch {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 3;
   display: inline-flex;
   background: var(--bg-elevated);
@@ -651,18 +652,7 @@
   transform: none;
 }
 .hero::before {
-  content: 'POSTĘP';
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Lexend', sans-serif;
-  font-weight: 800;
-  font-size: 1.85rem;
-  color: rgba(255, 255, 255, 0.035);
-  letter-spacing: 0.12em;
-  pointer-events: none;
-  white-space: nowrap;
+  content: '';
 }
 .hero::after {
   content: '';
