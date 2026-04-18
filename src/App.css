@@ -610,7 +610,7 @@
 /* Hero mode switch — wewnątrz karty, przy górnej krawędzi, wyśrodkowany */
 .hero-mode-switch {
   position: absolute;
-  top: 6px;
+  top: 1px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
