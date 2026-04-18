@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import PlankTimer from './PlankTimer'
 
@@ -25,6 +25,23 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [showTimer, setShowTimer] = useState(false)
+
+  // Animacja przełączania trybu
+  const [displayMode, setDisplayMode] = useState(mode)
+  const [exiting, setExiting] = useState(false)
+  const dirRef = useRef(1)
+  const timerRef = useRef(null)
+
+  useEffect(() => {
+    if (mode === displayMode) return
+    dirRef.current = mode === 'plank' ? 1 : -1
+    setExiting(true)
+    timerRef.current = setTimeout(() => {
+      setDisplayMode(mode)
+      setExiting(false)
+    }, 210)
+    return () => clearTimeout(timerRef.current)
+  }, [mode])
 
   const QUICK_ADDS = [10, 15, 20]
 
@@ -123,7 +140,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
             onChange={(e) => setDate(e.target.value)}
             required
             aria-label="Data treningu"
-            disabled={mode === 'plank'}
+            disabled={displayMode === 'plank'}
           />
           <div className="quick-log-mode-switch" role="tablist">
             <button
@@ -147,74 +164,80 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
           </div>
         </div>
 
-        {mode === 'pushup' && (
-          <>
-            <div className="quick-log-big">
-              <input
-                className="quick-log-input"
-                type="number"
-                min="1"
-                inputMode="numeric"
-                value={count}
-                onChange={(e) => setCount(e.target.value)}
-                placeholder="00"
-                required={mode === 'pushup'}
-              />
-              <div className="quick-log-sub">Liczba pompek</div>
-            </div>
+        <div
+          key={displayMode}
+          className={`hero-body${exiting ? ' hero-body-exit' : ''}`}
+          style={{ '--hero-dir': dirRef.current }}
+        >
+          {displayMode === 'pushup' && (
+            <>
+              <div className="quick-log-big">
+                <input
+                  className="quick-log-input"
+                  type="number"
+                  min="1"
+                  inputMode="numeric"
+                  value={count}
+                  onChange={(e) => setCount(e.target.value)}
+                  placeholder="00"
+                  required={mode === 'pushup'}
+                />
+                <div className="quick-log-sub">Liczba pompek</div>
+              </div>
 
-            <div className="quick-add-row">
-              {QUICK_ADDS.map((n) => (
+              <div className="quick-add-row">
+                {QUICK_ADDS.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className="quick-add-btn"
+                    onClick={(e) => quickAdd(n, e)}
+                    disabled={saving}
+                    aria-label={`Dodaj ${n} pompek`}
+                  >
+                    +{n}
+                  </button>
+                ))}
                 <button
-                  key={n}
                   type="button"
-                  className="quick-add-btn"
-                  onClick={(e) => quickAdd(n, e)}
-                  disabled={saving}
-                  aria-label={`Dodaj ${n} pompek`}
+                  className="quick-add-reset"
+                  onClick={resetCount}
+                  disabled={saving || !count}
+                  aria-label="Wyczyść licznik"
+                  title="Wyczyść"
                 >
-                  +{n}
+                  ↺
                 </button>
-              ))}
+              </div>
+
+              <button type="submit" className="confirm-btn" disabled={saving}>
+                {saving ? 'Zapisywanie…' : 'Zapisz trening'}
+              </button>
+              {error && (
+                <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
+                  {error}
+                </p>
+              )}
+            </>
+          )}
+
+          {displayMode === 'plank' && (
+            <div className="plank-launch">
+              <div className="plank-launch-icon">🧘</div>
+              <div className="plank-launch-text">
+                Timer wbudowany — kliknij Rozpocznij, przyjmij pozycję i wytrzymaj.
+              </div>
               <button
                 type="button"
-                className="quick-add-reset"
-                onClick={resetCount}
-                disabled={saving || !count}
-                aria-label="Wyczyść licznik"
-                title="Wyczyść"
+                className="confirm-btn plank-launch-btn"
+                onClick={() => setShowTimer(true)}
+                disabled={saving}
               >
-                ↺
+                ▶ Rozpocznij Plank
               </button>
             </div>
-
-            <button type="submit" className="confirm-btn" disabled={saving}>
-              {saving ? 'Zapisywanie…' : 'Zapisz trening'}
-            </button>
-            {error && (
-              <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
-                {error}
-              </p>
-            )}
-          </>
-        )}
-
-        {mode === 'plank' && (
-          <div className="plank-launch">
-            <div className="plank-launch-icon">🧘</div>
-            <div className="plank-launch-text">
-              Timer wbudowany — kliknij Rozpocznij, przyjmij pozycję i wytrzymaj.
-            </div>
-            <button
-              type="button"
-              className="confirm-btn plank-launch-btn"
-              onClick={() => setShowTimer(true)}
-              disabled={saving}
-            >
-              ▶ Rozpocznij Plank
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </form>
 
       {showTimer && (
