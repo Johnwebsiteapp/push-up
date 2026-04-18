@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import PlankTimer from './PlankTimer'
 
 function todayISO() {
   const d = new Date()
@@ -9,11 +10,19 @@ function todayISO() {
   return `${y}-${m}-${day}`
 }
 
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 export default function AddWorkout({ user }) {
+  const [mode, setMode] = useState('pushup') // 'pushup' | 'plank'
   const [count, setCount] = useState('')
   const [date, setDate] = useState(todayISO())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [showTimer, setShowTimer] = useState(false)
 
   const QUICK_ADDS = [10, 15, 20]
 
@@ -22,7 +31,6 @@ export default function AddWorkout({ user }) {
     setCount(String(current + n))
     if (error) setError(null)
 
-    // Ripple effect — create element at click position
     if (event && event.currentTarget) {
       const btn = event.currentTarget
       const rect = btn.getBoundingClientRect()
@@ -44,7 +52,7 @@ export default function AddWorkout({ user }) {
     if (error) setError(null)
   }
 
-  async function handleSubmit(e) {
+  async function handlePushupSubmit(e) {
     e.preventDefault()
     setError(null)
 
@@ -58,7 +66,9 @@ export default function AddWorkout({ user }) {
     const { error } = await supabase.from('workouts').insert({
       user_id: user.id,
       user_email: user.email,
+      exercise_type: 'pushup',
       count: n,
+      duration_seconds: null,
       performed_at: date,
       note: null,
     })
@@ -69,72 +79,148 @@ export default function AddWorkout({ user }) {
     } else {
       setCount('')
       setDate(todayISO())
-      // Przewiń na górę żeby użytkownik zobaczył zaktualizowany licznik
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  async function handlePlankSave(seconds) {
+    setSaving(true)
+    const { error } = await supabase.from('workouts').insert({
+      user_id: user.id,
+      user_email: user.email,
+      exercise_type: 'plank',
+      count: null,
+      duration_seconds: seconds,
+      performed_at: todayISO(),
+      note: null,
+    })
+    setSaving(false)
+
+    if (error) {
+      alert('Błąd zapisu: ' + error.message)
+    } else {
+      setShowTimer(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="quick-log">
-      <div className="quick-log-header">
-        <input
-          type="date"
-          className="quick-log-date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          aria-label="Data treningu"
+    <>
+      <form
+        onSubmit={handlePushupSubmit}
+        className="quick-log"
+        onSubmitCapture={(e) => {
+          if (mode === 'plank') e.preventDefault()
+        }}
+      >
+        <div className="quick-log-header">
+          <input
+            type="date"
+            className="quick-log-date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            aria-label="Data treningu"
+            disabled={mode === 'plank'}
+          />
+          <div className="quick-log-mode-switch" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'pushup'}
+              className={`mode-btn ${mode === 'pushup' ? 'active' : ''}`}
+              onClick={() => setMode('pushup')}
+            >
+              💪 Pompki
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'plank'}
+              className={`mode-btn ${mode === 'plank' ? 'active' : ''}`}
+              onClick={() => setMode('plank')}
+            >
+              🧘 Deska
+            </button>
+          </div>
+        </div>
+
+        {mode === 'pushup' && (
+          <>
+            <div className="quick-log-big">
+              <input
+                className="quick-log-input"
+                type="number"
+                min="1"
+                inputMode="numeric"
+                value={count}
+                onChange={(e) => setCount(e.target.value)}
+                placeholder="00"
+                required={mode === 'pushup'}
+              />
+              <div className="quick-log-sub">Liczba pompek</div>
+            </div>
+
+            <div className="quick-add-row">
+              {QUICK_ADDS.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className="quick-add-btn"
+                  onClick={(e) => quickAdd(n, e)}
+                  disabled={saving}
+                  aria-label={`Dodaj ${n} pompek`}
+                >
+                  +{n}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="quick-add-reset"
+                onClick={resetCount}
+                disabled={saving || !count}
+                aria-label="Wyczyść licznik"
+                title="Wyczyść"
+              >
+                ↺
+              </button>
+            </div>
+
+            <button type="submit" className="confirm-btn" disabled={saving}>
+              {saving ? 'Zapisywanie…' : 'Zapisz trening'}
+            </button>
+            {error && (
+              <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
+                {error}
+              </p>
+            )}
+          </>
+        )}
+
+        {mode === 'plank' && (
+          <div className="plank-launch">
+            <div className="plank-launch-icon">🧘</div>
+            <div className="plank-launch-text">
+              Timer wbudowany — kliknij Rozpocznij, przyjmij pozycję i wytrzymaj.
+            </div>
+            <button
+              type="button"
+              className="confirm-btn plank-launch-btn"
+              onClick={() => setShowTimer(true)}
+              disabled={saving}
+            >
+              ▶ Rozpocznij deskę
+            </button>
+          </div>
+        )}
+      </form>
+
+      {showTimer && (
+        <PlankTimer
+          onSave={handlePlankSave}
+          onClose={() => setShowTimer(false)}
         />
-        <span className="quick-log-title-side">Szybki zapis</span>
-      </div>
-
-      <div className="quick-log-big">
-        <input
-          className="quick-log-input"
-          type="number"
-          min="1"
-          inputMode="numeric"
-          value={count}
-          onChange={(e) => setCount(e.target.value)}
-          placeholder="00"
-          required
-        />
-        <div className="quick-log-sub">Liczba pompek</div>
-      </div>
-
-      <div className="quick-add-row">
-        {QUICK_ADDS.map((n) => (
-          <button
-            key={n}
-            type="button"
-            className="quick-add-btn"
-            onClick={(e) => quickAdd(n, e)}
-            disabled={saving}
-            aria-label={`Dodaj ${n} pompek`}
-          >
-            +{n}
-          </button>
-        ))}
-        <button
-          type="button"
-          className="quick-add-reset"
-          onClick={resetCount}
-          disabled={saving || !count}
-          aria-label="Wyczyść licznik"
-          title="Wyczyść"
-        >
-          ↺
-        </button>
-      </div>
-
-      <button type="submit" className="confirm-btn" disabled={saving}>
-        {saving ? 'Zapisywanie…' : 'Zapisz trening'}
-      </button>
-      {error && (
-        <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
-          {error}
-        </p>
       )}
-    </form>
+    </>
   )
 }

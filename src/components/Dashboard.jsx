@@ -241,6 +241,22 @@ function streakLabel(n) {
   return `${n} dni`
 }
 
+function formatDuration(seconds) {
+  if (!seconds || seconds < 0) return '0:00'
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
+function formatDurationShort(seconds) {
+  if (!seconds || seconds < 0) return '0 min'
+  const mins = Math.floor(seconds / 60)
+  if (mins < 1) return `${seconds}s`
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return s === 0 ? `${m} min` : `${m}:${String(s).padStart(2, '0')}`
+}
+
 function getLevelTitle(level) {
   if (level <= 2) return 'Nowicjusz'
   if (level <= 5) return 'Początkujący'
@@ -593,31 +609,61 @@ export default function Dashboard({ session }) {
     [workouts, user.id]
   )
 
-  const myTotal = useMemo(
-    () => myWorkouts.reduce((sum, w) => sum + w.count, 0),
+  // Separacja: pompki vs deska
+  const myPushups = useMemo(
+    () => myWorkouts.filter((w) => w.exercise_type !== 'plank'),
     [myWorkouts]
+  )
+  const myPlanks = useMemo(
+    () => myWorkouts.filter((w) => w.exercise_type === 'plank'),
+    [myWorkouts]
+  )
+
+  const myTotal = useMemo(
+    () => myPushups.reduce((sum, w) => sum + (w.count || 0), 0),
+    [myPushups]
+  )
+
+  const myPlankTotalSeconds = useMemo(
+    () => myPlanks.reduce((sum, w) => sum + (w.duration_seconds || 0), 0),
+    [myPlanks]
   )
 
   const todayTotal = useMemo(() => {
     const t = todayISO()
-    return myWorkouts
+    return myPushups
       .filter((w) => w.performed_at === t)
-      .reduce((sum, w) => sum + w.count, 0)
-  }, [myWorkouts])
+      .reduce((sum, w) => sum + (w.count || 0), 0)
+  }, [myPushups])
 
-  // Tydzień = od poniedziałku do dziś (spójne z wykresem tygodniowym)
-  const weekTotal = useMemo(() => {
+  const todayPlankSeconds = useMemo(() => {
+    const t = todayISO()
+    return myPlanks
+      .filter((w) => w.performed_at === t)
+      .reduce((sum, w) => sum + (w.duration_seconds || 0), 0)
+  }, [myPlanks])
+
+  // Tydzień = od poniedziałku do dziś
+  const mondayISOVal = useMemo(() => {
     const now = new Date()
-    const todayDay = now.getDay() // 0=Nd, 1=Pn, ..., 6=Sb
+    const todayDay = now.getDay()
     const daysSinceMonday = (todayDay + 6) % 7
     const monday = new Date(now)
     monday.setDate(now.getDate() - daysSinceMonday)
-    const mondayISO = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+    return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+  }, [])
 
-    return myWorkouts
-      .filter((w) => w.performed_at >= mondayISO)
-      .reduce((sum, w) => sum + w.count, 0)
-  }, [myWorkouts])
+  const weekTotal = useMemo(() => {
+    return myPushups
+      .filter((w) => w.performed_at >= mondayISOVal)
+      .reduce((sum, w) => sum + (w.count || 0), 0)
+  }, [myPushups, mondayISOVal])
+
+  const weekPlankSeconds = useMemo(() => {
+    return myPlanks
+      .filter((w) => w.performed_at >= mondayISOVal)
+      .reduce((sum, w) => sum + (w.duration_seconds || 0), 0)
+  }, [myPlanks, mondayISOVal])
 
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
   const maxStreak = useMemo(() => calculateMaxStreak(myWorkouts), [myWorkouts])
@@ -725,13 +771,25 @@ export default function Dashboard({ session }) {
   const myProfileData = profiles[user.id]
   const dailyGoal = myProfileData?.daily_goal || 30
   const weeklyGoal = myProfileData?.weekly_goal || 150
+  const dailyGoalPlank = myProfileData?.daily_goal_plank_seconds || 180
+  const weeklyGoalPlank = myProfileData?.weekly_goal_plank_seconds || 900
   const dailyProgress = Math.min(100, Math.round((todayTotal / dailyGoal) * 100))
   const weeklyProgress = Math.min(
     100,
     Math.round((weekTotal / weeklyGoal) * 100)
   )
+  const dailyPlankProgress = Math.min(
+    100,
+    Math.round((todayPlankSeconds / dailyGoalPlank) * 100)
+  )
+  const weeklyPlankProgress = Math.min(
+    100,
+    Math.round((weekPlankSeconds / weeklyGoalPlank) * 100)
+  )
   const dailyMet = todayTotal >= dailyGoal && dailyGoal > 0
   const weeklyMet = weekTotal >= weeklyGoal && weeklyGoal > 0
+  const dailyPlankMet = todayPlankSeconds >= dailyGoalPlank && dailyGoalPlank > 0
+  const weeklyPlankMet = weekPlankSeconds >= weeklyGoalPlank && weeklyGoalPlank > 0
 
   // Celebracja — banner gdy po raz pierwszy osiągnięto cel dziś/tydzień
   const [celebration, setCelebration] = useState(null)
@@ -1005,15 +1063,27 @@ export default function Dashboard({ session }) {
           </span>
           <span>POMPKI</span>
         </div>
-        <div
-          className="topbar-count"
-          aria-label={`Razem ${myTotal} pompek`}
-          title="Wszystkie Twoje pompki"
-        >
-          <span className="topbar-count-value">
-            <AnimatedCounter value={myTotal} />
-          </span>
-          <span className="topbar-count-label">razem</span>
+        <div className="topbar-chips">
+          <div
+            className="topbar-count topbar-count-pushup"
+            aria-label={`Razem ${myTotal} pompek`}
+            title="Wszystkie Twoje pompki"
+          >
+            <span className="topbar-count-value">
+              <AnimatedCounter value={myTotal} />
+            </span>
+            <span className="topbar-count-label">razem</span>
+          </div>
+          <div
+            className="topbar-count topbar-count-plank"
+            aria-label={`Deska razem ${formatDuration(myPlankTotalSeconds)}`}
+            title="Łączny czas deski"
+          >
+            <span className="topbar-count-value">
+              {formatDuration(myPlankTotalSeconds)}
+            </span>
+            <span className="topbar-count-label">deska</span>
+          </div>
         </div>
         <div className="avatar-menu">
           <button
@@ -1206,7 +1276,15 @@ export default function Dashboard({ session }) {
               <div className="hero-label">Pompki dzisiaj</div>
             </div>
             <div className="hero-motivation" key={achievementKey}>
-              <h2 className="hero-title">{achievement.title}</h2>
+              <h2 className="hero-title">
+                {streak > 0 && (
+                  <span className="hero-streak">
+                    <span className="streak-flame">🔥</span>
+                    {streak} {streak === 1 ? 'dzień' : 'dni'}
+                  </span>
+                )}
+                {achievement.title}
+              </h2>
               <p className="hero-sub">{achievement.sub}</p>
             </div>
 
@@ -1246,21 +1324,44 @@ export default function Dashboard({ session }) {
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="stats-row">
-              <div className="stat-box primary">
-                <span className="label">Seria</span>
-                <div className="value">
-                  {streak > 0 && <span className="streak-flame">🔥</span>}
-                  <AnimatedCounter value={streak} />{' '}
-                  {streak === 1 ? 'dzień' : 'dni'}
+              <div className="goal-bars-plank-row">
+                <div className={`goal-bar compact ${dailyPlankMet ? 'met' : ''}`}>
+                  <div className="goal-bar-head">
+                    <span className="label">
+                      🧘 Deska dziś
+                      {dailyPlankMet && <span className="goal-check">✓</span>}
+                    </span>
+                    <span className="goal-bar-value">
+                      {formatDuration(todayPlankSeconds)} /{' '}
+                      {formatDuration(dailyGoalPlank)}
+                    </span>
+                  </div>
+                  <div className="goal-bar-track">
+                    <div
+                      className="goal-bar-fill"
+                      style={{ width: `${dailyPlankProgress}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="stat-box secondary">
-                <span className="label">Tydzień</span>
-                <div className="value">
-                  <AnimatedCounter value={weekTotal} /> pompek
+
+                <div className={`goal-bar compact ${weeklyPlankMet ? 'met' : ''}`}>
+                  <div className="goal-bar-head">
+                    <span className="label secondary">
+                      🧘 Tydzień
+                      {weeklyPlankMet && <span className="goal-check">✓</span>}
+                    </span>
+                    <span className="goal-bar-value">
+                      {formatDurationShort(weekPlankSeconds)} /{' '}
+                      {formatDurationShort(weeklyGoalPlank)}
+                    </span>
+                  </div>
+                  <div className="goal-bar-track">
+                    <div
+                      className="goal-bar-fill secondary"
+                      style={{ width: `${weeklyPlankProgress}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

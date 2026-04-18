@@ -17,6 +17,13 @@ function formatDate(isoDate) {
   return `${dayName} ${dd}.${mm}`
 }
 
+function formatDuration(seconds) {
+  if (!seconds) return '0:00'
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 export default function WorkoutList({ workouts, profiles, currentUserId, onDelete }) {
   if (workouts.length === 0) {
     return <p className="empty">Jeszcze nic tu nie ma. Dodaj pierwszy trening powyżej.</p>
@@ -31,11 +38,20 @@ export default function WorkoutList({ workouts, profiles, currentUserId, onDelet
           prof?.nick ||
           prof?.name ||
           (w.user_email ? w.user_email.split('@')[0] : 'Użytkownik')
+
+        const isPlank = w.exercise_type === 'plank'
+        const label = isPlank
+          ? `${formatDuration(w.duration_seconds)} deski`
+          : `${w.count} pompek`
+        const icon = isPlank ? '🧘' : '💪'
+
         return (
-          <li key={w.id} className={mine ? 'mine' : 'other'}>
+          <li key={w.id} className={`${mine ? 'mine' : 'other'} ${isPlank ? 'plank' : ''}`}>
             <div className="workout-main">
               <div className="workout-top">
-                <strong className="workout-count">{w.count} pompek</strong>
+                <strong className="workout-count">
+                  <span className="workout-icon">{icon}</span> {label}
+                </strong>
                 <span className="workout-date">{formatDate(w.performed_at)}</span>
               </div>
               <div className="workout-meta">

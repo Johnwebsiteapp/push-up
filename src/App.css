@@ -272,16 +272,34 @@
   flex-shrink: 0;
 }
 
+/* Topbar chips container — two pills side by side */
+.topbar-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
 .topbar-count {
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  padding: 9px 16px;
+  gap: 5px;
+  padding: 7px 11px;
   background: rgba(204, 255, 0, 0.08);
   border: 1px solid rgba(204, 255, 0, 0.3);
   border-radius: 999px;
   cursor: default;
   flex-shrink: 0;
+}
+.topbar-count-plank {
+  background: rgba(0, 253, 255, 0.08);
+  border-color: rgba(0, 253, 255, 0.3);
+}
+.topbar-count-plank .topbar-count-value {
+  color: var(--secondary);
+  text-shadow: 0 0 10px rgba(0, 253, 255, 0.4);
+  font-size: 0.92rem;
 }
 .topbar-count-value {
   font-family: 'Lexend', sans-serif;
@@ -300,18 +318,24 @@
   font-weight: 700;
 }
 
-@media (max-width: 380px) {
+@media (max-width: 430px) {
   .topbar {
-    padding: 14px 14px;
+    padding: 12px 12px;
   }
   .topbar-count {
-    padding: 8px 12px;
+    padding: 6px 10px;
   }
   .topbar-count-label {
     display: none;
   }
   .brand {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
+  }
+  .brand span:nth-child(2) {
+    display: none; /* ukryj słowo POMPKI, zostaw tylko ⚡ */
+  }
+  .topbar-chips {
+    gap: 5px;
   }
 }
 
@@ -742,6 +766,31 @@
   font-size: 1.1rem;
   margin: 0;
   line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+.hero-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  background: rgba(204, 255, 0, 0.1);
+  border: 1px solid rgba(204, 255, 0, 0.28);
+  border-radius: 999px;
+  padding: 3px 9px 3px 7px;
+  font-weight: 700;
+  text-transform: none;
+}
+.hero-streak .streak-flame {
+  margin-right: 0;
+  font-size: 0.85rem;
 }
 .hero-sub {
   text-align: center;
@@ -758,8 +807,31 @@
 .goal-bars {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* Rząd z dwoma compact goal bars deski side-by-side */
+.goal-bars-plank-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.goal-bar.compact {
+  padding: 8px 12px;
+}
+.goal-bar.compact .goal-bar-head {
+  margin-bottom: 5px;
+}
+.goal-bar.compact .label {
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+}
+.goal-bar.compact .goal-bar-value {
+  font-size: 0.78rem;
+}
+.goal-bar.compact .goal-bar-track {
+  height: 5px;
 }
 .goal-bar {
   background: var(--bg-elevated);
@@ -924,7 +996,65 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+/* Toggle Pompki / Deska */
+.quick-log-mode-switch {
+  display: inline-flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+.mode-btn {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  box-shadow: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+.mode-btn.active {
+  background: var(--primary);
+  color: var(--bg);
+  box-shadow: 0 0 10px rgba(204, 255, 0, 0.3);
+}
+.mode-btn:hover:not(:disabled):not(.active) {
+  color: var(--text);
+  background: transparent;
+  transform: none;
+}
+
+/* Plank launch screen (w miejscu inputu pompek gdy tryb Deska) */
+.plank-launch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 8px 0;
+  text-align: center;
+}
+.plank-launch-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+.plank-launch-text {
+  font-size: 0.8rem;
+  color: var(--muted);
+  max-width: 260px;
+  line-height: 1.4;
+}
+.plank-launch-btn {
+  margin-top: 4px;
 }
 .quick-log-date {
   /* compact pill w lewym górnym rogu karty */
@@ -2435,6 +2565,199 @@
 }
 .badge.locked .badge-name {
   color: var(--muted);
+}
+
+/* ============================================================
+   PLANK TIMER (fullscreen overlay)
+   ============================================================ */
+.plank-timer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: radial-gradient(
+      circle at 50% 40%,
+      rgba(204, 255, 0, 0.08),
+      transparent 55%
+    ),
+    rgba(5, 7, 7, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 24px 60px;
+  animation: plankFadeIn 280ms ease;
+}
+@keyframes plankFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(20px);
+  }
+}
+
+.plank-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  box-shadow: none;
+  letter-spacing: 0;
+  text-transform: none;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+.plank-close:active {
+  transform: scale(0.9);
+}
+
+.plank-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.plank-icon {
+  font-size: 2.6rem;
+  line-height: 1;
+  animation: plankIconFloat 3s ease-in-out infinite;
+}
+@keyframes plankIconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.plank-title {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.plank-subtitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+  max-width: 300px;
+  line-height: 1.4;
+}
+
+.plank-counter {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  display: grid;
+  place-items: center;
+}
+.plank-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.plank-ring-rotating {
+  animation: plankRingSpin 3s linear infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes plankRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.plank-time {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 4.5rem;
+  color: var(--primary);
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(204, 255, 0, 0.55),
+    0 0 14px rgba(204, 255, 0, 0.4);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.plank-counter.running .plank-time {
+  animation: plankTimeBreath 1.6s ease-in-out infinite;
+}
+@keyframes plankTimeBreath {
+  0%, 100% {
+    text-shadow: 0 0 40px rgba(204, 255, 0, 0.55),
+      0 0 14px rgba(204, 255, 0, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 60px rgba(204, 255, 0, 0.8),
+      0 0 22px rgba(204, 255, 0, 0.6);
+  }
+}
+.plank-counter.stopped .plank-time {
+  color: #e0ff66;
+  text-shadow: 0 0 50px rgba(204, 255, 0, 0.8),
+    0 0 18px rgba(204, 255, 0, 0.55);
+}
+
+.plank-controls {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 360px;
+}
+.plank-start-btn,
+.plank-stop-btn {
+  width: 100%;
+  padding: 18px;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.plank-start-btn {
+  background: var(--primary);
+  color: var(--bg);
+  box-shadow: 0 0 32px rgba(204, 255, 0, 0.5);
+}
+.plank-start-btn:active {
+  transform: scale(0.96);
+}
+.plank-stop-btn {
+  background: var(--danger);
+  color: white;
+  box-shadow: 0 0 28px rgba(255, 77, 77, 0.4);
+}
+.plank-stop-btn:active {
+  transform: scale(0.96);
+}
+
+.plank-save-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.plank-save-row button {
+  flex: 1;
+  padding: 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+.plank-save {
+  background: var(--primary);
+  color: var(--bg);
+  box-shadow: 0 0 28px rgba(204, 255, 0, 0.4);
+}
+.plank-discard {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
 }
 
 /* ============================================================

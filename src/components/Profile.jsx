@@ -51,6 +51,8 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
     weight_kg: '',
     daily_goal: '',
     weekly_goal: '',
+    daily_goal_plank_seconds: '',
+    weekly_goal_plank_seconds: '',
   })
 
   useEffect(() => {
@@ -78,6 +80,8 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
             weight_kg: data.weight_kg ?? '',
             daily_goal: data.daily_goal ?? '',
             weekly_goal: data.weekly_goal ?? '',
+            daily_goal_plank_seconds: data.daily_goal_plank_seconds ?? '',
+            weekly_goal_plank_seconds: data.weekly_goal_plank_seconds ?? '',
           })
         } else {
           // Profil jeszcze nie istnieje — pre-fill nickiem z rejestracji
@@ -113,6 +117,12 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
       weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
       daily_goal: form.daily_goal ? parseInt(form.daily_goal, 10) : null,
       weekly_goal: form.weekly_goal ? parseInt(form.weekly_goal, 10) : null,
+      daily_goal_plank_seconds: form.daily_goal_plank_seconds
+        ? parseInt(form.daily_goal_plank_seconds, 10)
+        : null,
+      weekly_goal_plank_seconds: form.weekly_goal_plank_seconds
+        ? parseInt(form.weekly_goal_plank_seconds, 10)
+        : null,
       updated_at: new Date().toISOString(),
     }
 
@@ -367,7 +377,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
 
             <div className="profile-row">
               <label>
-                Cel dzienny
+                Cel dzienny pompek
                 <input
                   type="number"
                   value={form.daily_goal}
@@ -379,7 +389,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
               </label>
 
               <label>
-                Cel tygodniowy
+                Cel tygodniowy pompek
                 <input
                   type="number"
                   value={form.weekly_goal}
@@ -387,6 +397,32 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
                   placeholder="np. 150"
                   min="0"
                   max="69999"
+                />
+              </label>
+            </div>
+
+            <div className="profile-row">
+              <label>
+                Cel dzienny deski (s)
+                <input
+                  type="number"
+                  value={form.daily_goal_plank_seconds}
+                  onChange={update('daily_goal_plank_seconds')}
+                  placeholder="np. 180"
+                  min="0"
+                  max="36000"
+                />
+              </label>
+
+              <label>
+                Cel tygodniowy deski (s)
+                <input
+                  type="number"
+                  value={form.weekly_goal_plank_seconds}
+                  onChange={update('weekly_goal_plank_seconds')}
+                  placeholder="np. 900"
+                  min="0"
+                  max="252000"
                 />
               </label>
             </div>
