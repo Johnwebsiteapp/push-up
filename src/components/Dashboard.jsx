@@ -340,6 +340,9 @@ export default function Dashboard({ session }) {
   const [exerciseMode, setExerciseMode] = useState('pushup') // 'pushup' | 'plank'
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
   const [statsVisible, setStatsVisible] = useState(false)
+  const [chartMode, setChartMode] = useState('pushup')
+  const [recordsMode, setRecordsMode] = useState('pushup')
+  const [historyMode, setHistoryMode] = useState('pushup')
   const [rankingDetail, setRankingDetail] = useState(null) // leaderboard entry or null
 
   // Trigger transition IN after mount — double RAF ensures browser paints hidden state first
@@ -699,6 +702,27 @@ export default function Dashboard({ session }) {
     return { days, max }
   }, [myWorkouts])
 
+  // Wykres tygodniowy — Plank (sekundy)
+  const weeklyChartPlank = useMemo(() => {
+    const days = []
+    const now = new Date()
+    const daysSinceMonday = (now.getDay() + 6) % 7
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - daysSinceMonday)
+    const todayIso = todayISO()
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      const secs = myPlanks
+        .filter((w) => w.performed_at === iso)
+        .reduce((sum, w) => sum + (w.duration_seconds || 0), 0)
+      days.push({ iso, dayName: DNI_CHART[d.getDay()], count: secs, isToday: iso === todayIso })
+    }
+    const max = Math.max(1, ...days.map((d) => d.count))
+    return { days, max }
+  }, [myPlanks])
+
   // Rekordy osobiste + dodatkowe statystyki potrzebne do odznak
   const records = useMemo(() => {
     if (myWorkouts.length === 0) {
@@ -753,6 +777,34 @@ export default function Dashboard({ session }) {
       sessionsCount: myWorkouts.length,
     }
   }, [myWorkouts])
+
+  // Rekordy osobiste — Plank
+  const plankRecords = useMemo(() => {
+    if (myPlanks.length === 0) return { maxSession: 0, maxDay: 0, maxWeek: 0, maxSessionDate: null, maxDayDate: null }
+    const maxSession = Math.max(...myPlanks.map((w) => w.duration_seconds || 0))
+    const maxSessionEntry = myPlanks.find((w) => (w.duration_seconds || 0) === maxSession)
+    const byDay = {}
+    for (const w of myPlanks) {
+      byDay[w.performed_at] = (byDay[w.performed_at] || 0) + (w.duration_seconds || 0)
+    }
+    let maxDay = 0, maxDayDate = null
+    for (const [date, secs] of Object.entries(byDay)) {
+      if (secs > maxDay) { maxDay = secs; maxDayDate = date }
+    }
+    const sortedDates = Object.keys(byDay).sort()
+    let maxWeek = 0
+    for (let i = 0; i < sortedDates.length; i++) {
+      const windowStart = new Date(sortedDates[i])
+      let sum = 0
+      for (let j = i; j < sortedDates.length; j++) {
+        const diff = Math.round((new Date(sortedDates[j]) - windowStart) / (1000 * 60 * 60 * 24))
+        if (diff > 6) break
+        sum += byDay[sortedDates[j]]
+      }
+      if (sum > maxWeek) maxWeek = sum
+    }
+    return { maxSession, maxSessionDate: maxSessionEntry?.performed_at, maxDay, maxDayDate, maxWeek }
+  }, [myPlanks])
 
   const levelInfo = useMemo(() => getLevelInfo(myTotal), [myTotal])
 
@@ -1247,13 +1299,29 @@ export default function Dashboard({ session }) {
               <h3 className="card-title">
                 <span>Moja historia</span>
               </h3>
+              <div className="history-mode-switch">
+                <button
+                  type="button"
+                  className={`history-mode-btn ${historyMode === 'pushup' ? 'active' : ''}`}
+                  onClick={() => setHistoryMode('pushup')}
+                >
+                  💪 Pompki
+                </button>
+                <button
+                  type="button"
+                  className={`history-mode-btn ${historyMode === 'plank' ? 'active' : ''}`}
+                  onClick={() => setHistoryMode('plank')}
+                >
+                  🧘 Plank
+                </button>
+              </div>
               {loading ? (
                 <p className="empty">Ładowanie…</p>
               ) : error ? (
                 <p className="error">Błąd: {error}</p>
               ) : (
                 <WorkoutList
-                  workouts={myWorkouts}
+                  workouts={historyMode === 'pushup' ? myPushups : myPlanks}
                   profiles={profiles}
                   currentUserId={user.id}
                   onDelete={requestDelete}
@@ -1559,34 +1627,49 @@ export default function Dashboard({ session }) {
                     ✕
                   </button>
                 </div>
-                <p className="muted">Pompki z ostatnich 7 dni</p>
-                <div className="chart-bars">
-                  {weeklyChart.days.map((d) => {
-                    const heightPct =
-                      d.count === 0
-                        ? 2
-                        : Math.max(6, (d.count / weeklyChart.max) * 100)
-                    return (
-                      <div className="chart-col" key={d.iso}>
-                        <span className="chart-value">{d.count}</span>
-                        <div
-                          className={`chart-bar ${d.isToday ? 'today' : ''}`}
-                          style={{ height: `${heightPct}%` }}
-                        />
-                        <span className={`chart-day ${d.isToday ? 'today' : ''}`}>
-                          {d.dayName}
-                        </span>
+                <div className="stats-modal-toggle">
+                  <button
+                    type="button"
+                    className={`stats-toggle-btn ${chartMode === 'pushup' ? 'active' : ''}`}
+                    onClick={() => setChartMode('pushup')}
+                  >
+                    💪 Pompki
+                  </button>
+                  <button
+                    type="button"
+                    className={`stats-toggle-btn ${chartMode === 'plank' ? 'active' : ''}`}
+                    onClick={() => setChartMode('plank')}
+                  >
+                    🧘 Plank
+                  </button>
+                </div>
+                {(() => {
+                  const chart = chartMode === 'pushup' ? weeklyChart : weeklyChartPlank
+                  const isPlank = chartMode === 'plank'
+                  const total = chart.days.reduce((s, d) => s + d.count, 0)
+                  return (
+                    <>
+                      <div className="chart-bars">
+                        {chart.days.map((d) => {
+                          const heightPct = d.count === 0 ? 2 : Math.max(6, (d.count / chart.max) * 100)
+                          return (
+                            <div className="chart-col" key={d.iso}>
+                              <span className="chart-value">
+                                {isPlank ? (d.count > 0 ? formatDuration(d.count) : '–') : d.count}
+                              </span>
+                              <div className={`chart-bar ${isPlank ? 'plank' : ''} ${d.isToday ? 'today' : ''}`} style={{ height: `${heightPct}%` }} />
+                              <span className={`chart-day ${d.isToday ? 'today' : ''}`}>{d.dayName}</span>
+                            </div>
+                          )
+                        })}
                       </div>
-                    )
-                  })}
-                </div>
-                <div className="chart-total">
-                  Razem:{' '}
-                  <strong>
-                    {weeklyChart.days.reduce((s, d) => s + d.count, 0)}
-                  </strong>{' '}
-                  pompek
-                </div>
+                      <div className="chart-total">
+                        Razem: <strong>{isPlank ? formatDuration(total) : total}</strong>{' '}
+                        {isPlank ? 'plank' : 'pompek'}
+                      </div>
+                    </>
+                  )
+                })()}
               </>
             )}
 
@@ -1603,54 +1686,73 @@ export default function Dashboard({ session }) {
                     ✕
                   </button>
                 </div>
-                <p className="muted">Twoje najlepsze wyniki do tej pory</p>
-                <div className="records-grid">
-                  <div className="record">
-                    <span className="record-icon">💪</span>
-                    <div className="record-label">Max sesja</div>
-                    <div className="record-value">
-                      {records.maxSession}
-                      <span className="record-unit"> reps</span>
-                    </div>
-                    {records.maxSessionDate && (
-                      <div className="record-date">
-                        {formatShortDate(records.maxSessionDate)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="record">
-                    <span className="record-icon">☀️</span>
-                    <div className="record-label">Max dzień</div>
-                    <div className="record-value">
-                      {records.maxDay}
-                      <span className="record-unit"> reps</span>
-                    </div>
-                    {records.maxDayDate && (
-                      <div className="record-date">
-                        {formatShortDate(records.maxDayDate)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="record">
-                    <span className="record-icon">📅</span>
-                    <div className="record-label">Max 7 dni</div>
-                    <div className="record-value">
-                      {records.maxWeek}
-                      <span className="record-unit"> reps</span>
-                    </div>
-                  </div>
-                  <div className="record">
-                    <span className="record-icon">🔥</span>
-                    <div className="record-label">Najdłuższa seria</div>
-                    <div className="record-value">
-                      {maxStreak}
-                      <span className="record-unit">
-                        {' '}
-                        {maxStreak === 1 ? 'dzień' : 'dni'}
-                      </span>
-                    </div>
-                  </div>
+                <div className="stats-modal-toggle">
+                  <button
+                    type="button"
+                    className={`stats-toggle-btn ${recordsMode === 'pushup' ? 'active' : ''}`}
+                    onClick={() => setRecordsMode('pushup')}
+                  >
+                    💪 Pompki
+                  </button>
+                  <button
+                    type="button"
+                    className={`stats-toggle-btn ${recordsMode === 'plank' ? 'active' : ''}`}
+                    onClick={() => setRecordsMode('plank')}
+                  >
+                    🧘 Plank
+                  </button>
                 </div>
+                {recordsMode === 'pushup' ? (
+                  <div className="records-grid">
+                    <div className="record">
+                      <span className="record-icon">💪</span>
+                      <div className="record-label">Max sesja</div>
+                      <div className="record-value">{records.maxSession}<span className="record-unit"> reps</span></div>
+                      {records.maxSessionDate && <div className="record-date">{formatShortDate(records.maxSessionDate)}</div>}
+                    </div>
+                    <div className="record">
+                      <span className="record-icon">☀️</span>
+                      <div className="record-label">Max dzień</div>
+                      <div className="record-value">{records.maxDay}<span className="record-unit"> reps</span></div>
+                      {records.maxDayDate && <div className="record-date">{formatShortDate(records.maxDayDate)}</div>}
+                    </div>
+                    <div className="record">
+                      <span className="record-icon">📅</span>
+                      <div className="record-label">Max 7 dni</div>
+                      <div className="record-value">{records.maxWeek}<span className="record-unit"> reps</span></div>
+                    </div>
+                    <div className="record">
+                      <span className="record-icon">🔥</span>
+                      <div className="record-label">Najdłuższa seria</div>
+                      <div className="record-value">{maxStreak}<span className="record-unit"> {maxStreak === 1 ? 'dzień' : 'dni'}</span></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="records-grid">
+                    <div className="record">
+                      <span className="record-icon">🧘</span>
+                      <div className="record-label">Max sesja</div>
+                      <div className="record-value">{formatDuration(plankRecords.maxSession)}</div>
+                      {plankRecords.maxSessionDate && <div className="record-date">{formatShortDate(plankRecords.maxSessionDate)}</div>}
+                    </div>
+                    <div className="record">
+                      <span className="record-icon">☀️</span>
+                      <div className="record-label">Max dzień</div>
+                      <div className="record-value">{formatDuration(plankRecords.maxDay)}</div>
+                      {plankRecords.maxDayDate && <div className="record-date">{formatShortDate(plankRecords.maxDayDate)}</div>}
+                    </div>
+                    <div className="record">
+                      <span className="record-icon">📅</span>
+                      <div className="record-label">Max 7 dni</div>
+                      <div className="record-value">{formatDuration(plankRecords.maxWeek)}</div>
+                    </div>
+                    <div className="record">
+                      <span className="record-icon">🔥</span>
+                      <div className="record-label">Najdłuższa seria</div>
+                      <div className="record-value">{plankStreak}<span className="record-unit"> {plankStreak === 1 ? 'dzień' : 'dni'}</span></div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

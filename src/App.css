@@ -1365,10 +1365,41 @@
   text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+/* Historia — przyciski Pompki / Plank pod nagłówkiem */
+.history-mode-switch {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.history-mode-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0.03em;
+  transition: background 180ms, color 180ms, border-color 180ms;
+}
+.history-mode-btn.active {
+  background: rgba(204, 255, 0, 0.1);
+  border-color: rgba(204, 255, 0, 0.4);
+  color: var(--primary);
+}
+.history-mode-btn:last-child.active {
+  background: rgba(0, 253, 255, 0.08);
+  border-color: rgba(0, 253, 255, 0.35);
+  color: var(--secondary);
 }
 
 /* ============================================================
@@ -2442,6 +2473,39 @@
 .stats-modal .muted {
   margin-bottom: 22px;
 }
+
+/* Przełącznik Pompki / Plank w modalach statystyk */
+.stats-modal-toggle {
+  display: flex;
+  gap: 6px;
+  background: #1a1a1a;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  align-self: center;
+  margin-bottom: 18px;
+}
+.stats-toggle-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  text-transform: none;
+  transition: background 180ms, color 180ms;
+}
+.stats-toggle-btn.active {
+  background: var(--primary);
+  color: var(--bg);
+}
+.stats-modal {
+  display: flex;
+  flex-direction: column;
+}
 .modal-close {
   position: absolute;
   top: 12px;
@@ -2502,6 +2566,12 @@
 }
 .chart-bar.today {
   box-shadow: 0 0 22px rgba(204, 255, 0, 0.7);
+}
+.chart-bar.plank {
+  background: linear-gradient(180deg, var(--secondary), #00b8ba);
+}
+.chart-bar.plank.today {
+  box-shadow: 0 0 22px rgba(0, 253, 255, 0.7);
 }
 @keyframes chartBarGrow {
   from {
