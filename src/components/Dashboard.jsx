@@ -343,6 +343,19 @@ export default function Dashboard({ session }) {
   const [chartMode, setChartMode] = useState('pushup')
   const [recordsMode, setRecordsMode] = useState('pushup')
   const [historyMode, setHistoryMode] = useState('pushup')
+  const [heroExiting, setHeroExiting] = useState(false)
+  const heroAnimTimer = useRef(null)
+  const heroDir = useRef(1) // 1 = w prawo (→plank), -1 = w lewo (→pushup)
+
+  function changeExerciseMode(newMode) {
+    if (newMode === exerciseMode || heroExiting) return
+    heroDir.current = newMode === 'plank' ? 1 : -1
+    setHeroExiting(true)
+    heroAnimTimer.current = setTimeout(() => {
+      setExerciseMode(newMode)
+      setHeroExiting(false)
+    }, 210)
+  }
   const [rankingDetail, setRankingDetail] = useState(null) // leaderboard entry or null
 
   // Trigger transition IN after mount — double RAF ensures browser paints hidden state first
@@ -1342,7 +1355,7 @@ export default function Dashboard({ session }) {
                 role="tab"
                 aria-selected={exerciseMode === 'pushup'}
                 className={`hero-mode-btn ${exerciseMode === 'pushup' ? 'active' : ''}`}
-                onClick={() => setExerciseMode('pushup')}
+                onClick={() => changeExerciseMode('pushup')}
               >
                 💪 Pompki
               </button>
@@ -1351,12 +1364,17 @@ export default function Dashboard({ session }) {
                 role="tab"
                 aria-selected={exerciseMode === 'plank'}
                 className={`hero-mode-btn ${exerciseMode === 'plank' ? 'active' : ''}`}
-                onClick={() => setExerciseMode('plank')}
+                onClick={() => changeExerciseMode('plank')}
               >
                 🧘 Plank
               </button>
             </div>
 
+            <div
+              key={exerciseMode}
+              className={`hero-body${heroExiting ? ' hero-body-exit' : ''}`}
+              style={{ '--hero-dir': heroDir.current }}
+            >
             {exerciseMode === 'pushup' ? (
               <>
                 <div className="hero-count">
@@ -1498,9 +1516,10 @@ export default function Dashboard({ session }) {
                 </div>
               </>
             )}
+            </div>
           </section>
 
-          <AddWorkout user={user} mode={exerciseMode} onModeChange={setExerciseMode} />
+          <AddWorkout user={user} mode={exerciseMode} onModeChange={changeExerciseMode} />
           </div>
 
           <div
