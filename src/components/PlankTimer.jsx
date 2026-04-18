@@ -24,15 +24,12 @@ export default function PlankTimer({ onSave, onClose }) {
     return () => clearInterval(intervalRef.current)
   }, [])
 
-  function handleStop() {
+  async function handleStop() {
     clearInterval(intervalRef.current)
-    setSeconds(Math.floor((Date.now() - startRef.current) / 1000))
-    setPhase('stopped')
-  }
-
-  async function handleSave() {
+    const elapsed = Math.floor((Date.now() - startRef.current) / 1000)
+    setSeconds(elapsed)
     setSaving(true)
-    if (onSave) await onSave(seconds)
+    if (onSave) await onSave(elapsed)
     setSaving(false)
     setPhase('saved')
     setTimeout(() => onClose?.(), 2400)
@@ -66,12 +63,11 @@ export default function PlankTimer({ onSave, onClose }) {
           <span className="plank-modal-icon">🧘</span>
           <div className="plank-modal-title">
             {phase === 'running' && 'Trzymaj pozycję'}
-            {phase === 'stopped' && 'Świetna robota!'}
           </div>
         </div>
 
         {/* Timer z pierścieniem */}
-        {phase !== 'saved' && (
+        {phase === 'running' && (
           <div className="plank-ring-wrap">
             <svg viewBox="0 0 200 200" className="plank-ring-svg" aria-hidden="true">
               <circle
@@ -80,28 +76,16 @@ export default function PlankTimer({ onSave, onClose }) {
                 stroke="rgba(255,255,255,0.06)"
                 strokeWidth="3"
               />
-              {phase === 'running' && (
-                <circle
-                  cx="100" cy="100" r="86"
-                  fill="none"
-                  stroke="#CCFF00"
-                  strokeWidth="3"
-                  strokeDasharray="16 8"
-                  strokeLinecap="round"
-                  className="plank-ring-spin"
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(204,255,0,0.7))' }}
-                />
-              )}
-              {phase === 'stopped' && (
-                <circle
-                  cx="100" cy="100" r="86"
-                  fill="none"
-                  stroke="#CCFF00"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(204,255,0,0.8))' }}
-                />
-              )}
+              <circle
+                cx="100" cy="100" r="86"
+                fill="none"
+                stroke="#CCFF00"
+                strokeWidth="3"
+                strokeDasharray="16 8"
+                strokeLinecap="round"
+                className="plank-ring-spin"
+                style={{ filter: 'drop-shadow(0 0 6px rgba(204,255,0,0.7))' }}
+              />
             </svg>
             <div className="plank-modal-time">
               {formatDuration(seconds)}
@@ -121,24 +105,9 @@ export default function PlankTimer({ onSave, onClose }) {
         {/* Przyciski */}
         <div className="plank-modal-controls">
           {phase === 'running' && (
-            <button type="button" className="plank-stop-btn" onClick={handleStop}>
-              ⏹ STOP
+            <button type="button" className="plank-stop-btn" onClick={handleStop} disabled={saving}>
+              {saving ? 'Zapisywanie…' : '⏹ STOP'}
             </button>
-          )}
-          {phase === 'stopped' && (
-            <div className="plank-save-row">
-              <button type="button" className="plank-discard-btn" onClick={onClose}>
-                Odrzuć
-              </button>
-              <button
-                type="button"
-                className="plank-save-btn"
-                onClick={handleSave}
-                disabled={saving || seconds === 0}
-              >
-                {saving ? 'Zapisywanie…' : `Zapisz ${formatDuration(seconds)}`}
-              </button>
-            </div>
           )}
         </div>
 
