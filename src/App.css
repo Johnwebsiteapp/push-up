@@ -301,6 +301,11 @@
   text-shadow: 0 0 10px rgba(0, 253, 255, 0.4);
   font-size: 0.92rem;
 }
+.topbar-count-icon {
+  font-size: 0.78rem;
+  line-height: 1;
+  display: inline-block;
+}
 .topbar-count-value {
   font-family: 'Lexend', sans-serif;
   font-weight: 800;
@@ -593,13 +598,57 @@
 
 .hero {
   position: relative;
-  padding: 22px 20px 18px;
+  padding: 52px 20px 18px; /* więcej top żeby zmieścić mode toggle */
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 24px;
   margin-bottom: 12px;
   overflow: hidden;
   animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 60ms backwards;
+}
+
+/* Hero mode switch w lewym górnym rogu */
+.hero-mode-switch {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  display: inline-flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+.hero-mode-btn {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  box-shadow: none;
+  transition: background 160ms ease, color 160ms ease;
+  line-height: 1.2;
+}
+.hero-mode-btn.active {
+  background: var(--primary);
+  color: var(--bg);
+  box-shadow: 0 0 10px rgba(204, 255, 0, 0.25);
+}
+.hero-plank .hero-mode-btn.active {
+  background: var(--secondary);
+  color: var(--bg);
+  box-shadow: 0 0 10px rgba(0, 253, 255, 0.3);
+}
+.hero-mode-btn:hover:not(:disabled):not(.active) {
+  color: var(--text);
+  background: transparent;
+  transform: none;
 }
 .hero::before {
   content: 'POSTĘP';
@@ -643,6 +692,46 @@
   text-shadow: 0 0 40px rgba(204, 255, 0, 0.5),
     0 0 10px rgba(204, 255, 0, 0.35);
   animation: numberBreath 4.2s ease-in-out infinite;
+}
+
+/* Deska — cyjanowy wariant hero */
+.hero-number-plank {
+  color: var(--secondary);
+  text-shadow: 0 0 40px rgba(0, 253, 255, 0.45),
+    0 0 10px rgba(0, 253, 255, 0.3);
+  animation: numberBreathPlank 4.2s ease-in-out infinite;
+  font-variant-numeric: tabular-nums;
+  font-size: 3.2rem;
+}
+@keyframes numberBreathPlank {
+  0%, 100% {
+    text-shadow: 0 0 40px rgba(0, 253, 255, 0.45),
+      0 0 10px rgba(0, 253, 255, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 64px rgba(0, 253, 255, 0.8),
+      0 0 18px rgba(0, 253, 255, 0.55);
+  }
+}
+
+/* Hero plank — akcenty cyjanowe */
+.hero-plank .hero::before,
+.hero-plank::before {
+  /* POSTĘP ghost text - zostawiam neutralny */
+}
+.hero-plank .stat-box.secondary .label {
+  color: var(--secondary);
+}
+.hero-plank .goal-bar-fill {
+  background: linear-gradient(90deg, var(--secondary), #66ffff);
+  box-shadow: 0 0 12px rgba(0, 253, 255, 0.5);
+}
+.hero-plank .goal-bar.met {
+  border-color: var(--secondary);
+  box-shadow: 0 0 20px rgba(0, 253, 255, 0.25);
+}
+.hero-plank .goal-bar.met .label {
+  color: var(--secondary);
 }
 
 @keyframes numberBreath {

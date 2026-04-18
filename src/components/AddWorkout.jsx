@@ -16,8 +16,10 @@ function formatDuration(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export default function AddWorkout({ user }) {
-  const [mode, setMode] = useState('pushup') // 'pushup' | 'plank'
+export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
+  const [internalMode, setInternalMode] = useState('pushup')
+  const mode = modeProp ?? internalMode
+  const setMode = onModeChange ?? setInternalMode
   const [count, setCount] = useState('')
   const [date, setDate] = useState(todayISO())
   const [saving, setSaving] = useState(false)

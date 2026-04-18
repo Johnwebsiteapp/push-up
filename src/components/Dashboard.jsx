@@ -337,6 +337,7 @@ export default function Dashboard({ session }) {
   const [nickPromptNick, setNickPromptNick] = useState('')
   const [nickPromptSaving, setNickPromptSaving] = useState(false)
   const [nickPromptError, setNickPromptError] = useState(null)
+  const [exerciseMode, setExerciseMode] = useState('pushup') // 'pushup' | 'plank'
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
   const [statsVisible, setStatsVisible] = useState(false)
   const [rankingDetail, setRankingDetail] = useState(null) // leaderboard entry or null
@@ -1066,23 +1067,25 @@ export default function Dashboard({ session }) {
         <div className="topbar-chips">
           <div
             className="topbar-count topbar-count-pushup"
-            aria-label={`Razem ${myTotal} pompek`}
-            title="Wszystkie Twoje pompki"
+            aria-label={`Łącznie ${myTotal} pompek`}
+            title="Wszystkie Twoje pompki od początku"
           >
+            <span className="topbar-count-icon">💪</span>
             <span className="topbar-count-value">
               <AnimatedCounter value={myTotal} />
             </span>
-            <span className="topbar-count-label">razem</span>
+            <span className="topbar-count-label">pompek</span>
           </div>
           <div
             className="topbar-count topbar-count-plank"
-            aria-label={`Deska razem ${formatDuration(myPlankTotalSeconds)}`}
-            title="Łączny czas deski"
+            aria-label={`Łącznie ${formatDuration(myPlankTotalSeconds)} deski`}
+            title="Łączny czas deski od początku"
           >
+            <span className="topbar-count-icon">🧘</span>
             <span className="topbar-count-value">
               {formatDuration(myPlankTotalSeconds)}
             </span>
-            <span className="topbar-count-label">deska</span>
+            <span className="topbar-count-label">deski</span>
           </div>
         </div>
         <div className="avatar-menu">
@@ -1262,112 +1265,172 @@ export default function Dashboard({ session }) {
             ref={homePanelRef}
             aria-hidden={tab !== 'home'}
           >
-          <section className="hero">
-            <div className="hero-count">
-              <div className="hero-number">
-                <AnimatedCounter value={todayTotal} />
-                {confettiActive && (
-                  <ConfettiBurst
-                    key={confettiKey}
-                    onDone={() => setConfettiActive(false)}
-                  />
-                )}
-              </div>
-              <div className="hero-label">Pompki dzisiaj</div>
-            </div>
-            <div className="hero-motivation" key={achievementKey}>
-              <h2 className="hero-title">
-                {streak > 0 && (
-                  <span className="hero-streak">
-                    <span className="streak-flame">🔥</span>
-                    {streak} {streak === 1 ? 'dzień' : 'dni'}
-                  </span>
-                )}
-                {achievement.title}
-              </h2>
-              <p className="hero-sub">{achievement.sub}</p>
+          <section className={`hero hero-${exerciseMode}`}>
+            <div className="hero-mode-switch" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={exerciseMode === 'pushup'}
+                className={`hero-mode-btn ${exerciseMode === 'pushup' ? 'active' : ''}`}
+                onClick={() => setExerciseMode('pushup')}
+              >
+                💪 Pompki
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={exerciseMode === 'plank'}
+                className={`hero-mode-btn ${exerciseMode === 'plank' ? 'active' : ''}`}
+                onClick={() => setExerciseMode('plank')}
+              >
+                🧘 Deska
+              </button>
             </div>
 
-            <div className="goal-bars">
-              <div className={`goal-bar ${dailyMet ? 'met' : ''}`}>
-                <div className="goal-bar-head">
-                  <span className="label">
-                    Cel dzienny
-                    {dailyMet && <span className="goal-check">✓</span>}
-                  </span>
-                  <span className="goal-bar-value">
-                    <AnimatedCounter value={todayTotal} /> / {dailyGoal}
-                  </span>
+            {exerciseMode === 'pushup' ? (
+              <>
+                <div className="hero-count">
+                  <div className="hero-number">
+                    <AnimatedCounter value={todayTotal} />
+                    {confettiActive && (
+                      <ConfettiBurst
+                        key={confettiKey}
+                        onDone={() => setConfettiActive(false)}
+                      />
+                    )}
+                  </div>
+                  <div className="hero-label">Pompki dzisiaj</div>
                 </div>
-                <div className="goal-bar-track">
-                  <div
-                    className="goal-bar-fill"
-                    style={{ width: `${dailyProgress}%` }}
-                  />
+                <div className="hero-motivation" key={achievementKey}>
+                  <h2 className="hero-title">{achievement.title}</h2>
+                  <p className="hero-sub">{achievement.sub}</p>
                 </div>
-              </div>
+                <div className="stats-row">
+                  <div className="stat-box primary">
+                    <span className="label">Seria</span>
+                    <div className="value">
+                      {streak > 0 && <span className="streak-flame">🔥</span>}
+                      <AnimatedCounter value={streak} />{' '}
+                      {streak === 1 ? 'dzień' : 'dni'}
+                    </div>
+                  </div>
+                  <div className="stat-box secondary">
+                    <span className="label">Tydzień</span>
+                    <div className="value">
+                      <AnimatedCounter value={weekTotal} /> pompek
+                    </div>
+                  </div>
+                </div>
+                <div className="goal-bars">
+                  <div className={`goal-bar ${dailyMet ? 'met' : ''}`}>
+                    <div className="goal-bar-head">
+                      <span className="label">
+                        Cel dzienny
+                        {dailyMet && <span className="goal-check">✓</span>}
+                      </span>
+                      <span className="goal-bar-value">
+                        <AnimatedCounter value={todayTotal} /> / {dailyGoal}
+                      </span>
+                    </div>
+                    <div className="goal-bar-track">
+                      <div
+                        className="goal-bar-fill"
+                        style={{ width: `${dailyProgress}%` }}
+                      />
+                    </div>
+                  </div>
 
-              <div className={`goal-bar ${weeklyMet ? 'met' : ''}`}>
-                <div className="goal-bar-head">
-                  <span className="label secondary">
-                    Cel tygodniowy
-                    {weeklyMet && <span className="goal-check">✓</span>}
-                  </span>
-                  <span className="goal-bar-value">
-                    <AnimatedCounter value={weekTotal} /> / {weeklyGoal}
-                  </span>
+                  <div className={`goal-bar ${weeklyMet ? 'met' : ''}`}>
+                    <div className="goal-bar-head">
+                      <span className="label secondary">
+                        Cel tygodniowy
+                        {weeklyMet && <span className="goal-check">✓</span>}
+                      </span>
+                      <span className="goal-bar-value">
+                        <AnimatedCounter value={weekTotal} /> / {weeklyGoal}
+                      </span>
+                    </div>
+                    <div className="goal-bar-track">
+                      <div
+                        className="goal-bar-fill secondary"
+                        style={{ width: `${weeklyProgress}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="goal-bar-track">
-                  <div
-                    className="goal-bar-fill secondary"
-                    style={{ width: `${weeklyProgress}%` }}
-                  />
+              </>
+            ) : (
+              <>
+                <div className="hero-count">
+                  <div className="hero-number hero-number-plank">
+                    {formatDuration(todayPlankSeconds)}
+                  </div>
+                  <div className="hero-label">Deska dzisiaj</div>
                 </div>
-              </div>
+                <div className="hero-motivation" key={achievementKey}>
+                  <h2 className="hero-title">{achievement.title}</h2>
+                  <p className="hero-sub">{achievement.sub}</p>
+                </div>
+                <div className="stats-row">
+                  <div className="stat-box primary">
+                    <span className="label">Seria</span>
+                    <div className="value">
+                      {streak > 0 && <span className="streak-flame">🔥</span>}
+                      <AnimatedCounter value={streak} />{' '}
+                      {streak === 1 ? 'dzień' : 'dni'}
+                    </div>
+                  </div>
+                  <div className="stat-box secondary">
+                    <span className="label">Tydzień</span>
+                    <div className="value">
+                      {formatDurationShort(weekPlankSeconds)}
+                    </div>
+                  </div>
+                </div>
+                <div className="goal-bars">
+                  <div className={`goal-bar ${dailyPlankMet ? 'met' : ''}`}>
+                    <div className="goal-bar-head">
+                      <span className="label">
+                        Cel dzienny
+                        {dailyPlankMet && <span className="goal-check">✓</span>}
+                      </span>
+                      <span className="goal-bar-value">
+                        {formatDuration(todayPlankSeconds)} /{' '}
+                        {formatDuration(dailyGoalPlank)}
+                      </span>
+                    </div>
+                    <div className="goal-bar-track">
+                      <div
+                        className="goal-bar-fill"
+                        style={{ width: `${dailyPlankProgress}%` }}
+                      />
+                    </div>
+                  </div>
 
-              <div className="goal-bars-plank-row">
-                <div className={`goal-bar compact ${dailyPlankMet ? 'met' : ''}`}>
-                  <div className="goal-bar-head">
-                    <span className="label">
-                      🧘 Deska dziś
-                      {dailyPlankMet && <span className="goal-check">✓</span>}
-                    </span>
-                    <span className="goal-bar-value">
-                      {formatDuration(todayPlankSeconds)} /{' '}
-                      {formatDuration(dailyGoalPlank)}
-                    </span>
-                  </div>
-                  <div className="goal-bar-track">
-                    <div
-                      className="goal-bar-fill"
-                      style={{ width: `${dailyPlankProgress}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className={`goal-bar compact ${weeklyPlankMet ? 'met' : ''}`}>
-                  <div className="goal-bar-head">
-                    <span className="label secondary">
-                      🧘 Tydzień
-                      {weeklyPlankMet && <span className="goal-check">✓</span>}
-                    </span>
-                    <span className="goal-bar-value">
-                      {formatDurationShort(weekPlankSeconds)} /{' '}
-                      {formatDurationShort(weeklyGoalPlank)}
-                    </span>
-                  </div>
-                  <div className="goal-bar-track">
-                    <div
-                      className="goal-bar-fill secondary"
-                      style={{ width: `${weeklyPlankProgress}%` }}
-                    />
+                  <div className={`goal-bar ${weeklyPlankMet ? 'met' : ''}`}>
+                    <div className="goal-bar-head">
+                      <span className="label secondary">
+                        Cel tygodniowy
+                        {weeklyPlankMet && <span className="goal-check">✓</span>}
+                      </span>
+                      <span className="goal-bar-value">
+                        {formatDurationShort(weekPlankSeconds)} /{' '}
+                        {formatDurationShort(weeklyGoalPlank)}
+                      </span>
+                    </div>
+                    <div className="goal-bar-track">
+                      <div
+                        className="goal-bar-fill secondary"
+                        style={{ width: `${weeklyPlankProgress}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </section>
 
-          <AddWorkout user={user} />
+          <AddWorkout user={user} mode={exerciseMode} onModeChange={setExerciseMode} />
           </div>
 
           <div
