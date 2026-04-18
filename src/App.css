@@ -610,8 +610,8 @@
 /* Hero mode switch — lewy górny róg karty hero */
 .hero-mode-switch {
   position: absolute;
-  top: 10px;
-  left: 12px;
+  top: 6px;
+  left: 6px;
   z-index: 3;
   display: inline-flex;
   background: var(--bg-elevated);
