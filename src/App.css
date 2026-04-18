@@ -598,7 +598,7 @@
 
 .hero {
   position: relative;
-  padding: 52px 20px 18px; /* więcej top żeby zmieścić mode toggle */
+  padding: 20px 20px 18px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -607,13 +607,10 @@
   animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 60ms backwards;
 }
 
-/* Hero mode switch w lewym górnym rogu */
+/* Hero mode switch — lewy górny róg nad kartą */
 .hero-mode-switch {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 3;
   display: inline-flex;
+  margin-bottom: 8px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 999px;
