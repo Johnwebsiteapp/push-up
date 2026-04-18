@@ -1080,14 +1080,14 @@ export default function Dashboard({ session }) {
           </div>
           <div
             className="topbar-count topbar-count-plank"
-            aria-label={`Łącznie ${formatDuration(myPlankTotalSeconds)} deski`}
-            title="Łączny czas deski od początku"
+            aria-label={`Łącznie ${formatDuration(myPlankTotalSeconds)} planka`}
+            title="Łączny czas planka od początku"
           >
             <span className="topbar-count-icon">🧘</span>
             <span className="topbar-count-value">
               {formatDuration(myPlankTotalSeconds)}
             </span>
-            <span className="topbar-count-label">deski</span>
+            <span className="topbar-count-label">plank</span>
           </div>
         </div>
         <div className="avatar-menu">
@@ -1285,7 +1285,7 @@ export default function Dashboard({ session }) {
                 className={`hero-mode-btn ${exerciseMode === 'plank' ? 'active' : ''}`}
                 onClick={() => setExerciseMode('plank')}
               >
-                🧘 Deska
+                🧘 Plank
               </button>
             </div>
 
@@ -1367,7 +1367,7 @@ export default function Dashboard({ session }) {
                   <div className="hero-number hero-number-plank">
                     {formatDuration(todayPlankSeconds)}
                   </div>
-                  <div className="hero-label">Deska dzisiaj</div>
+                  <div className="hero-label">Plank dzisiaj</div>
                 </div>
                 <div className="hero-motivation" key={achievementKey}>
                   <h2 className="hero-title">{achievement.title}</h2>

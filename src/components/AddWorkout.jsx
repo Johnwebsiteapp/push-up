@@ -142,7 +142,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
               className={`mode-btn ${mode === 'plank' ? 'active' : ''}`}
               onClick={() => setMode('plank')}
             >
-              🧘 Deska
+              🧘 Plank
             </button>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
               onClick={() => setShowTimer(true)}
               disabled={saving}
             >
-              ▶ Rozpocznij deskę
+              ▶ Rozpocznij Plank
             </button>
           </div>
         )}

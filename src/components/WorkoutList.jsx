@@ -41,7 +41,7 @@ export default function WorkoutList({ workouts, profiles, currentUserId, onDelet
 
         const isPlank = w.exercise_type === 'plank'
         const label = isPlank
-          ? `${formatDuration(w.duration_seconds)} deski`
+          ? `${formatDuration(w.duration_seconds)} plank`
           : `${w.count} pompek`
         const icon = isPlank ? '🧘' : '💪'
 
