@@ -8,166 +8,140 @@ function formatDuration(seconds) {
 }
 
 export default function PlankTimer({ onSave, onClose }) {
-  // phase: 'ready' | 'running' | 'stopped'
-  const [phase, setPhase] = useState('ready')
+  // phase: 'running' | 'stopped' | 'saved'
+  const [phase, setPhase] = useState('running')
   const [seconds, setSeconds] = useState(0)
+  const [saving, setSaving] = useState(false)
   const startRef = useRef(null)
   const intervalRef = useRef(null)
 
-  // Running: tick every 100ms to compute elapsed
+  // Auto-start immediately on mount
   useEffect(() => {
-    if (phase !== 'running') return
+    startRef.current = Date.now()
     intervalRef.current = setInterval(() => {
-      if (startRef.current) {
-        const elapsed = Math.floor((Date.now() - startRef.current) / 1000)
-        setSeconds(elapsed)
-      }
+      setSeconds(Math.floor((Date.now() - startRef.current) / 1000))
     }, 100)
     return () => clearInterval(intervalRef.current)
-  }, [phase])
-
-  function handleStart() {
-    startRef.current = Date.now()
-    setSeconds(0)
-    setPhase('running')
-  }
+  }, [])
 
   function handleStop() {
-    if (startRef.current) {
-      const elapsed = Math.floor((Date.now() - startRef.current) / 1000)
-      setSeconds(elapsed)
-    }
+    clearInterval(intervalRef.current)
+    setSeconds(Math.floor((Date.now() - startRef.current) / 1000))
     setPhase('stopped')
   }
 
-  function handleSave() {
-    if (seconds > 0 && onSave) onSave(seconds)
-  }
-
-  function handleDiscard() {
-    startRef.current = null
-    setSeconds(0)
-    setPhase('ready')
-  }
-
-  function handleClose() {
-    if (phase === 'running') {
-      // Zatrzymaj timer i zapytaj
-      handleStop()
-      return
-    }
-    if (onClose) onClose()
+  async function handleSave() {
+    setSaving(true)
+    if (onSave) await onSave(seconds)
+    setSaving(false)
+    setPhase('saved')
+    setTimeout(() => onClose?.(), 2400)
   }
 
   return createPortal(
-    <div className="plank-timer-overlay">
-      <button
-        type="button"
-        className="plank-close"
-        onClick={handleClose}
-        aria-label="Zamknij"
-      >
-        ✕
-      </button>
+    <div
+      className="plank-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && phase === 'stopped') onClose?.()
+      }}
+    >
+      <div className={`plank-modal plank-phase-${phase}`}>
 
-      <div className="plank-header">
-        <div className="plank-icon">🧘</div>
-        <div className="plank-title">
-          {phase === 'ready' && 'Deska'}
-          {phase === 'running' && 'Trzymaj...'}
-          {phase === 'stopped' && 'Świetnie!'}
+        {/* Przycisk zamknij — widoczny tylko po zatrzymaniu */}
+        <button
+          type="button"
+          className="plank-modal-close"
+          onClick={() => onClose?.()}
+          aria-label="Zamknij"
+          style={{
+            opacity: phase === 'running' ? 0 : 1,
+            pointerEvents: phase === 'running' ? 'none' : 'auto',
+          }}
+        >
+          ✕
+        </button>
+
+        {/* Nagłówek */}
+        <div className="plank-modal-header">
+          <span className="plank-modal-icon">🧘</span>
+          <div className="plank-modal-title">
+            {phase === 'running' && 'Trzymaj pozycję'}
+            {phase === 'stopped' && 'Świetna robota!'}
+          </div>
         </div>
-        <div className="plank-subtitle">
-          {phase === 'ready' && 'Kliknij START kiedy będziesz gotowy'}
-          {phase === 'running' && 'Skup się na oddechu i formie'}
-          {phase === 'stopped' && `Utrzymałeś deskę przez ${formatDuration(seconds)}`}
-        </div>
-      </div>
 
-      <div className={`plank-counter ${phase}`}>
-        <svg className="plank-ring" viewBox="0 0 240 240" aria-hidden="true">
-          <circle
-            cx="120"
-            cy="120"
-            r="112"
-            fill="none"
-            stroke="rgba(255,255,255,0.06)"
-            strokeWidth="4"
-          />
-          {phase === 'running' && (
-            <circle
-              cx="120"
-              cy="120"
-              r="112"
-              fill="none"
-              stroke="#CCFF00"
-              strokeWidth="4"
-              strokeDasharray="20 10"
-              strokeLinecap="round"
-              className="plank-ring-rotating"
-              style={{
-                filter: 'drop-shadow(0 0 8px rgba(204,255,0,0.6))',
-              }}
-            />
-          )}
-          {phase === 'stopped' && (
-            <circle
-              cx="120"
-              cy="120"
-              r="112"
-              fill="none"
-              stroke="#CCFF00"
-              strokeWidth="4"
-              strokeLinecap="round"
-              style={{
-                filter: 'drop-shadow(0 0 10px rgba(204,255,0,0.7))',
-              }}
-            />
-          )}
-        </svg>
-        <div className="plank-time">{formatDuration(seconds)}</div>
-      </div>
-
-      <div className="plank-controls">
-        {phase === 'ready' && (
-          <button
-            type="button"
-            className="plank-start-btn"
-            onClick={handleStart}
-          >
-            ▶ START
-          </button>
-        )}
-
-        {phase === 'running' && (
-          <button
-            type="button"
-            className="plank-stop-btn"
-            onClick={handleStop}
-          >
-            ⏹ STOP
-          </button>
-        )}
-
-        {phase === 'stopped' && (
-          <div className="plank-save-row">
-            <button
-              type="button"
-              className="secondary plank-discard"
-              onClick={handleDiscard}
-            >
-              Odrzuć
-            </button>
-            <button
-              type="button"
-              className="plank-save"
-              onClick={handleSave}
-              disabled={seconds === 0}
-            >
-              Zapisz {formatDuration(seconds)}
-            </button>
+        {/* Timer z pierścieniem */}
+        {phase !== 'saved' && (
+          <div className="plank-ring-wrap">
+            <svg viewBox="0 0 200 200" className="plank-ring-svg" aria-hidden="true">
+              <circle
+                cx="100" cy="100" r="86"
+                fill="none"
+                stroke="rgba(255,255,255,0.06)"
+                strokeWidth="3"
+              />
+              {phase === 'running' && (
+                <circle
+                  cx="100" cy="100" r="86"
+                  fill="none"
+                  stroke="#CCFF00"
+                  strokeWidth="3"
+                  strokeDasharray="16 8"
+                  strokeLinecap="round"
+                  className="plank-ring-spin"
+                  style={{ filter: 'drop-shadow(0 0 6px rgba(204,255,0,0.7))' }}
+                />
+              )}
+              {phase === 'stopped' && (
+                <circle
+                  cx="100" cy="100" r="86"
+                  fill="none"
+                  stroke="#CCFF00"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  style={{ filter: 'drop-shadow(0 0 10px rgba(204,255,0,0.8))' }}
+                />
+              )}
+            </svg>
+            <div className="plank-modal-time">
+              {formatDuration(seconds)}
+            </div>
           </div>
         )}
+
+        {/* Animacja po zapisaniu */}
+        {phase === 'saved' && (
+          <div className="plank-saved-anim">
+            <div className="plank-saved-check">✓</div>
+            <div className="plank-saved-time">{formatDuration(seconds)}</div>
+            <div className="plank-saved-label">zapisano</div>
+          </div>
+        )}
+
+        {/* Przyciski */}
+        <div className="plank-modal-controls">
+          {phase === 'running' && (
+            <button type="button" className="plank-stop-btn" onClick={handleStop}>
+              ⏹ STOP
+            </button>
+          )}
+          {phase === 'stopped' && (
+            <div className="plank-save-row">
+              <button type="button" className="plank-discard-btn" onClick={onClose}>
+                Odrzuć
+              </button>
+              <button
+                type="button"
+                className="plank-save-btn"
+                onClick={handleSave}
+                disabled={saving || seconds === 0}
+              >
+                {saving ? 'Zapisywanie…' : `Zapisz ${formatDuration(seconds)}`}
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>,
     document.body

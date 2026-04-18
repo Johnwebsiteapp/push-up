@@ -2648,175 +2648,148 @@
 }
 
 /* ============================================================
-   PLANK TIMER (fullscreen overlay)
+   PLANK TIMER MODAL
    ============================================================ */
-.plank-timer-overlay {
+.plank-backdrop {
   position: fixed;
   inset: 0;
   z-index: 120;
-  background: radial-gradient(
-      circle at 50% 40%,
-      rgba(204, 255, 0, 0.08),
-      transparent 55%
-    ),
-    rgba(5, 7, 7, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: plankBackdropIn 220ms ease;
+}
+@keyframes plankBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.plank-modal {
+  position: relative;
+  width: min(340px, 100%);
+  background: #111414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 28px 24px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 40px 24px 60px;
-  animation: plankFadeIn 280ms ease;
+  gap: 20px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+  animation: plankModalIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-@keyframes plankFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(20px);
-  }
+@keyframes plankModalIn {
+  from { transform: scale(0.86) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);       opacity: 1; }
 }
 
-.plank-close {
+.plank-modal-close {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 36px;
-  height: 36px;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--muted);
   border-radius: 999px;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   box-shadow: none;
   letter-spacing: 0;
   text-transform: none;
   display: grid;
   place-items: center;
-  z-index: 2;
+  transition: opacity 200ms, transform 200ms;
 }
-.plank-close:active {
-  transform: scale(0.9);
-}
+.plank-modal-close:active { transform: scale(0.9); }
 
-.plank-header {
+.plank-modal-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  text-align: center;
 }
-.plank-icon {
-  font-size: 2.6rem;
+.plank-modal-icon {
+  font-size: 2rem;
   line-height: 1;
-  animation: plankIconFloat 3s ease-in-out infinite;
 }
-@keyframes plankIconFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-.plank-title {
+.plank-modal-title {
   font-family: 'Lexend', sans-serif;
   font-weight: 800;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: var(--text);
   letter-spacing: -0.01em;
 }
-.plank-subtitle {
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.85rem;
-  color: var(--muted);
-  text-align: center;
-  max-width: 300px;
-  line-height: 1.4;
-}
 
-.plank-counter {
+/* Ring + czas */
+.plank-ring-wrap {
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: 200px;
+  height: 200px;
   display: grid;
   place-items: center;
 }
-.plank-ring {
+.plank-ring-svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
-.plank-ring-rotating {
+.plank-ring-spin {
   animation: plankRingSpin 3s linear infinite;
   transform-origin: 50% 50%;
 }
 @keyframes plankRingSpin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
-.plank-time {
+.plank-modal-time {
   font-family: 'Lexend', sans-serif;
   font-weight: 800;
-  font-size: 4.5rem;
+  font-size: 3.6rem;
   color: var(--primary);
   line-height: 1;
-  text-shadow: 0 0 40px rgba(204, 255, 0, 0.55),
-    0 0 14px rgba(204, 255, 0, 0.4);
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 36px rgba(204, 255, 0, 0.5);
+  z-index: 1;
 }
-.plank-counter.running .plank-time {
-  animation: plankTimeBreath 1.6s ease-in-out infinite;
+.plank-phase-running .plank-modal-time {
+  animation: plankTimeBreath 1.8s ease-in-out infinite;
 }
 @keyframes plankTimeBreath {
-  0%, 100% {
-    text-shadow: 0 0 40px rgba(204, 255, 0, 0.55),
-      0 0 14px rgba(204, 255, 0, 0.4);
-  }
-  50% {
-    text-shadow: 0 0 60px rgba(204, 255, 0, 0.8),
-      0 0 22px rgba(204, 255, 0, 0.6);
-  }
+  0%, 100% { text-shadow: 0 0 28px rgba(204, 255, 0, 0.4), 0 0 10px rgba(204, 255, 0, 0.25); }
+  50%       { text-shadow: 0 0 55px rgba(204, 255, 0, 0.85), 0 0 20px rgba(204, 255, 0, 0.6); }
 }
-.plank-counter.stopped .plank-time {
+.plank-phase-stopped .plank-modal-time {
   color: #e0ff66;
-  text-shadow: 0 0 50px rgba(204, 255, 0, 0.8),
-    0 0 18px rgba(204, 255, 0, 0.55);
+  text-shadow: 0 0 50px rgba(204, 255, 0, 0.8), 0 0 16px rgba(204, 255, 0, 0.55);
 }
 
-.plank-controls {
-  display: flex;
-  justify-content: center;
+/* Przyciski */
+.plank-modal-controls {
   width: 100%;
-  max-width: 360px;
 }
-.plank-start-btn,
 .plank-stop-btn {
   width: 100%;
-  padding: 18px;
+  padding: 16px;
   border-radius: 999px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-}
-.plank-start-btn {
-  background: var(--primary);
-  color: var(--bg);
-  box-shadow: 0 0 32px rgba(204, 255, 0, 0.5);
-}
-.plank-start-btn:active {
-  transform: scale(0.96);
-}
-.plank-stop-btn {
   background: var(--danger);
   color: white;
-  box-shadow: 0 0 28px rgba(255, 77, 77, 0.4);
+  box-shadow: 0 0 24px rgba(255, 77, 77, 0.4);
 }
-.plank-stop-btn:active {
-  transform: scale(0.96);
-}
+.plank-stop-btn:active { transform: scale(0.96); }
 
 .plank-save-row {
   display: flex;
@@ -2825,19 +2798,73 @@
 }
 .plank-save-row button {
   flex: 1;
-  padding: 16px;
+  padding: 15px;
   border-radius: 999px;
   font-size: 0.82rem;
+  font-weight: 700;
 }
-.plank-save {
+.plank-save-btn {
   background: var(--primary);
   color: var(--bg);
-  box-shadow: 0 0 28px rgba(204, 255, 0, 0.4);
+  box-shadow: 0 0 24px rgba(204, 255, 0, 0.4);
 }
-.plank-discard {
+.plank-save-btn:disabled { opacity: 0.5; }
+.plank-discard-btn {
   background: transparent;
   color: var(--muted);
   border: 1px solid var(--border);
+}
+
+/* Animacja po zapisaniu */
+.plank-saved-anim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0 8px;
+  animation: plankSavedWrap 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes plankSavedWrap {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.plank-saved-check {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(204, 255, 0, 0.1);
+  border: 2px solid #CCFF00;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  color: #CCFF00;
+  box-shadow: 0 0 40px rgba(204, 255, 0, 0.35), inset 0 0 20px rgba(204, 255, 0, 0.08);
+  animation: plankCheckPop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 80ms both;
+}
+@keyframes plankCheckPop {
+  from { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.18); }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.plank-saved-time {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 2.6rem;
+  color: var(--primary);
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 30px rgba(204, 255, 0, 0.6);
+  animation: plankSavedSlide 440ms cubic-bezier(0.22, 0.9, 0.32, 1) 160ms both;
+}
+.plank-saved-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: plankSavedSlide 440ms cubic-bezier(0.22, 0.9, 0.32, 1) 240ms both;
+}
+@keyframes plankSavedSlide {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 /* ============================================================
