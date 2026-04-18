@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 function formatDuration(seconds) {
   const m = Math.floor(seconds / 60)
@@ -58,7 +59,7 @@ export default function PlankTimer({ onSave, onClose }) {
     if (onClose) onClose()
   }
 
-  return (
+  return createPortal(
     <div className="plank-timer-overlay">
       <button
         type="button"
@@ -168,6 +169,7 @@ export default function PlankTimer({ onSave, onClose }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
