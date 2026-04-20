@@ -33,6 +33,34 @@ const ACHIEVEMENTS = [
   { title: 'Podłoga mówi dziękuję.', sub: 'Za regularne odwiedziny.' },
 ]
 
+const PLANK_ZERO_ACHIEVEMENT = {
+  title: 'Podłoga czeka.',
+  sub: 'Przyjmij pozycję i oddychaj.',
+}
+
+const PLANK_ACHIEVEMENTS = [
+  { title: 'Spokój to siła.', sub: 'Nie ruszaj się.' },
+  { title: 'Oddech równy.', sub: 'Ciało w linii.' },
+  { title: 'Drżenie? Dobry znak.', sub: 'Mięśnie pracują.' },
+  { title: 'Czas zwalnia.', sub: 'Ale Ty trwasz.' },
+  { title: 'Core nie kłamie.', sub: 'Wyniki mówią same za siebie.' },
+  { title: 'Sekundy mijają.', sub: 'Siła zostaje.' },
+  { title: 'Nie myśl. Trzymaj.', sub: 'Głowa wyłączona, ciało włączone.' },
+  { title: 'Wytrzymałość to wybór.', sub: 'I Ty go robisz.' },
+  { title: 'Każda sekunda się liczy.', sub: 'Dosłownie.' },
+  { title: 'Ciało chce odpuścić.', sub: 'Ty decydujesz inaczej.' },
+  { title: 'Cisza i praca.', sub: 'Najlepsza kombinacja.' },
+  { title: 'Kręgosłup dziękuje.', sub: 'Poważnie.' },
+  { title: 'Minuty budują miesiące.', sub: 'Jeden plank na raz.' },
+  { title: 'Równowaga to też siła.', sub: 'Pamiętaj o tym.' },
+  { title: 'Skupienie > ból.', sub: 'Zawsze.' },
+  { title: 'Solidna podstawa.', sub: 'Wszystko zaczyna się od core.' },
+  { title: 'Boli? Normalnie.', sub: 'Jutro będzie łatwiej.' },
+  { title: 'Trzymałeś.', sub: 'I to wystarczy.' },
+  { title: 'Cicho, ale mocno.', sub: 'Plank nie hałasuje. Wyniki tak.' },
+  { title: 'Jeszcze kilka sekund.', sub: 'Zawsze można trochę więcej.' },
+]
+
 function todayISO() {
   const d = new Date()
   const y = d.getFullYear()
@@ -920,6 +948,27 @@ export default function Dashboard({ session }) {
     myTotal === 0 ? ZERO_ACHIEVEMENT : ACHIEVEMENTS[achievementIdx]
   const achievementKey = myTotal === 0 ? 'zero' : `a-${achievementIdx}`
 
+  // Achievement rotation — plank (rotuje przy każdej nowej sesji deski)
+  const [plankAchievementIdx, setPlankAchievementIdx] = useState(() =>
+    Math.floor(Math.random() * PLANK_ACHIEVEMENTS.length)
+  )
+  const prevPlankCountRef = useRef(myPlanks.length)
+  useEffect(() => {
+    if (myPlanks.length > prevPlankCountRef.current) {
+      setPlankAchievementIdx((current) => {
+        if (PLANK_ACHIEVEMENTS.length <= 1) return 0
+        let next = current
+        while (next === current) next = Math.floor(Math.random() * PLANK_ACHIEVEMENTS.length)
+        return next
+      })
+    }
+    prevPlankCountRef.current = myPlanks.length
+  }, [myPlanks.length])
+
+  const plankAchievement =
+    myPlanks.length === 0 ? PLANK_ZERO_ACHIEVEMENT : PLANK_ACHIEVEMENTS[plankAchievementIdx]
+  const plankAchievementKey = myPlanks.length === 0 ? 'plank-zero' : `pa-${plankAchievementIdx}`
+
   // Przypomnienie gdy wracasz do apki i nie zrobiłeś celu
   useEffect(() => {
     function handleVisibility() {
@@ -1455,9 +1504,9 @@ export default function Dashboard({ session }) {
                   </div>
                   <div className="hero-label">Plank dzisiaj</div>
                 </div>
-                <div className="hero-motivation" key={achievementKey}>
-                  <h2 className="hero-title">{achievement.title}</h2>
-                  <p className="hero-sub">{achievement.sub}</p>
+                <div className="hero-motivation" key={plankAchievementKey}>
+                  <h2 className="hero-title">{plankAchievement.title}</h2>
+                  <p className="hero-sub">{plankAchievement.sub}</p>
                 </div>
                 <div className="stats-row">
                   <div className="stat-box primary">
