@@ -374,6 +374,7 @@ export default function Dashboard({ session }) {
   const [heroExiting, setHeroExiting] = useState(false)
   const heroAnimTimer = useRef(null)
   const heroDir = useRef(1) // 1 = w prawo (→plank), -1 = w lewo (→pushup)
+  const [totalStatsModal, setTotalStatsModal] = useState(null) // 'pushup' | 'plank' | null
 
   function changeExerciseMode(newMode) {
     if (newMode === exerciseMode || heroExiting) return
@@ -849,6 +850,31 @@ export default function Dashboard({ session }) {
 
   const levelInfo = useMemo(() => getLevelInfo(myTotal), [myTotal])
 
+  // Statystyki ogółem — do popupu
+  const pushupOverall = useMemo(() => {
+    if (myPushups.length === 0) return null
+    const sorted = [...myPushups].sort((a, b) => a.performed_at.localeCompare(b.performed_at))
+    const firstDate = sorted[0].performed_at
+    const [y, m, d] = firstDate.split('-').map(Number)
+    const daysAgo = Math.round((new Date() - new Date(y, m - 1, d)) / (1000 * 60 * 60 * 24))
+    const daysActive = new Set(myPushups.map((w) => w.performed_at)).size
+    const avgPerActiveDay = daysActive > 0 ? Math.round(myTotal / daysActive) : 0
+    const avgPerCalendarDay = daysAgo > 0 ? Math.round(myTotal / daysAgo) : myTotal
+    return { firstDate, daysAgo, daysActive, avgPerActiveDay, avgPerCalendarDay }
+  }, [myPushups, myTotal])
+
+  const plankOverall = useMemo(() => {
+    if (myPlanks.length === 0) return null
+    const sorted = [...myPlanks].sort((a, b) => a.performed_at.localeCompare(b.performed_at))
+    const firstDate = sorted[0].performed_at
+    const [y, m, d] = firstDate.split('-').map(Number)
+    const daysAgo = Math.round((new Date() - new Date(y, m - 1, d)) / (1000 * 60 * 60 * 24))
+    const daysActive = new Set(myPlanks.map((w) => w.performed_at)).size
+    const totalSessions = myPlanks.length
+    const avgSecsPerSession = totalSessions > 0 ? Math.round(myPlankTotalSeconds / totalSessions) : 0
+    return { firstDate, daysAgo, daysActive, totalSessions, avgSecsPerSession }
+  }, [myPlanks, myPlankTotalSeconds])
+
   const badges = useMemo(
     () =>
       computeBadges({
@@ -1181,28 +1207,30 @@ export default function Dashboard({ session }) {
           <span>POMPKI</span>
         </div>
         <div className="topbar-chips">
-          <div
+          <button
+            type="button"
             className="topbar-count topbar-count-pushup"
-            aria-label={`Łącznie ${myTotal} pompek`}
-            title="Wszystkie Twoje pompki od początku"
+            aria-label={`Łącznie ${myTotal} pompek — kliknij po szczegóły`}
+            onClick={() => setTotalStatsModal('pushup')}
           >
             <span className="topbar-count-icon">💪</span>
             <span className="topbar-count-value">
               <AnimatedCounter value={myTotal} />
             </span>
             <span className="topbar-count-label">pompek</span>
-          </div>
-          <div
+          </button>
+          <button
+            type="button"
             className="topbar-count topbar-count-plank"
-            aria-label={`Łącznie ${formatDuration(myPlankTotalSeconds)} planka`}
-            title="Łączny czas planka od początku"
+            aria-label={`Łącznie ${formatDuration(myPlankTotalSeconds)} planka — kliknij po szczegóły`}
+            onClick={() => setTotalStatsModal('plank')}
           >
             <span className="topbar-count-icon">🧘</span>
             <span className="topbar-count-value">
               {formatDuration(myPlankTotalSeconds)}
             </span>
             <span className="topbar-count-label">plank</span>
-          </div>
+          </button>
         </div>
         <div className="avatar-menu">
           <button
@@ -1818,6 +1846,100 @@ export default function Dashboard({ session }) {
                       <span className="record-icon">🔥</span>
                       <div className="record-label">Najdłuższa seria</div>
                       <div className="record-value">{plankStreak}<span className="record-unit"> {plankStreak === 1 ? 'dzień' : 'dni'}</span></div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {totalStatsModal && (
+        <div className="modal-backdrop" onClick={() => setTotalStatsModal(null)}>
+          <div className="modal total-stats-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="modal-close" onClick={() => setTotalStatsModal(null)} aria-label="Zamknij">✕</button>
+
+            {totalStatsModal === 'pushup' && (
+              <>
+                <div className="total-stats-header">
+                  <span className="total-stats-icon">💪</span>
+                  <div>
+                    <div className="total-stats-title">Pompki ogółem</div>
+                    {pushupOverall
+                      ? <div className="total-stats-since">od {formatShortDate(pushupOverall.firstDate)} · {pushupOverall.daysAgo} {pushupOverall.daysAgo === 1 ? 'dzień' : 'dni'} temu</div>
+                      : <div className="total-stats-since">brak danych</div>}
+                  </div>
+                </div>
+                <div className="total-stats-big">{myTotal.toLocaleString('pl-PL')}<span className="total-stats-unit"> pompek</span></div>
+                {pushupOverall && (
+                  <div className="total-stats-grid">
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{records.sessionsCount}</div>
+                      <div className="total-stat-label">sesji</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{pushupOverall.daysActive}</div>
+                      <div className="total-stat-label">aktywnych dni</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{pushupOverall.avgPerActiveDay}</div>
+                      <div className="total-stat-label">śr. / aktywny dzień</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{pushupOverall.avgPerCalendarDay}</div>
+                      <div className="total-stat-label">śr. / dzień kalend.</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{records.maxSession}</div>
+                      <div className="total-stat-label">rekord sesji</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{records.maxDay}</div>
+                      <div className="total-stat-label">rekord dnia</div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {totalStatsModal === 'plank' && (
+              <>
+                <div className="total-stats-header">
+                  <span className="total-stats-icon">🧘</span>
+                  <div>
+                    <div className="total-stats-title">Plank ogółem</div>
+                    {plankOverall
+                      ? <div className="total-stats-since">od {formatShortDate(plankOverall.firstDate)} · {plankOverall.daysAgo} {plankOverall.daysAgo === 1 ? 'dzień' : 'dni'} temu</div>
+                      : <div className="total-stats-since">brak danych</div>}
+                  </div>
+                </div>
+                <div className="total-stats-big">{formatDuration(myPlankTotalSeconds)}<span className="total-stats-unit"> łącznie</span></div>
+                {plankOverall && (
+                  <div className="total-stats-grid">
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{plankOverall.totalSessions}</div>
+                      <div className="total-stat-label">sesji</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{plankOverall.daysActive}</div>
+                      <div className="total-stat-label">aktywnych dni</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{formatDuration(plankOverall.avgSecsPerSession)}</div>
+                      <div className="total-stat-label">śr. długość sesji</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{formatDuration(plankRecords.maxSession)}</div>
+                      <div className="total-stat-label">rekord sesji</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{formatDuration(plankRecords.maxDay)}</div>
+                      <div className="total-stat-label">rekord dnia</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{plankStreak}</div>
+                      <div className="total-stat-label">obecna seria</div>
                     </div>
                   </div>
                 )}

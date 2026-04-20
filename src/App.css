@@ -288,8 +288,13 @@
   background: rgba(204, 255, 0, 0.08);
   border: 1px solid rgba(204, 255, 0, 0.3);
   border-radius: 999px;
-  cursor: default;
+  cursor: pointer;
   flex-shrink: 0;
+  transition: opacity 140ms, transform 140ms;
+}
+.topbar-count:active {
+  opacity: 0.7;
+  transform: scale(0.95);
 }
 .topbar-count-plank {
   background: rgba(0, 253, 255, 0.08);
@@ -2991,6 +2996,78 @@
   animation: modalSlideUp 180ms ease;
   position: relative;
   overflow: hidden;
+}
+
+/* Total stats modal (chip pompki / plank) */
+.total-stats-modal {
+  padding: 24px 22px 22px;
+}
+.total-stats-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.total-stats-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+.total-stats-title {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.total-stats-since {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+.total-stats-big {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 2.8rem;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 30px rgba(204, 255, 0, 0.4);
+  margin-bottom: 18px;
+}
+.total-stats-modal .topbar-count-plank ~ * .total-stats-big,
+.total-stats-modal.plank .total-stats-big {
+  color: var(--secondary);
+}
+.total-stats-unit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.total-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.total-stat-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.total-stat-value {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--text);
+  line-height: 1;
+}
+.total-stat-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 3px;
 }
 .modal::before {
   content: '';
