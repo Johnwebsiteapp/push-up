@@ -1596,7 +1596,18 @@ export default function Dashboard({ session }) {
             </div>
           </section>
 
-          <AddWorkout user={user} mode={exerciseMode} onModeChange={changeExerciseMode} />
+          <AddWorkout
+            user={user}
+            mode={exerciseMode}
+            onModeChange={changeExerciseMode}
+            onWorkoutSaved={(workout) => {
+              // Natychmiast dodaj do lokalnego stanu — nie czekaj na Realtime
+              setWorkouts((prev) => {
+                if (prev.some((w) => w.id === workout.id)) return prev
+                return [workout, ...prev]
+              })
+            }}
+          />
           </div>
 
           <div

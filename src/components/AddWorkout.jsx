@@ -16,7 +16,7 @@ function formatDuration(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
+export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorkoutSaved }) {
   const [internalMode, setInternalMode] = useState('pushup')
   const mode = modeProp ?? internalMode
   const setMode = onModeChange ?? setInternalMode
@@ -82,7 +82,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
     }
 
     setSaving(true)
-    const { error } = await supabase.from('workouts').insert({
+    const { data: saved, error } = await supabase.from('workouts').insert({
       user_id: user.id,
       user_email: user.email,
       exercise_type: 'pushup',
@@ -90,12 +90,13 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
       duration_seconds: null,
       performed_at: date,
       note: null,
-    })
+    }).select().single()
     setSaving(false)
 
     if (error) {
       setError(error.message)
     } else {
+      if (saved) onWorkoutSaved?.(saved)
       setCount('')
       setDate(todayISO())
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -104,7 +105,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
 
   async function handlePlankSave(seconds) {
     setSaving(true)
-    const { error } = await supabase.from('workouts').insert({
+    const { data: saved, error } = await supabase.from('workouts').insert({
       user_id: user.id,
       user_email: user.email,
       exercise_type: 'plank',
@@ -112,12 +113,13 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange }) {
       duration_seconds: seconds,
       performed_at: todayISO(),
       note: null,
-    })
+    }).select().single()
     setSaving(false)
 
     if (error) {
       alert('Błąd zapisu: ' + error.message)
     } else {
+      if (saved) onWorkoutSaved?.(saved)
       setShowTimer(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
