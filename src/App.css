@@ -262,7 +262,7 @@
   z-index: 30;
   margin: -16px -16px 14px;
   padding: 12px 16px;
-  background: rgba(15, 17, 17, 0.88);
+  background: var(--topbar-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(38, 40, 40, 0.5);
@@ -519,7 +519,7 @@
 }
 .level-popup-progress-track {
   height: 8px;
-  background: rgba(38, 40, 40, 0.8);
+  background: var(--track-bg);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -981,7 +981,7 @@
 }
 .goal-bar-track {
   height: 6px;
-  background: rgba(38, 40, 40, 0.8);
+  background: var(--track-bg);
   border-radius: 999px;
   overflow: hidden;
   position: relative;
@@ -2851,7 +2851,7 @@
   position: fixed;
   inset: 0;
   z-index: 120;
-  background: rgba(0, 0, 0, 0.75);
+  background: var(--overlay-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
@@ -3070,7 +3070,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5, 7, 7, 0.75);
+  background: var(--overlay-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: grid;
