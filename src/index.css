@@ -1,13 +1,15 @@
 :root {
-  /* Kinetic Onyx palette */
+  /* Kinetic Onyx palette (default) */
   --bg: #0F1111;
   --bg-elevated: #181A1A;
   --bg-card: #141616;
   --border: #262828;
   --border-soft: #1F2121;
   --primary: #CCFF00;
-  --primary-dim: rgba(204, 255, 0, 0.15);
+  --primary-rgb: 204, 255, 0;
+  --primary-dim: rgba(var(--primary-rgb), 0.15);
   --secondary: #00FDFF;
+  --secondary-rgb: 0, 253, 255;
   --tertiary: #FF5C00;
   --text: #F5F5F5;
   --text-dim: #B8BBBB;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { THEMES, applyTheme, loadSavedTheme } from '../themes'
 import {
   enablePushNotifications,
   disablePushNotifications,
@@ -15,6 +16,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
   const [pushOn, setPushOn] = useState(false)
   const [pushBusy, setPushBusy] = useState(false)
   const [pushError, setPushError] = useState(null)
+  const [activeTheme, setActiveTheme] = useState(() => loadSavedTheme())
 
   useEffect(() => {
     let ignore = false
@@ -441,6 +443,45 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
             )}
           </form>
         )}
+      </section>
+
+      <section className="card profile-themes-section">
+        <h3 className="card-title">Motyw</h3>
+        <div className="theme-grid">
+          {THEMES.map((theme) => (
+            <button
+              key={theme.id}
+              type="button"
+              className={`theme-card ${activeTheme === theme.id ? 'active' : ''}`}
+              onClick={() => {
+                applyTheme(theme.id)
+                setActiveTheme(theme.id)
+              }}
+              aria-pressed={activeTheme === theme.id}
+            >
+              <div
+                className="theme-preview"
+                style={{ background: theme.preview.bg }}
+              >
+                <div
+                  className="theme-preview-bar"
+                  style={{ background: theme.preview.primary }}
+                />
+                <div className="theme-preview-dots">
+                  <span style={{ background: theme.preview.primary }} />
+                  <span style={{ background: theme.preview.secondary }} />
+                </div>
+              </div>
+              <div className="theme-info">
+                <div className="theme-name">{theme.name}</div>
+                <div className="theme-desc">{theme.desc}</div>
+              </div>
+              {activeTheme === theme.id && (
+                <span className="theme-check">✓</span>
+              )}
+            </button>
+          ))}
+        </div>
       </section>
     </div>
   )

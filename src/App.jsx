@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
+import { loadSavedTheme } from './themes'
 import './App.css'
+
+// Zastosuj zapisany motyw przed pierwszym renderem
+loadSavedTheme()
 
 export default function App() {
   const [session, setSession] = useState(null)
