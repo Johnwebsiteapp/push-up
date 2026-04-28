@@ -43,7 +43,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
     return () => clearTimeout(timerRef.current)
   }, [mode])
 
-  const QUICK_ADDS = [10, 15, 20]
+  const QUICK_ADDS = [10, 20, 30]
 
   function quickAdd(n, event) {
     const current = parseInt(count, 10) || 0
