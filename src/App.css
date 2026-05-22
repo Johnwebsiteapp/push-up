@@ -1595,6 +1595,20 @@
   letter-spacing: 0.06em;
   color: var(--muted);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.workout-time {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--border-soft);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
 }
 .workout-meta {
   font-size: 0.8rem;

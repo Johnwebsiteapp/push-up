@@ -17,6 +17,14 @@ function formatDate(isoDate) {
   return `${dayName} ${dd}.${mm}`
 }
 
+function formatTime(isoTimestamp) {
+  if (!isoTimestamp) return null
+  const d = new Date(isoTimestamp)
+  const h = String(d.getHours()).padStart(2, '0')
+  const m = String(d.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}
+
 function formatDuration(seconds) {
   if (!seconds) return '0:00'
   const m = Math.floor(seconds / 60)
@@ -52,7 +60,12 @@ export default function WorkoutList({ workouts, profiles, currentUserId, onDelet
                 <strong className="workout-count">
                   <span className="workout-icon">{icon}</span> {label}
                 </strong>
-                <span className="workout-date">{formatDate(w.performed_at)}</span>
+                <span className="workout-date">
+                  {formatDate(w.performed_at)}
+                  {formatTime(w.created_at) && (
+                    <span className="workout-time">{formatTime(w.created_at)}</span>
+                  )}
+                </span>
               </div>
               <div className="workout-meta">
                 <span>
