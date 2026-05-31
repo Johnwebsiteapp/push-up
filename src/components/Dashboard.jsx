@@ -246,10 +246,8 @@ function getLevelTitle(level, t) {
 }
 
 // Pozostawione dla kompatybilności — zwraca tytuł na bazie systemu poziomów
-function getTitleForTotal(total) {
-  const { level } = getLevelInfo(total)
-  return getLevelTitle(level)
-}
+// getTitleForTotal — nieużywane, zachowane dla kompatybilności
+// function getTitleForTotal(total) { ... }
 
 function formatShortDate(isoDate, t) {
   if (!isoDate) return ''
@@ -1213,7 +1211,7 @@ export default function Dashboard({ session }) {
             <div className="level-popup-top">
               <div className="level-popup-name">{myDisplayName}</div>
               <div className="level-popup-rank">
-                {getLevelTitle(levelInfo.level)}
+                {getLevelTitle(levelInfo.level, t)}
               </div>
             </div>
             <div className="level-popup-level-box">
