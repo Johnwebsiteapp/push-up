@@ -4,6 +4,7 @@ import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
 import { loadSavedTheme } from './themes'
 import { LangProvider, useLang } from './LangContext'
+import ErrorBoundary from './ErrorBoundary'
 import './App.css'
 
 // Zastosuj zapisany motyw przed pierwszym renderem
@@ -38,8 +39,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <LangProvider>
-      <AppInner />
-    </LangProvider>
+    <ErrorBoundary>
+      <LangProvider>
+        <AppInner />
+      </LangProvider>
+    </ErrorBoundary>
   )
 }
