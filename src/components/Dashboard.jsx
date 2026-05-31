@@ -1021,7 +1021,7 @@ export default function Dashboard({ session }) {
         email: prev.email || w.user_email,
       })
     }
-    const t = todayISO()
+    const todayStr = todayISO()
     return Array.from(map.entries())
       .map(([user_id, v]) => {
         const prof = profiles[user_id]
@@ -1043,7 +1043,7 @@ export default function Dashboard({ session }) {
         // Per-user dodatkowe statystyki
         const userWorkouts = workouts.filter((w) => w.user_id === user_id)
         const todayCount = userWorkouts
-          .filter((w) => w.performed_at === t)
+          .filter((w) => w.performed_at === todayStr)
           .reduce((s, w) => s + w.count, 0)
         const daysActive = new Set(userWorkouts.map((w) => w.performed_at)).size
         const maxSession = userWorkouts.length
