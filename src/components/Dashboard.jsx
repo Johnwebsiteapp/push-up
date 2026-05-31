@@ -4,62 +4,13 @@ import AddWorkout from './AddWorkout'
 import WorkoutList from './WorkoutList'
 import Profile from './Profile'
 import { showReminder } from '../notifications'
-
-const ZERO_ACHIEVEMENT = {
-  title: 'Podłoga czeka.',
-  sub: 'Nie każ jej czekać.',
-}
-
-const ACHIEVEMENTS = [
-  { title: 'Kanapa płacze.', sub: 'Ale Ty się śmiejesz.' },
-  { title: 'Każda pompka.', sub: 'Zostaje na zawsze.' },
-  { title: 'Mięśnie bolą.', sub: 'To znaczy że działasz.' },
-  { title: 'Ból mija.', sub: 'Forma zostaje.' },
-  { title: 'Nie ma skrótów.', sub: 'Tylko powtórzenia.' },
-  { title: 'Koszulka się kurczy.', sub: 'A może to Ty rośniesz.' },
-  { title: 'Zero wymówek.', sub: 'Tylko wyniki.' },
-  { title: 'Dzisiaj bolało.', sub: 'Jutro podziękujesz.' },
-  { title: 'Jedna więcej niż wczoraj.', sub: 'To jest postęp.' },
-  { title: 'Zrobiłeś.', sub: 'I to się liczy.' },
-  { title: 'Twoje ciało Ci dziękuje.', sub: 'Nawet jak narzeka.' },
-  { title: 'Inni scrollują.', sub: 'Ty robisz pompki.' },
-  { title: 'Nikt nie widział.', sub: 'Ale licznik wie.' },
-  { title: 'Nie musisz być najlepszy.', sub: 'Tylko regularny.' },
-  { title: 'Jeszcze jedna seria.', sub: 'Powiedziałeś to 3 serie temu.' },
-  { title: 'Grawitacja przegrywa.', sub: 'Znowu.' },
-  { title: 'Ramiona > wymówki.', sub: 'Proste.' },
-  { title: 'Zmęczony?', sub: 'Dobrze.' },
-  { title: 'Robiłeś pompki.', sub: 'I to wystarczy.' },
-  { title: 'Podłoga mówi dziękuję.', sub: 'Za regularne odwiedziny.' },
-]
-
-const PLANK_ZERO_ACHIEVEMENT = {
-  title: 'Podłoga czeka.',
-  sub: 'Przyjmij pozycję i oddychaj.',
-}
-
-const PLANK_ACHIEVEMENTS = [
-  { title: 'Spokój to siła.', sub: 'Nie ruszaj się.' },
-  { title: 'Oddech równy.', sub: 'Ciało w linii.' },
-  { title: 'Drżenie? Dobry znak.', sub: 'Mięśnie pracują.' },
-  { title: 'Czas zwalnia.', sub: 'Ale Ty trwasz.' },
-  { title: 'Core nie kłamie.', sub: 'Wyniki mówią same za siebie.' },
-  { title: 'Sekundy mijają.', sub: 'Siła zostaje.' },
-  { title: 'Nie myśl. Trzymaj.', sub: 'Głowa wyłączona, ciało włączone.' },
-  { title: 'Wytrzymałość to wybór.', sub: 'I Ty go robisz.' },
-  { title: 'Każda sekunda się liczy.', sub: 'Dosłownie.' },
-  { title: 'Ciało chce odpuścić.', sub: 'Ty decydujesz inaczej.' },
-  { title: 'Cisza i praca.', sub: 'Najlepsza kombinacja.' },
-  { title: 'Kręgosłup dziękuje.', sub: 'Poważnie.' },
-  { title: 'Minuty budują miesiące.', sub: 'Jeden plank na raz.' },
-  { title: 'Równowaga to też siła.', sub: 'Pamiętaj o tym.' },
-  { title: 'Skupienie > ból.', sub: 'Zawsze.' },
-  { title: 'Solidna podstawa.', sub: 'Wszystko zaczyna się od core.' },
-  { title: 'Boli? Normalnie.', sub: 'Jutro będzie łatwiej.' },
-  { title: 'Trzymałeś.', sub: 'I to wystarczy.' },
-  { title: 'Cicho, ale mocno.', sub: 'Plank nie hałasuje. Wyniki tak.' },
-  { title: 'Jeszcze kilka sekund.', sub: 'Zawsze można trochę więcej.' },
-]
+import { useLang } from '../LangContext'
+import {
+  ACHIEVEMENTS_BY_LANG,
+  PLANK_ACHIEVEMENTS_BY_LANG,
+  ZERO_ACHIEVEMENT_BY_LANG,
+  PLANK_ZERO_ACHIEVEMENT_BY_LANG,
+} from '../i18n'
 
 function todayISO() {
   const d = new Date()
@@ -213,7 +164,7 @@ function computeBadges(stats) {
   })
 }
 
-const DNI_CHART = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
+// DNI_CHART jest teraz pobierane przez t(`dshort_${day}`) w komponencie
 
 const MILESTONES = [100, 250, 500, 1000, 2000, 3000, 5000, 7500, 10000, 15000, 25000]
 
@@ -264,9 +215,9 @@ function ConfettiBurst({ onDone }) {
   )
 }
 
-function streakLabel(n) {
-  if (n === 1) return '1 dzień'
-  return `${n} dni`
+function streakLabel(n, t) {
+  if (n === 1) return `1 ${t('hero_day_singular')}`
+  return `${n} ${t('hero_days_plural')}`
 }
 
 function formatDuration(seconds) {
@@ -285,13 +236,13 @@ function formatDurationShort(seconds) {
   return s === 0 ? `${m} min` : `${m}:${String(s).padStart(2, '0')}`
 }
 
-function getLevelTitle(level) {
-  if (level <= 2) return 'Nowicjusz'
-  if (level <= 5) return 'Początkujący'
-  if (level <= 9) return 'Regularny'
-  if (level <= 14) return 'Zaawansowany'
-  if (level <= 19) return 'Weteran'
-  return 'Legenda'
+function getLevelTitle(level, t) {
+  if (level <= 2) return t('level_novice')
+  if (level <= 5) return t('level_beginner')
+  if (level <= 9) return t('level_regular')
+  if (level <= 14) return t('level_advanced')
+  if (level <= 19) return t('level_veteran')
+  return t('level_legend')
 }
 
 // Pozostawione dla kompatybilności — zwraca tytuł na bazie systemu poziomów
@@ -300,12 +251,12 @@ function getTitleForTotal(total) {
   return getLevelTitle(level)
 }
 
-const DNI_SHORT = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
-function formatShortDate(isoDate) {
+function formatShortDate(isoDate, t) {
   if (!isoDate) return ''
   const [y, m, d] = isoDate.split('-').map(Number)
   const dateObj = new Date(y, m - 1, d)
-  return `${DNI_SHORT[dateObj.getDay()]} ${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}`
+  const dayShort = t(`dshort_${dateObj.getDay()}`)
+  return `${dayShort} ${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}`
 }
 
 // Płynny licznik — animuje wartość od poprzedniej do nowej z ease-out
@@ -352,6 +303,7 @@ function AnimatedCounter({ value, duration = 750 }) {
 }
 
 export default function Dashboard({ session }) {
+  const { t, lang } = useLang()
   const [tab, setTab] = useState('home')
   const [workouts, setWorkouts] = useState([])
   const [profiles, setProfiles] = useState({})
@@ -420,6 +372,12 @@ export default function Dashboard({ session }) {
   const touchRef = useRef({ startX: 0, startY: 0, lockDir: null })
 
   const user = session.user
+
+  // Teksty motywacyjne zależne od języka
+  const ACHIEVEMENTS = ACHIEVEMENTS_BY_LANG[lang] || ACHIEVEMENTS_BY_LANG.pl
+  const PLANK_ACHIEVEMENTS = PLANK_ACHIEVEMENTS_BY_LANG[lang] || PLANK_ACHIEVEMENTS_BY_LANG.pl
+  const ZERO_ACHIEVEMENT = ZERO_ACHIEVEMENT_BY_LANG[lang] || ZERO_ACHIEVEMENT_BY_LANG.pl
+  const PLANK_ZERO_ACHIEVEMENT = PLANK_ZERO_ACHIEVEMENT_BY_LANG[lang] || PLANK_ZERO_ACHIEVEMENT_BY_LANG.pl
 
   const TABS = ['ranking', 'home', 'profile']
   const tabIndex = TABS.indexOf(tab)
@@ -735,14 +693,14 @@ export default function Dashboard({ session }) {
         .reduce((sum, w) => sum + w.count, 0)
       days.push({
         iso,
-        dayName: DNI_CHART[d.getDay()],
+        dayName: t(`dshort_${d.getDay()}`),
         count,
         isToday: iso === todayIso,
       })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
     return { days, max }
-  }, [myWorkouts])
+  }, [myWorkouts, t])
 
   // Wykres tygodniowy — Plank (sekundy)
   const weeklyChartPlank = useMemo(() => {
@@ -759,11 +717,11 @@ export default function Dashboard({ session }) {
       const secs = myPlanks
         .filter((w) => w.performed_at === iso)
         .reduce((sum, w) => sum + (w.duration_seconds || 0), 0)
-      days.push({ iso, dayName: DNI_CHART[d.getDay()], count: secs, isToday: iso === todayIso })
+      days.push({ iso, dayName: t(`dshort_${d.getDay()}`), count: secs, isToday: iso === todayIso })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
     return { days, max }
-  }, [myPlanks])
+  }, [myPlanks, t])
 
   // Rekordy osobiste + dodatkowe statystyki potrzebne do odznak
   const records = useMemo(() => {
@@ -921,10 +879,7 @@ export default function Dashboard({ session }) {
       const key = `goal-daily-${todayISO()}-${user.id}`
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, '1')
-        setCelebration({
-          type: 'daily',
-          text: `Cel dzienny osiągnięty! ${todayTotal} / ${dailyGoal} pompek`,
-        })
+        setCelebration({ type: 'daily', total: todayTotal, goal: dailyGoal })
         setTimeout(() => setCelebration(null), 5000)
       }
     }
@@ -932,7 +887,6 @@ export default function Dashboard({ session }) {
 
   useEffect(() => {
     if (weeklyMet) {
-      // Klucz tygodnia — ISO week (YYYY-Www)
       const now = new Date()
       const yearStart = new Date(now.getFullYear(), 0, 1)
       const weekNum = Math.ceil(
@@ -941,10 +895,7 @@ export default function Dashboard({ session }) {
       const key = `goal-weekly-${now.getFullYear()}-W${weekNum}-${user.id}`
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, '1')
-        setCelebration({
-          type: 'weekly',
-          text: `Cel tygodniowy osiągnięty! ${weekTotal} / ${weeklyGoal} pompek`,
-        })
+        setCelebration({ type: 'weekly', total: weekTotal, goal: weeklyGoal })
         setTimeout(() => setCelebration(null), 6000)
       }
     }
@@ -1004,10 +955,10 @@ export default function Dashboard({ session }) {
       const remaining = dailyGoal - todayTotal
       if (remaining > 0) {
         showReminder(
-          'POMPKI ⚡',
+          t('reminder_title'),
           remaining >= dailyGoal
-            ? `Nie zapomnij dziś o pompkach! Cel: ${dailyGoal} pompek.`
-            : `Zostało Ci ${remaining} pompek do celu dziennego!`
+            ? `${t('reminder_start')} ${dailyGoal} ${t('reminder_pompek')}`
+            : `${t('reminder_remaining')} ${remaining} ${t('reminder_to_goal')}`
         )
       }
     }
@@ -1033,10 +984,7 @@ export default function Dashboard({ session }) {
           localStorage.setItem(key, '1')
           setConfettiKey((k) => k + 1)
           setConfettiActive(true)
-          setCelebration({
-            type: 'milestone',
-            text: `${crossed} POMPEK! Milestone odblokowany!`,
-          })
+          setCelebration({ type: 'milestone', value: crossed })
           setTimeout(() => setCelebration(null), 5500)
         }
       }
@@ -1082,7 +1030,7 @@ export default function Dashboard({ session }) {
         const displayName =
           prof?.nick ||
           prof?.name ||
-          (v.email ? v.email.split('@')[0] : 'Użytkownik')
+          (v.email ? v.email.split('@')[0] : t('wl_user'))
         const customInitials = prof?.initials
         const derivedInitials = (
           prof?.nick ||
@@ -1112,7 +1060,7 @@ export default function Dashboard({ session }) {
           displayName,
           avatarInitials,
           level: entryLevel,
-          levelTitle: getLevelTitle(entryLevel),
+          levelTitle: getLevelTitle(entryLevel, t),
           todayCount,
           daysActive,
           maxSession,
@@ -1121,13 +1069,13 @@ export default function Dashboard({ session }) {
         }
       })
       .sort((a, b) => b.total - a.total)
-  }, [workouts, profiles])
+  }, [workouts, profiles, t])
 
   const myProfile = profiles[user.id]
   const myDisplayName =
     myProfile?.nick ||
     myProfile?.name ||
-    (user.email ? user.email.split('@')[0] : 'Użytkownik')
+    (user.email ? user.email.split('@')[0] : t('wl_user'))
   const initials =
     myProfile?.initials ||
     (myProfile?.nick || myProfile?.name || user.email || '??')
@@ -1148,7 +1096,7 @@ export default function Dashboard({ session }) {
     const { error } = await supabase.from('workouts').delete().eq('id', deleteTarget.id)
     setDeleting(false)
     if (error) {
-      alert('Błąd usuwania: ' + error.message)
+      alert(t('delete_error') + error.message)
     } else {
       setDeleteTarget(null)
     }
@@ -1164,7 +1112,7 @@ export default function Dashboard({ session }) {
     e.preventDefault()
     const trimmed = nickPromptNick.trim()
     if (trimmed.length < 2) {
-      setNickPromptError('Nick musi mieć co najmniej 2 znaki.')
+      setNickPromptError(t('nick_min_length'))
       return
     }
     setNickPromptSaving(true)
@@ -1210,26 +1158,26 @@ export default function Dashboard({ session }) {
           <button
             type="button"
             className="topbar-count topbar-count-pushup"
-            aria-label={`Łącznie ${myTotal} pompek — kliknij po szczegóły`}
+            aria-label={`${myTotal} ${t('topbar_pompek')}`}
             onClick={() => setTotalStatsModal('pushup')}
           >
             <span className="topbar-count-icon">💪</span>
             <span className="topbar-count-value">
               <AnimatedCounter value={myTotal} />
             </span>
-            <span className="topbar-count-label">pompek</span>
+            <span className="topbar-count-label">{t('topbar_pompek')}</span>
           </button>
           <button
             type="button"
             className="topbar-count topbar-count-plank"
-            aria-label={`Łącznie ${formatDuration(myPlankTotalSeconds)} planka — kliknij po szczegóły`}
+            aria-label={`${formatDuration(myPlankTotalSeconds)} ${t('topbar_plank')}`}
             onClick={() => setTotalStatsModal('plank')}
           >
             <span className="topbar-count-icon">🧘</span>
             <span className="topbar-count-value">
               {formatDuration(myPlankTotalSeconds)}
             </span>
-            <span className="topbar-count-label">plank</span>
+            <span className="topbar-count-label">{t('topbar_plank')}</span>
           </button>
         </div>
         <div className="avatar-menu">
@@ -1269,12 +1217,12 @@ export default function Dashboard({ session }) {
               </div>
             </div>
             <div className="level-popup-level-box">
-              <div className="level-popup-level-label">Poziom</div>
+              <div className="level-popup-level-label">{t('level_label')}</div>
               <div className="level-popup-level-number">{levelInfo.level}</div>
             </div>
             <div className="level-popup-progress">
               <div className="level-popup-progress-head">
-                <span>Do LVL {levelInfo.level + 1}</span>
+                <span>{t('to_lvl')} {levelInfo.level + 1}</span>
                 <span>
                   {levelInfo.inLevel} / {levelInfo.needForNext}
                 </span>
@@ -1287,7 +1235,7 @@ export default function Dashboard({ session }) {
               </div>
             </div>
             <button onClick={handleSignOut} className="secondary">
-              Wyloguj
+              {t('sign_out')}
             </button>
           </div>
         </div>
@@ -1322,10 +1270,10 @@ export default function Dashboard({ session }) {
           >
             <section className="card">
               <h3 className="card-title">
-                <span>Ranking</span>
+                <span>{t('ranking_title')}</span>
               </h3>
               {leaderboard.length === 0 ? (
-                <p className="empty">Brak wpisów. Bądź pierwszy!</p>
+                <p className="empty">{t('ranking_empty')}</p>
               ) : (
                 <ul className="leaderboard-list">
                   {leaderboard.map((entry, idx) => {
@@ -1345,7 +1293,7 @@ export default function Dashboard({ session }) {
                         <div className="lb-info">
                           <div className="lb-name">
                             {entry.displayName}
-                            {isMe && ' (Ty)'}
+                            {isMe && t('ranking_me')}
                           </div>
                           <div className="lb-title">
                             LVL {entry.level} · {entry.levelTitle}
@@ -1355,7 +1303,7 @@ export default function Dashboard({ session }) {
                           <div className="lb-score">
                             <AnimatedCounter value={entry.total} />
                           </div>
-                          <span className="lb-score-unit">pompek</span>
+                          <span className="lb-score-unit">{t('ranking_pompek_unit')}</span>
                         </div>
                       </li>
                     )
@@ -1371,8 +1319,8 @@ export default function Dashboard({ session }) {
                 onClick={() => setStatsModal('chart')}
               >
                 <span className="stats-tile-icon">📊</span>
-                <span className="stats-tile-label">Wykres tygodniowy</span>
-                <span className="stats-tile-hint">Ostatnie 7 dni</span>
+                <span className="stats-tile-label">{t('ranking_weekly_chart')}</span>
+                <span className="stats-tile-hint">{t('ranking_last7')}</span>
               </button>
               <button
                 type="button"
@@ -1380,14 +1328,14 @@ export default function Dashboard({ session }) {
                 onClick={() => setStatsModal('records')}
               >
                 <span className="stats-tile-icon">🏆</span>
-                <span className="stats-tile-label">Rekordy osobiste</span>
-                <span className="stats-tile-hint">Twoje najlepsze</span>
+                <span className="stats-tile-label">{t('ranking_records')}</span>
+                <span className="stats-tile-hint">{t('ranking_your_best')}</span>
               </button>
             </div>
 
             <section className="card">
               <h3 className="card-title">
-                <span>Moja historia</span>
+                <span>{t('history_title')}</span>
               </h3>
               <div className="history-mode-switch">
                 <button
@@ -1395,18 +1343,18 @@ export default function Dashboard({ session }) {
                   className={`history-mode-btn ${historyMode === 'pushup' ? 'active' : ''}`}
                   onClick={() => setHistoryMode('pushup')}
                 >
-                  💪 Pompki
+                  {t('btn_pushups')}
                 </button>
                 <button
                   type="button"
                   className={`history-mode-btn ${historyMode === 'plank' ? 'active' : ''}`}
                   onClick={() => setHistoryMode('plank')}
                 >
-                  🧘 Plank
+                  {t('btn_plank')}
                 </button>
               </div>
               {loading ? (
-                <p className="empty">Ładowanie…</p>
+                <p className="empty">{t('history_loading')}</p>
               ) : error ? (
                 <p className="error">Błąd: {error}</p>
               ) : (
@@ -1434,7 +1382,7 @@ export default function Dashboard({ session }) {
                 className={`hero-mode-btn ${exerciseMode === 'pushup' ? 'active' : ''}`}
                 onClick={() => changeExerciseMode('pushup')}
               >
-                💪 Pompki
+                {t('btn_pushups')}
               </button>
               <button
                 type="button"
@@ -1443,7 +1391,7 @@ export default function Dashboard({ session }) {
                 className={`hero-mode-btn ${exerciseMode === 'plank' ? 'active' : ''}`}
                 onClick={() => changeExerciseMode('plank')}
               >
-                🧘 Plank
+                {t('btn_plank')}
               </button>
             </div>
 
@@ -1464,7 +1412,7 @@ export default function Dashboard({ session }) {
                       />
                     )}
                   </div>
-                  <div className="hero-label">Pompki dzisiaj</div>
+                  <div className="hero-label">{t('hero_pushups_today')}</div>
                 </div>
                 <div className="hero-motivation" key={achievementKey}>
                   <h2 className="hero-title">{achievement.title}</h2>
@@ -1472,17 +1420,17 @@ export default function Dashboard({ session }) {
                 </div>
                 <div className="stats-row">
                   <div className="stat-box primary">
-                    <span className="label">Seria</span>
+                    <span className="label">{t('hero_streak')}</span>
                     <div className="value">
                       {pushupStreak > 0 && <span className="streak-flame">🔥</span>}
                       <AnimatedCounter value={pushupStreak} />{' '}
-                      {pushupStreak === 1 ? 'dzień' : 'dni'}
+                      {pushupStreak === 1 ? t('hero_day_singular') : t('hero_days_plural')}
                     </div>
                   </div>
                   <div className="stat-box secondary">
-                    <span className="label">Tydzień</span>
+                    <span className="label">{t('hero_week')}</span>
                     <div className="value">
-                      <AnimatedCounter value={weekTotal} /> pompek
+                      <AnimatedCounter value={weekTotal} /> {t('hero_pushups_unit')}
                     </div>
                   </div>
                 </div>
@@ -1490,7 +1438,7 @@ export default function Dashboard({ session }) {
                   <div className={`goal-bar ${dailyMet ? 'met' : ''}`}>
                     <div className="goal-bar-head">
                       <span className="label">
-                        Cel dzienny
+                        {t('goal_daily')}
                         {dailyMet && <span className="goal-check">✓</span>}
                       </span>
                       <span className="goal-bar-value">
@@ -1508,7 +1456,7 @@ export default function Dashboard({ session }) {
                   <div className={`goal-bar ${weeklyMet ? 'met' : ''}`}>
                     <div className="goal-bar-head">
                       <span className="label secondary">
-                        Cel tygodniowy
+                        {t('goal_weekly')}
                         {weeklyMet && <span className="goal-check">✓</span>}
                       </span>
                       <span className="goal-bar-value">
@@ -1530,7 +1478,7 @@ export default function Dashboard({ session }) {
                   <div className="hero-number hero-number-plank">
                     {formatDuration(todayPlankSeconds)}
                   </div>
-                  <div className="hero-label">Plank dzisiaj</div>
+                  <div className="hero-label">{t('hero_plank_today')}</div>
                 </div>
                 <div className="hero-motivation" key={plankAchievementKey}>
                   <h2 className="hero-title">{plankAchievement.title}</h2>
@@ -1538,15 +1486,15 @@ export default function Dashboard({ session }) {
                 </div>
                 <div className="stats-row">
                   <div className="stat-box primary">
-                    <span className="label">Seria</span>
+                    <span className="label">{t('hero_streak')}</span>
                     <div className="value">
                       {plankStreak > 0 && <span className="streak-flame">🔥</span>}
                       <AnimatedCounter value={plankStreak} />{' '}
-                      {plankStreak === 1 ? 'dzień' : 'dni'}
+                      {plankStreak === 1 ? t('hero_day_singular') : t('hero_days_plural')}
                     </div>
                   </div>
                   <div className="stat-box secondary">
-                    <span className="label">Tydzień</span>
+                    <span className="label">{t('hero_week')}</span>
                     <div className="value">
                       {formatDurationShort(weekPlankSeconds)}
                     </div>
@@ -1556,7 +1504,7 @@ export default function Dashboard({ session }) {
                   <div className={`goal-bar ${dailyPlankMet ? 'met' : ''}`}>
                     <div className="goal-bar-head">
                       <span className="label">
-                        Cel dzienny
+                        {t('goal_daily')}
                         {dailyPlankMet && <span className="goal-check">✓</span>}
                       </span>
                       <span className="goal-bar-value">
@@ -1575,7 +1523,7 @@ export default function Dashboard({ session }) {
                   <div className={`goal-bar ${weeklyPlankMet ? 'met' : ''}`}>
                     <div className="goal-bar-head">
                       <span className="label secondary">
-                        Cel tygodniowy
+                        {t('goal_weekly')}
                         {weeklyPlankMet && <span className="goal-check">✓</span>}
                       </span>
                       <span className="goal-bar-value">
@@ -1630,19 +1578,19 @@ export default function Dashboard({ session }) {
           className={tab === 'ranking' ? 'active' : ''}
           onClick={() => changeTab('ranking')}
         >
-          Ranking
+          {t('nav_ranking')}
         </button>
         <button
           className={tab === 'home' ? 'active' : ''}
           onClick={() => changeTab('home')}
         >
-          Główna
+          {t('nav_home')}
         </button>
         <button
           className={tab === 'profile' ? 'active' : ''}
           onClick={() => changeTab('profile')}
         >
-          Profil
+          {t('nav_profile')}
         </button>
       </nav>
 
@@ -1662,7 +1610,7 @@ export default function Dashboard({ session }) {
               <div className="rd-info">
                 <div className="rd-name">
                   {rankingDetail.displayName}
-                  {rankingDetail.user_id === user.id && ' (Ty)'}
+                  {rankingDetail.user_id === user.id && t('ranking_me')}
                 </div>
                 <div className="rd-level">
                   LVL {rankingDetail.level} · {rankingDetail.levelTitle}
@@ -1679,33 +1627,33 @@ export default function Dashboard({ session }) {
 
             <div className="rd-today">
               <span className="rd-today-number">{rankingDetail.todayCount}</span>
-              <span className="rd-today-label">pompek dzisiaj</span>
+              <span className="rd-today-label">{t('rd_pompek_today')}</span>
             </div>
 
             <div className="rd-stats">
               <div className="rd-stat">
                 <span className="rd-stat-value">{rankingDetail.total}</span>
-                <span className="rd-stat-label">Razem</span>
+                <span className="rd-stat-label">{t('rd_total')}</span>
               </div>
               <div className="rd-stat">
                 <span className="rd-stat-value">
                   {rankingDetail.streak > 0 && '🔥 '}{rankingDetail.streak}
                 </span>
-                <span className="rd-stat-label">Seria dni</span>
+                <span className="rd-stat-label">{t('rd_streak')}</span>
               </div>
               <div className="rd-stat">
                 <span className="rd-stat-value">{rankingDetail.maxSession}</span>
-                <span className="rd-stat-label">Max sesja</span>
+                <span className="rd-stat-label">{t('rd_max_session')}</span>
               </div>
               <div className="rd-stat">
                 <span className="rd-stat-value">{rankingDetail.daysActive}</span>
-                <span className="rd-stat-label">Dni aktywne</span>
+                <span className="rd-stat-label">{t('rd_active_days')}</span>
               </div>
             </div>
 
             <div className="rd-footer">
               <span className="rd-footer-stat">
-                {rankingDetail.sessionsCount} sesji łącznie
+                {rankingDetail.sessionsCount} {t('rd_sessions_total')}
               </span>
             </div>
           </div>
@@ -1724,7 +1672,7 @@ export default function Dashboard({ session }) {
             {statsModal === 'chart' && (
               <>
                 <div className="stats-modal-header">
-                  <h3>Wykres tygodniowy</h3>
+                  <h3>{t('ranking_weekly_chart')}</h3>
                   <button
                     type="button"
                     className="modal-close"
@@ -1740,14 +1688,14 @@ export default function Dashboard({ session }) {
                     className={`stats-toggle-btn ${chartMode === 'pushup' ? 'active' : ''}`}
                     onClick={() => setChartMode('pushup')}
                   >
-                    💪 Pompki
+                    {t('btn_pushups')}
                   </button>
                   <button
                     type="button"
                     className={`stats-toggle-btn ${chartMode === 'plank' ? 'active' : ''}`}
                     onClick={() => setChartMode('plank')}
                   >
-                    🧘 Plank
+                    {t('btn_plank')}
                   </button>
                 </div>
                 {(() => {
@@ -1771,8 +1719,8 @@ export default function Dashboard({ session }) {
                         })}
                       </div>
                       <div className="chart-total">
-                        Razem: <strong>{isPlank ? formatDuration(total) : total}</strong>{' '}
-                        {isPlank ? 'plank' : 'pompek'}
+                        {t('chart_total')} <strong>{isPlank ? formatDuration(total) : total}</strong>{' '}
+                        {isPlank ? t('chart_plank_unit') : t('chart_pushup_unit')}
                       </div>
                     </>
                   )
@@ -1783,7 +1731,7 @@ export default function Dashboard({ session }) {
             {statsModal === 'records' && (
               <>
                 <div className="stats-modal-header">
-                  <h3>Rekordy osobiste</h3>
+                  <h3>{t('ranking_records')}</h3>
                   <button
                     type="button"
                     className="modal-close"
@@ -1799,64 +1747,64 @@ export default function Dashboard({ session }) {
                     className={`stats-toggle-btn ${recordsMode === 'pushup' ? 'active' : ''}`}
                     onClick={() => setRecordsMode('pushup')}
                   >
-                    💪 Pompki
+                    {t('btn_pushups')}
                   </button>
                   <button
                     type="button"
                     className={`stats-toggle-btn ${recordsMode === 'plank' ? 'active' : ''}`}
                     onClick={() => setRecordsMode('plank')}
                   >
-                    🧘 Plank
+                    {t('btn_plank')}
                   </button>
                 </div>
                 {recordsMode === 'pushup' ? (
                   <div className="records-grid">
                     <div className="record">
                       <span className="record-icon">💪</span>
-                      <div className="record-label">Max sesja</div>
+                      <div className="record-label">{t('records_max_session')}</div>
                       <div className="record-value">{records.maxSession}<span className="record-unit"> reps</span></div>
-                      {records.maxSessionDate && <div className="record-date">{formatShortDate(records.maxSessionDate)}</div>}
+                      {records.maxSessionDate && <div className="record-date">{formatShortDate(records.maxSessionDate, t)}</div>}
                     </div>
                     <div className="record">
                       <span className="record-icon">☀️</span>
-                      <div className="record-label">Max dzień</div>
+                      <div className="record-label">{t('records_max_day')}</div>
                       <div className="record-value">{records.maxDay}<span className="record-unit"> reps</span></div>
-                      {records.maxDayDate && <div className="record-date">{formatShortDate(records.maxDayDate)}</div>}
+                      {records.maxDayDate && <div className="record-date">{formatShortDate(records.maxDayDate, t)}</div>}
                     </div>
                     <div className="record">
                       <span className="record-icon">📅</span>
-                      <div className="record-label">Max 7 dni</div>
+                      <div className="record-label">{t('records_max_week')}</div>
                       <div className="record-value">{records.maxWeek}<span className="record-unit"> reps</span></div>
                     </div>
                     <div className="record">
                       <span className="record-icon">🔥</span>
-                      <div className="record-label">Najdłuższa seria</div>
-                      <div className="record-value">{maxStreak}<span className="record-unit"> {maxStreak === 1 ? 'dzień' : 'dni'}</span></div>
+                      <div className="record-label">{t('records_longest_streak')}</div>
+                      <div className="record-value">{maxStreak}<span className="record-unit"> {maxStreak === 1 ? t('records_day_singular') : t('records_days_plural')}</span></div>
                     </div>
                   </div>
                 ) : (
                   <div className="records-grid">
                     <div className="record">
                       <span className="record-icon">🧘</span>
-                      <div className="record-label">Max sesja</div>
+                      <div className="record-label">{t('records_max_session')}</div>
                       <div className="record-value">{formatDuration(plankRecords.maxSession)}</div>
-                      {plankRecords.maxSessionDate && <div className="record-date">{formatShortDate(plankRecords.maxSessionDate)}</div>}
+                      {plankRecords.maxSessionDate && <div className="record-date">{formatShortDate(plankRecords.maxSessionDate, t)}</div>}
                     </div>
                     <div className="record">
                       <span className="record-icon">☀️</span>
-                      <div className="record-label">Max dzień</div>
+                      <div className="record-label">{t('records_max_day')}</div>
                       <div className="record-value">{formatDuration(plankRecords.maxDay)}</div>
-                      {plankRecords.maxDayDate && <div className="record-date">{formatShortDate(plankRecords.maxDayDate)}</div>}
+                      {plankRecords.maxDayDate && <div className="record-date">{formatShortDate(plankRecords.maxDayDate, t)}</div>}
                     </div>
                     <div className="record">
                       <span className="record-icon">📅</span>
-                      <div className="record-label">Max 7 dni</div>
+                      <div className="record-label">{t('records_max_week')}</div>
                       <div className="record-value">{formatDuration(plankRecords.maxWeek)}</div>
                     </div>
                     <div className="record">
                       <span className="record-icon">🔥</span>
-                      <div className="record-label">Najdłuższa seria</div>
-                      <div className="record-value">{plankStreak}<span className="record-unit"> {plankStreak === 1 ? 'dzień' : 'dni'}</span></div>
+                      <div className="record-label">{t('records_longest_streak')}</div>
+                      <div className="record-value">{plankStreak}<span className="record-unit"> {plankStreak === 1 ? t('records_day_singular') : t('records_days_plural')}</span></div>
                     </div>
                   </div>
                 )}
@@ -1876,38 +1824,38 @@ export default function Dashboard({ session }) {
                 <div className="total-stats-header">
                   <span className="total-stats-icon">💪</span>
                   <div>
-                    <div className="total-stats-title">Pompki ogółem</div>
+                    <div className="total-stats-title">{t('stats_pushups_total')}</div>
                     {pushupOverall
-                      ? <div className="total-stats-since">od {formatShortDate(pushupOverall.firstDate)} · {pushupOverall.daysAgo} {pushupOverall.daysAgo === 1 ? 'dzień' : 'dni'} temu</div>
-                      : <div className="total-stats-since">brak danych</div>}
+                      ? <div className="total-stats-since">{t('stats_since')} {formatShortDate(pushupOverall.firstDate, t)} · {pushupOverall.daysAgo} {pushupOverall.daysAgo === 1 ? t('stats_ago_singular') : t('stats_ago_plural')}</div>
+                      : <div className="total-stats-since">{t('stats_no_data')}</div>}
                   </div>
                 </div>
-                <div className="total-stats-big">{myTotal.toLocaleString('pl-PL')}<span className="total-stats-unit"> pompek</span></div>
+                <div className="total-stats-big">{myTotal.toLocaleString()}<span className="total-stats-unit"> {t('stats_pushups_unit')}</span></div>
                 {pushupOverall && (
                   <div className="total-stats-grid">
                     <div className="total-stat-item">
                       <div className="total-stat-value">{records.sessionsCount}</div>
-                      <div className="total-stat-label">sesji</div>
+                      <div className="total-stat-label">{t('stats_sessions')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{pushupOverall.daysActive}</div>
-                      <div className="total-stat-label">aktywnych dni</div>
+                      <div className="total-stat-label">{t('stats_active_days')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{pushupOverall.avgPerActiveDay}</div>
-                      <div className="total-stat-label">śr. / aktywny dzień</div>
+                      <div className="total-stat-label">{t('stats_avg_active')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{pushupOverall.avgPerCalendarDay}</div>
-                      <div className="total-stat-label">śr. / dzień kalend.</div>
+                      <div className="total-stat-label">{t('stats_avg_calendar')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{records.maxSession}</div>
-                      <div className="total-stat-label">rekord sesji</div>
+                      <div className="total-stat-label">{t('stats_session_record')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{records.maxDay}</div>
-                      <div className="total-stat-label">rekord dnia</div>
+                      <div className="total-stat-label">{t('stats_day_record')}</div>
                     </div>
                   </div>
                 )}
@@ -1919,38 +1867,38 @@ export default function Dashboard({ session }) {
                 <div className="total-stats-header">
                   <span className="total-stats-icon">🧘</span>
                   <div>
-                    <div className="total-stats-title">Plank ogółem</div>
+                    <div className="total-stats-title">{t('stats_plank_total')}</div>
                     {plankOverall
-                      ? <div className="total-stats-since">od {formatShortDate(plankOverall.firstDate)} · {plankOverall.daysAgo} {plankOverall.daysAgo === 1 ? 'dzień' : 'dni'} temu</div>
-                      : <div className="total-stats-since">brak danych</div>}
+                      ? <div className="total-stats-since">{t('stats_since')} {formatShortDate(plankOverall.firstDate, t)} · {plankOverall.daysAgo} {plankOverall.daysAgo === 1 ? t('stats_ago_singular') : t('stats_ago_plural')}</div>
+                      : <div className="total-stats-since">{t('stats_no_data')}</div>}
                   </div>
                 </div>
-                <div className="total-stats-big">{formatDuration(myPlankTotalSeconds)}<span className="total-stats-unit"> łącznie</span></div>
+                <div className="total-stats-big">{formatDuration(myPlankTotalSeconds)}<span className="total-stats-unit"> {t('stats_total_unit')}</span></div>
                 {plankOverall && (
                   <div className="total-stats-grid">
                     <div className="total-stat-item">
                       <div className="total-stat-value">{plankOverall.totalSessions}</div>
-                      <div className="total-stat-label">sesji</div>
+                      <div className="total-stat-label">{t('stats_sessions')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{plankOverall.daysActive}</div>
-                      <div className="total-stat-label">aktywnych dni</div>
+                      <div className="total-stat-label">{t('stats_active_days')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{formatDuration(plankOverall.avgSecsPerSession)}</div>
-                      <div className="total-stat-label">śr. długość sesji</div>
+                      <div className="total-stat-label">{t('stats_avg_session_len')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{formatDuration(plankRecords.maxSession)}</div>
-                      <div className="total-stat-label">rekord sesji</div>
+                      <div className="total-stat-label">{t('stats_session_record')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{formatDuration(plankRecords.maxDay)}</div>
-                      <div className="total-stat-label">rekord dnia</div>
+                      <div className="total-stat-label">{t('stats_day_record')}</div>
                     </div>
                     <div className="total-stat-item">
                       <div className="total-stat-value">{plankStreak}</div>
-                      <div className="total-stat-label">obecna seria</div>
+                      <div className="total-stat-label">{t('stats_current_streak')}</div>
                     </div>
                   </div>
                 )}
@@ -1968,7 +1916,7 @@ export default function Dashboard({ session }) {
         >
           <div className="badge-popup-icon">{newBadge.icon}</div>
           <div className="badge-popup-info">
-            <div className="badge-popup-label">Odblokowane!</div>
+            <div className="badge-popup-label">{t('badge_unlocked')}</div>
             <div className="badge-popup-name">{newBadge.name}</div>
           </div>
         </div>
@@ -1982,7 +1930,11 @@ export default function Dashboard({ session }) {
           <span className="celebration-icon">
             {celebration.type === 'daily' ? '🎯' : '🏆'}
           </span>
-          <span className="celebration-text">{celebration.text}</span>
+          <span className="celebration-text">
+            {celebration.type === 'daily' && `${t('celebration_daily')} ${celebration.total} / ${celebration.goal} ${t('topbar_pompek')}`}
+            {celebration.type === 'weekly' && `${t('celebration_weekly')} ${celebration.total} / ${celebration.goal} ${t('topbar_pompek')}`}
+            {celebration.type === 'milestone' && `${celebration.value} ${t('topbar_pompek').toUpperCase()}! ${t('celebration_milestone')}`}
+          </span>
         </div>
       )}
 
@@ -1996,17 +1948,14 @@ export default function Dashboard({ session }) {
               <span className="brand-bolt">⚡</span>
               <span>POMPKI</span>
             </div>
-            <h3>Wybierz swój nick</h3>
-            <p>
-              Pod tym nickiem będziesz widoczny w rankingu i historii.
-              Możesz go później zmienić w zakładce Profil.
-            </p>
+            <h3>{t('nick_prompt_title')}</h3>
+            <p>{t('nick_prompt_text')}</p>
             <form onSubmit={handleNickPromptSave}>
               <input
                 type="text"
                 value={nickPromptNick}
                 onChange={(e) => setNickPromptNick(e.target.value)}
-                placeholder="Twój nick"
+                placeholder={t('nick_prompt_placeholder')}
                 minLength={2}
                 maxLength={30}
                 required
@@ -2016,7 +1965,7 @@ export default function Dashboard({ session }) {
                 type="submit"
                 disabled={nickPromptSaving || nickPromptNick.trim().length < 2}
               >
-                {nickPromptSaving ? 'Zapisywanie…' : 'Zapisz i kontynuuj'}
+                {nickPromptSaving ? t('nick_prompt_saving') : t('nick_prompt_save')}
               </button>
               {nickPromptError && (
                 <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
@@ -2034,13 +1983,13 @@ export default function Dashboard({ session }) {
           onClick={() => !deleting && setDeleteTarget(null)}
         >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Usunąć trening?</h3>
+            <h3>{t('delete_title')}</h3>
             <p>
-              <strong className="modal-highlight">{deleteTarget.count} pompek</strong>
-              {' '}z dnia {formatShortDate(deleteTarget.performed_at)}
+              <strong className="modal-highlight">{deleteTarget.count || formatDuration(deleteTarget.duration_seconds)} {deleteTarget.exercise_type === 'plank' ? t('chart_plank_unit') : t('delete_pushups_unit')}</strong>
+              {' '}{t('delete_from')} {formatShortDate(deleteTarget.performed_at, t)}
               {deleteTarget.note && <> — „{deleteTarget.note}"</>}
               <br />
-              Tej akcji nie można cofnąć.
+              {t('delete_irreversible')}
             </p>
             <div className="modal-actions">
               <button
@@ -2048,14 +1997,14 @@ export default function Dashboard({ session }) {
                 onClick={() => setDeleteTarget(null)}
                 disabled={deleting}
               >
-                Anuluj
+                {t('delete_cancel')}
               </button>
               <button
                 className="danger"
                 onClick={confirmDelete}
                 disabled={deleting}
               >
-                {deleting ? 'Usuwanie…' : 'Usuń'}
+                {deleting ? t('delete_doing') : t('delete_confirm')}
               </button>
             </div>
           </div>

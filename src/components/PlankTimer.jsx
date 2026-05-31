@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useLang } from '../LangContext'
 
 function formatDuration(seconds) {
   const m = Math.floor(seconds / 60)
@@ -8,6 +9,7 @@ function formatDuration(seconds) {
 }
 
 export default function PlankTimer({ onSave, onClose }) {
+  const { t } = useLang()
   // phase: 'running' | 'stopped' | 'saved'
   const [phase, setPhase] = useState('running')
   const [seconds, setSeconds] = useState(0)
@@ -26,7 +28,7 @@ export default function PlankTimer({ onSave, onClose }) {
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then((lock) => {
         wakeLock = lock
-      }).catch(() => {}) // brak uprawnień — ignoruj cicho
+      }).catch(() => {})
     }
 
     return () => {
@@ -55,12 +57,11 @@ export default function PlankTimer({ onSave, onClose }) {
     >
       <div className={`plank-modal plank-phase-${phase}`}>
 
-        {/* Przycisk zamknij — widoczny tylko po zatrzymaniu */}
         <button
           type="button"
           className="plank-modal-close"
           onClick={() => onClose?.()}
-          aria-label="Zamknij"
+          aria-label={t('plank_close')}
           style={{
             opacity: phase === 'running' ? 0 : 1,
             pointerEvents: phase === 'running' ? 'none' : 'auto',
@@ -69,15 +70,13 @@ export default function PlankTimer({ onSave, onClose }) {
           ✕
         </button>
 
-        {/* Nagłówek */}
         <div className="plank-modal-header">
           <span className="plank-modal-icon">🧘</span>
           <div className="plank-modal-title">
-            {phase === 'running' && 'Trzymaj pozycję'}
+            {phase === 'running' && t('plank_hold')}
           </div>
         </div>
 
-        {/* Timer z pierścieniem */}
         {phase === 'running' && (
           <div className="plank-ring-wrap">
             <svg viewBox="0 0 200 200" className="plank-ring-svg" aria-hidden="true">
@@ -104,20 +103,18 @@ export default function PlankTimer({ onSave, onClose }) {
           </div>
         )}
 
-        {/* Animacja po zapisaniu */}
         {phase === 'saved' && (
           <div className="plank-saved-anim">
             <div className="plank-saved-check">✓</div>
             <div className="plank-saved-time">{formatDuration(seconds)}</div>
-            <div className="plank-saved-label">zapisano</div>
+            <div className="plank-saved-label">{t('plank_saved')}</div>
           </div>
         )}
 
-        {/* Przyciski */}
         <div className="plank-modal-controls">
           {phase === 'running' && (
             <button type="button" className="plank-stop-btn" onClick={handleStop} disabled={saving}>
-              {saving ? 'Zapisywanie…' : '⏹ STOP'}
+              {saving ? t('plank_saving') : t('plank_stop')}
             </button>
           )}
         </div>

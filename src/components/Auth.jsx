@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useLang } from '../LangContext'
 
 function EyeIcon() {
   return (
@@ -37,7 +38,33 @@ function EyeOffIcon() {
   )
 }
 
+function LangSwitch() {
+  const { lang, setLang } = useLang()
+  return (
+    <div className="auth-lang-switch">
+      <button
+        type="button"
+        className={lang === 'pl' ? 'active' : ''}
+        onClick={() => setLang('pl')}
+        aria-pressed={lang === 'pl'}
+      >
+        🇵🇱 PL
+      </button>
+      <button
+        type="button"
+        className={lang === 'en' ? 'active' : ''}
+        onClick={() => setLang('en')}
+        aria-pressed={lang === 'en'}
+      >
+        🇬🇧 EN
+      </button>
+    </div>
+  )
+}
+
 export default function Auth() {
+  const { t } = useLang()
+
   // mode: 'choice' | 'signin' | 'signup'
   const [mode, setMode] = useState('choice')
   const [email, setEmail] = useState('')
@@ -81,11 +108,11 @@ export default function Auth() {
 
     const trimmedNick = nick.trim()
     if (!trimmedNick) {
-      setMessage({ type: 'error', text: 'Nick jest wymagany.' })
+      setMessage({ type: 'error', text: t('auth_nick') + ' ' + t('nick_min_length') })
       return
     }
     if (trimmedNick.length < 2) {
-      setMessage({ type: 'error', text: 'Nick musi mieć co najmniej 2 znaki.' })
+      setMessage({ type: 'error', text: t('nick_min_length') })
       return
     }
 
@@ -93,7 +120,6 @@ export default function Auth() {
     setMessage(null)
 
     try {
-      // Zapisz nick do user_metadata — to zawsze działa bez RLS
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -104,7 +130,6 @@ export default function Auth() {
       if (error) throw error
 
       if (data?.user && data?.session) {
-        // Jeśli mamy już sesję, zapisz też do tabeli profiles (dla rankingu/historii)
         const { error: profileError } = await supabase.from('profiles').upsert({
           user_id: data.user.id,
           nick: trimmedNick,
@@ -120,7 +145,6 @@ export default function Auth() {
           type: 'info',
           text: `Wysłaliśmy link weryfikacyjny na ${email}. Sprawdź skrzynkę (również SPAM) i kliknij "Potwierdź konto" aby się zalogować.`,
         })
-        // Wyczyść pole hasła żeby użytkownik nie myślał że może się teraz zalogować
         setPassword('')
       }
     } catch (err) {
@@ -135,23 +159,24 @@ export default function Auth() {
     return (
       <div className="auth-wrapper">
         <div className="auth-card auth-choice">
+          <LangSwitch />
           <div className="brand">
             <span className="brand-bolt">⚡</span>
             <span>POMPKI</span>
           </div>
-          <h1>Witaj.</h1>
-          <p className="muted">Śledź swoje pompki i rywalizuj z innymi.</p>
+          <h1>{t('auth_welcome')}</h1>
+          <p className="muted">{t('auth_tagline')}</p>
 
           <div className="choice-buttons">
             <button type="button" onClick={() => setMode('signin')}>
-              Mam już konto
+              {t('auth_have_account')}
             </button>
             <button
               type="button"
               className="secondary"
               onClick={() => setMode('signup')}
             >
-              Jestem tu pierwszy raz
+              {t('auth_first_time')}
             </button>
           </div>
         </div>
@@ -163,8 +188,9 @@ export default function Auth() {
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
+        <LangSwitch />
         <button type="button" className="back-button" onClick={goChoice}>
-          ← Wstecz
+          {t('auth_back')}
         </button>
 
         <div className="brand">
@@ -172,11 +198,9 @@ export default function Auth() {
           <span>POMPKI</span>
         </div>
 
-        <h1>{mode === 'signin' ? 'Zaloguj się' : 'Załóż konto'}</h1>
+        <h1>{mode === 'signin' ? t('auth_sign_in_title') : t('auth_sign_up_title')}</h1>
         <p className="muted">
-          {mode === 'signin'
-            ? 'Witaj ponownie. Wpisz swoje dane.'
-            : 'Wybierz nick i podaj dane logowania.'}
+          {mode === 'signin' ? t('auth_sign_in_sub') : t('auth_sign_up_sub')}
         </p>
 
         <form
@@ -185,20 +209,20 @@ export default function Auth() {
         >
           {mode === 'signup' && (
             <label>
-              Nick
+              {t('auth_nick')}
               <input
                 type="text"
                 required
                 value={nick}
                 onChange={(e) => setNick(e.target.value)}
-                placeholder="Jak masz się nazywać"
+                placeholder={t('auth_nick_placeholder')}
                 maxLength={30}
                 minLength={2}
               />
             </label>
           )}
           <label>
-            E-mail
+            {t('auth_email')}
             <input
               type="email"
               required
@@ -208,7 +232,7 @@ export default function Auth() {
             />
           </label>
           <label>
-            Hasło
+            {t('auth_password')}
             <div className="password-field">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -216,7 +240,7 @@ export default function Auth() {
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="min. 6 znaków"
+                placeholder={t('auth_password_placeholder')}
                 autoComplete={
                   mode === 'signup' ? 'new-password' : 'current-password'
                 }
@@ -225,7 +249,7 @@ export default function Auth() {
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                aria-label={showPassword ? t('auth_hide_password') : t('auth_show_password')}
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -234,10 +258,10 @@ export default function Auth() {
           </label>
           <button type="submit" disabled={loading}>
             {loading
-              ? 'Czekaj…'
+              ? t('auth_wait')
               : mode === 'signin'
-              ? 'Zaloguj się'
-              : 'Zarejestruj się'}
+              ? t('auth_sign_in_btn')
+              : t('auth_sign_up_btn')}
           </button>
         </form>
 

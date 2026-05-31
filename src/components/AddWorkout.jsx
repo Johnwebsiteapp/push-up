@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import PlankTimer from './PlankTimer'
+import { useLang } from '../LangContext'
 
 function todayISO() {
   const d = new Date()
@@ -17,6 +18,7 @@ function formatDuration(seconds) {
 }
 
 export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorkoutSaved }) {
+  const { t } = useLang()
   const [internalMode, setInternalMode] = useState('pushup')
   const mode = modeProp ?? internalMode
   const setMode = onModeChange ?? setInternalMode
@@ -77,12 +79,12 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
 
     const n = parseInt(count, 10)
     if (!n || n <= 0) {
-      setError('Podaj liczbę pompek większą od zera.')
+      setError(t('add_error_count'))
       return
     }
 
     setSaving(true)
-    const { data: saved, error } = await supabase.from('workouts').insert({
+    const { data: saved, error: saveError } = await supabase.from('workouts').insert({
       user_id: user.id,
       user_email: user.email,
       exercise_type: 'pushup',
@@ -93,8 +95,8 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
     }).select().single()
     setSaving(false)
 
-    if (error) {
-      setError(error.message)
+    if (saveError) {
+      setError(saveError.message)
     } else {
       if (saved) onWorkoutSaved?.(saved)
       setCount('')
@@ -105,7 +107,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
 
   async function handlePlankSave(seconds) {
     setSaving(true)
-    const { data: saved, error } = await supabase.from('workouts').insert({
+    const { data: saved, error: saveError } = await supabase.from('workouts').insert({
       user_id: user.id,
       user_email: user.email,
       exercise_type: 'plank',
@@ -116,8 +118,8 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
     }).select().single()
     setSaving(false)
 
-    if (error) {
-      alert('Błąd zapisu: ' + error.message)
+    if (saveError) {
+      alert(t('profile_save_error') + saveError.message)
     } else {
       if (saved) onWorkoutSaved?.(saved)
       setShowTimer(false)
@@ -141,7 +143,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
-            aria-label="Data treningu"
+            aria-label={t('add_date_label')}
             disabled={displayMode === 'plank'}
           />
           <div className="quick-log-mode-switch" role="tablist">
@@ -152,7 +154,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
               className={`mode-btn ${mode === 'pushup' ? 'active' : ''}`}
               onClick={() => setMode('pushup')}
             >
-              💪 Pompki
+              {t('btn_pushups')}
             </button>
             <button
               type="button"
@@ -161,7 +163,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
               className={`mode-btn ${mode === 'plank' ? 'active' : ''}`}
               onClick={() => setMode('plank')}
             >
-              🧘 Plank
+              {t('btn_plank')}
             </button>
           </div>
         </div>
@@ -184,7 +186,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
                   placeholder="00"
                   required={mode === 'pushup'}
                 />
-                <div className="quick-log-sub">Liczba pompek</div>
+                <div className="quick-log-sub">{t('add_count_sub')}</div>
               </div>
 
               <div className="quick-add-row">
@@ -195,7 +197,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
                     className="quick-add-btn"
                     onClick={(e) => quickAdd(n, e)}
                     disabled={saving}
-                    aria-label={`Dodaj ${n} pompek`}
+                    aria-label={`+${n}`}
                   >
                     +{n}
                   </button>
@@ -205,15 +207,15 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
                   className="quick-add-reset"
                   onClick={resetCount}
                   disabled={saving || !count}
-                  aria-label="Wyczyść licznik"
-                  title="Wyczyść"
+                  aria-label={t('add_clear')}
+                  title={t('add_clear')}
                 >
                   ↺
                 </button>
               </div>
 
               <button type="submit" className="confirm-btn" disabled={saving}>
-                {saving ? 'Zapisywanie…' : 'Zapisz trening'}
+                {saving ? t('add_saving') : t('add_save')}
               </button>
               {error && (
                 <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
@@ -227,7 +229,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
             <div className="plank-launch">
               <div className="plank-launch-icon">🧘</div>
               <div className="plank-launch-text">
-                Timer wbudowany — kliknij Rozpocznij, przyjmij pozycję i wytrzymaj.
+                {t('add_plank_text')}
               </div>
               <button
                 type="button"
@@ -235,7 +237,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
                 onClick={() => setShowTimer(true)}
                 disabled={saving}
               >
-                ▶ Rozpocznij Plank
+                {t('add_plank_btn')}
               </button>
             </div>
           )}

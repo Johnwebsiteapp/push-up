@@ -7,8 +7,10 @@ import {
   isSubscribed,
   pushSupported,
 } from '../notifications'
+import { useLang } from '../LangContext'
 
 export default function Profile({ user, badges = [], levelInfo, onProfileChange }) {
+  const { t, lang, setLang } = useLang()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
@@ -71,7 +73,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
         if (error && error.code !== 'PGRST116') {
           setMessage({
             type: 'error',
-            text: 'Nie można wczytać profilu: ' + error.message,
+            text: t('profile_load_error') + error.message,
           })
         } else if (data) {
           setForm({
@@ -132,9 +134,9 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
     setSaving(false)
 
     if (error) {
-      setMessage({ type: 'error', text: 'Błąd zapisu: ' + error.message })
+      setMessage({ type: 'error', text: t('profile_save_error') + error.message })
     } else {
-      setMessage({ type: 'ok', text: 'Profil zapisany.' })
+      setMessage({ type: 'ok', text: t('profile_saved') })
       if (onProfileChange) onProfileChange()
       setTimeout(() => setMessage(null), 2500)
     }
@@ -147,10 +149,10 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
 
   function bmiLabel(v) {
     const n = parseFloat(v)
-    if (n < 18.5) return 'Niedowaga'
-    if (n < 25) return 'Norma'
-    if (n < 30) return 'Nadwaga'
-    return 'Otyłość'
+    if (n < 18.5) return t('bmi_under')
+    if (n < 25) return t('bmi_normal')
+    if (n < 30) return t('bmi_over')
+    return t('bmi_obese')
   }
 
   function bmiCategoryClass(v) {
@@ -176,7 +178,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
     (form.nick || form.name || user.email).slice(0, 2).toUpperCase()
 
   if (loading) {
-    return <div className="empty">Ładowanie profilu…</div>
+    return <div className="empty">{t('profile_loading')}</div>
   }
 
   return (
@@ -217,19 +219,19 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
               <div className="bmi-ranges">
                 <div>
                   <span className="bmi-dot under" />
-                  Niedowaga
+                  {t('bmi_under')}
                 </div>
                 <div>
                   <span className="bmi-dot normal" />
-                  Norma
+                  {t('bmi_normal')}
                 </div>
                 <div>
                   <span className="bmi-dot over" />
-                  Nadwaga
+                  {t('bmi_over')}
                 </div>
                 <div>
                   <span className="bmi-dot obese" />
-                  Otyłość
+                  {t('bmi_obese')}
                 </div>
               </div>
             </div>
@@ -241,7 +243,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
         <section className="card">
           <h3 className="card-title">
             <span>
-              Odznaki · {badges.filter((b) => b.unlocked).length}/{badges.length}
+              {t('profile_badges_section')} · {badges.filter((b) => b.unlocked).length}/{badges.length}
             </span>
           </h3>
           <div className="badges-grid">
@@ -263,11 +265,9 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
         <section className="card notifications-card">
           <div className="notif-row">
             <div className="notif-info">
-              <div className="notif-title">Powiadomienia</div>
+              <div className="notif-title">{t('profile_notifications')}</div>
               <div className="notif-desc">
-                {pushOn
-                  ? 'Będziesz dostawać przypomnienia o pompkach'
-                  : 'Codzienne przypomnienia o celu (nawet gdy apka zamknięta)'}
+                {pushOn ? t('profile_push_on') : t('profile_push_off')}
               </div>
             </div>
             <button
@@ -295,7 +295,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
           onClick={() => setDataExpanded((v) => !v)}
           aria-expanded={dataExpanded}
         >
-          <span>Dane osobiste</span>
+          <span>{t('profile_personal_data')}</span>
           <span className={`chevron ${dataExpanded ? 'open' : ''}`}>▾</span>
         </button>
 
@@ -303,17 +303,17 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
           <form onSubmit={handleSubmit} className="profile-form collapsible-content">
             <div className="profile-row">
               <label style={{ flex: 2 }}>
-                Nick
+                {t('profile_nick')}
                 <input
                   type="text"
                   value={form.nick}
                   onChange={update('nick')}
-                  placeholder="Jak Cię zwać"
+                  placeholder={t('profile_nick_placeholder')}
                   maxLength={30}
                 />
               </label>
               <label style={{ flex: 1 }}>
-                Inicjały
+                {t('profile_initials')}
                 <input
                   type="text"
                   value={form.initials}
@@ -323,7 +323,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
                       initials: e.target.value.toUpperCase().slice(0, 4),
                     }))
                   }
-                  placeholder="auto"
+                  placeholder={t('profile_initials_placeholder')}
                   maxLength={4}
                   style={{ textAlign: 'center', letterSpacing: '0.1em' }}
                 />
@@ -331,42 +331,42 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
             </div>
 
             <label>
-              Imię
+              {t('profile_name')}
               <input
                 type="text"
                 value={form.name}
                 onChange={update('name')}
-                placeholder="Twoje imię"
+                placeholder={t('profile_name_placeholder')}
                 maxLength={50}
               />
             </label>
 
             <label>
-              E-mail
+              {t('profile_email')}
               <input type="email" value={user.email} disabled />
             </label>
 
             <div className="profile-row">
               <label>
-                Wzrost (cm)
+                {t('profile_height')}
                 <input
                   type="number"
                   value={form.height_cm}
                   onChange={update('height_cm')}
-                  placeholder="np. 180"
+                  placeholder={t('profile_height_placeholder')}
                   min="50"
                   max="250"
                 />
               </label>
 
               <label>
-                Waga (kg)
+                {t('profile_weight')}
                 <input
                   type="number"
                   step="0.1"
                   value={form.weight_kg}
                   onChange={update('weight_kg')}
-                  placeholder="np. 75.5"
+                  placeholder={t('profile_weight_placeholder')}
                   min="20"
                   max="300"
                 />
@@ -374,12 +374,12 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
             </div>
 
             <div className="profile-section-divider">
-              <span>Cele</span>
+              <span>{t('profile_goals_section')}</span>
             </div>
 
             <div className="profile-row">
               <label>
-                Cel dzienny pompek
+                {t('profile_daily_pushups')}
                 <input
                   type="number"
                   value={form.daily_goal}
@@ -391,7 +391,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
               </label>
 
               <label>
-                Cel tygodniowy pompek
+                {t('profile_weekly_pushups')}
                 <input
                   type="number"
                   value={form.weekly_goal}
@@ -405,7 +405,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
 
             <div className="profile-row">
               <label>
-                Cel dzienny deski (s)
+                {t('profile_daily_plank')}
                 <input
                   type="number"
                   value={form.daily_goal_plank_seconds}
@@ -417,7 +417,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
               </label>
 
               <label>
-                Cel tygodniowy deski (s)
+                {t('profile_weekly_plank')}
                 <input
                   type="number"
                   value={form.weekly_goal_plank_seconds}
@@ -430,7 +430,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
             </div>
 
             <button type="submit" disabled={saving}>
-              {saving ? 'Zapisywanie…' : 'Zapisz zmiany'}
+              {saving ? t('profile_saving') : t('profile_save')}
             </button>
 
             {message && (
@@ -446,7 +446,7 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
       </section>
 
       <section className="card profile-themes-section">
-        <h3 className="card-title">Motyw</h3>
+        <h3 className="card-title">{t('profile_theme_section')}</h3>
         <div className="theme-grid">
           {THEMES.map((theme) => (
             <button
@@ -481,6 +481,31 @@ export default function Profile({ user, badges = [], levelInfo, onProfileChange 
               )}
             </button>
           ))}
+        </div>
+      </section>
+      <section className="card profile-lang-section">
+        <h3 className="card-title">{t('profile_lang_section')}</h3>
+        <div className="lang-grid">
+          <button
+            type="button"
+            className={`lang-card ${lang === 'pl' ? 'active' : ''}`}
+            onClick={() => setLang('pl')}
+            aria-pressed={lang === 'pl'}
+          >
+            <span className="lang-flag">🇵🇱</span>
+            <span className="lang-name">Polski</span>
+            {lang === 'pl' && <span className="lang-check">✓</span>}
+          </button>
+          <button
+            type="button"
+            className={`lang-card ${lang === 'en' ? 'active' : ''}`}
+            onClick={() => setLang('en')}
+            aria-pressed={lang === 'en'}
+          >
+            <span className="lang-flag">🇬🇧</span>
+            <span className="lang-name">English</span>
+            {lang === 'en' && <span className="lang-check">✓</span>}
+          </button>
         </div>
       </section>
     </div>
