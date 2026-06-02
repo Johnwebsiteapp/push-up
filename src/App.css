@@ -3652,3 +3652,29 @@
   letter-spacing: 0.07em;
   margin-top: 4px;
 }
+
+/* ============================================================
+   PULL-UP HERO — compact to match pushup card height
+   ============================================================ */
+.hero-pullup .hero-number {
+  font-size: 2.6rem;
+}
+.hero-pullup .pullup-weekly-mini {
+  padding: 0;
+}
+.hero-pullup .pullup-mini-bar-wrap {
+  height: 34px;
+}
+.hero-pullup .pullup-key-cards {
+  gap: 6px;
+}
+.hero-pullup .pullup-key-card {
+  padding: 7px 6px;
+  border-radius: 12px;
+}
+.hero-pullup .pullup-key-value {
+  font-size: 1rem;
+}
+.hero-pullup .pullup-expand-btn {
+  padding: 7px 12px;
+}
