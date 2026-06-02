@@ -3485,3 +3485,171 @@
   text-align: center;
   padding: 16px 0;
 }
+
+/* ============================================================
+   PULL-UP STATS — redesigned
+   ============================================================ */
+
+/* Serie dzisiaj */
+.pullup-sessions-today {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: -4px;
+}
+.pullup-session-pill {
+  background: rgba(var(--primary-rgb), 0.12);
+  border: 1px solid rgba(var(--primary-rgb), 0.25);
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+/* Mini bar chart */
+.pullup-weekly-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: 100%;
+  padding: 4px 0;
+}
+.pullup-mini-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.pullup-mini-val {
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  font-weight: 700;
+  height: 13px;
+  display: flex;
+  align-items: center;
+}
+.pullup-mini-bar-wrap {
+  display: flex;
+  align-items: flex-end;
+  height: 48px;
+  width: 100%;
+}
+.pullup-mini-bar {
+  width: 100%;
+  background: rgba(var(--primary-rgb), 0.45);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.3s ease;
+}
+.pullup-mini-bar.today {
+  background: var(--primary);
+  filter: drop-shadow(0 0 4px rgba(var(--primary-rgb), 0.5));
+}
+.pullup-mini-day {
+  font-size: 0.56rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+.pullup-mini-day.today {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+/* Kluczowe karty — 3 w rzędzie */
+.pullup-key-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+.pullup-key-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 11px 8px;
+  text-align: center;
+}
+.pullup-key-value {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+.pullup-key-label {
+  font-size: 0.53rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+/* Brak danych */
+.pullup-no-data {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Przycisk rozwijania */
+.pullup-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.pullup-expand-btn:hover {
+  border-color: rgba(var(--primary-rgb), 0.35);
+  color: var(--text);
+}
+.pullup-expand-chevron {
+  transition: transform 0.2s ease;
+  display: inline-block;
+  font-size: 0.9rem;
+}
+.pullup-expand-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Siatka szczegółów */
+.pullup-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  animation: fadeSlideIn 0.2s ease;
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pullup-detail-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 6px;
+  text-align: center;
+}
+.pullup-detail-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.pullup-detail-label {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-top: 4px;
+}

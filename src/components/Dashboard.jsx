@@ -356,6 +356,7 @@ export default function Dashboard({ session }) {
   const [confettiActive, setConfettiActive] = useState(false)
   const [newBadge, setNewBadge] = useState(null)
   const prevTotalForMilestoneRef = useRef(null)
+  const [pullupStatsExpanded, setPullupStatsExpanded] = useState(false)
 
   // Live-drag state
   const [isDragging, setIsDragging] = useState(false)
@@ -845,10 +846,19 @@ export default function Dashboard({ session }) {
     const [y, m, d] = firstDate.split('-').map(Number)
     const daysAgo = Math.round((new Date() - new Date(y, m - 1, d)) / (1000 * 60 * 60 * 24))
     const daysActive = new Set(myPullups.map((w) => w.performed_at)).size
+    const totalSessions = myPullups.length
     const avgPerActiveDay = daysActive > 0 ? Math.round(myPullupTotal / daysActive) : 0
-    const avgPerCalendarDay = daysAgo > 0 ? Math.round(myPullupTotal / daysAgo) : myPullupTotal
-    return { firstDate, daysAgo, daysActive, avgPerActiveDay, avgPerCalendarDay }
+    const avgPerSession = totalSessions > 0 ? Math.round(myPullupTotal / totalSessions) : 0
+    return { firstDate, daysAgo, daysActive, totalSessions, avgPerActiveDay, avgPerSession }
   }, [myPullups, myPullupTotal])
+
+  // Dzisiejsze serie podciągnięć (poszczególne wpisy)
+  const todayPullupSessions = useMemo(() => {
+    const today = todayISO()
+    return myPullups
+      .filter((w) => w.performed_at === today)
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  }, [myPullups])
 
   const badges = useMemo(
     () =>
@@ -1458,65 +1468,114 @@ export default function Dashboard({ session }) {
               </>
             ) : (
               <>
+                {/* Licznik dzisiaj */}
                 <div className="hero-count">
                   <div className="hero-number"><AnimatedCounter value={todayPullupTotal} /></div>
                   <div className="hero-label">{t('hero_pullup_today')}</div>
                 </div>
 
-                {/* Mini weekly chart */}
+                {/* Serie dzisiaj */}
+                {todayPullupSessions.length > 1 && (
+                  <div className="pullup-sessions-today">
+                    {todayPullupSessions.map((s, i) => (
+                      <span key={s.id} className="pullup-session-pill">{s.count}×</span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Mini wykres 7 dni */}
                 <div className="pullup-weekly-mini">
                   {weeklyChartPullup.days.map((d) => (
                     <div key={d.iso} className="pullup-mini-col">
                       <span className="pullup-mini-val">{d.count > 0 ? d.count : '–'}</span>
                       <div className="pullup-mini-bar-wrap">
-                        <div className="pullup-mini-bar" style={{ height: d.count === 0 ? 2 : Math.max(6, (d.count / weeklyChartPullup.max) * 48) }} />
+                        <div
+                          className={`pullup-mini-bar${d.isToday ? ' today' : ''}`}
+                          style={{ height: d.count === 0 ? 2 : Math.max(6, (d.count / weeklyChartPullup.max) * 48) }}
+                        />
                       </div>
-                      <span className={`pullup-mini-day ${d.isToday ? 'today' : ''}`}>{d.dayName}</span>
+                      <span className={`pullup-mini-day${d.isToday ? ' today' : ''}`}>{d.dayName}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* Progress insights */}
+                {/* Kluczowe karty */}
                 {pullupStats ? (
-                  <div className="pullup-insights">
-                    <div className="pullup-insight-row">
-                      <div className="pullup-insight-item">
-                        <div className="pullup-insight-value">{pullupStats.bestDay}</div>
-                        <div className="pullup-insight-label">{t('pullup_record')}</div>
+                  <div className="pullup-key-cards">
+                    <div className="pullup-key-card">
+                      <div className="pullup-key-value">{pullupStats.bestDay}</div>
+                      <div className="pullup-key-label">{t('pullup_record')}</div>
+                    </div>
+                    <div className="pullup-key-card">
+                      <div className="pullup-key-value">
+                        {pullupStats.improvement > 0 ? `+${pullupStats.improvement}` : pullupStats.bestDay}
                       </div>
-                      {pullupStats.improvementPct !== null && pullupStats.improvement > 0 && (
-                        <div className="pullup-insight-item">
-                          <div className="pullup-insight-value">+{pullupStats.improvement}</div>
-                          <div className="pullup-insight-label">{t('pullup_improvement')}</div>
-                        </div>
-                      )}
-                      {pullupStats.avgDaysBetweenRecords && (
-                        <div className="pullup-insight-item">
-                          <div className="pullup-insight-value">~{pullupStats.avgDaysBetweenRecords}d</div>
-                          <div className="pullup-insight-label">{lang === 'en' ? 'record freq.' : 'między rekordami'}</div>
-                        </div>
-                      )}
+                      <div className="pullup-key-label">{t('pullup_improvement')}</div>
+                    </div>
+                    <div className="pullup-key-card">
+                      <div className="pullup-key-value">
+                        {pullupStreak > 0 ? `🔥${pullupStreak}` : pullupStreak}
+                      </div>
+                      <div className="pullup-key-label">{t('hero_streak')}</div>
                     </div>
                   </div>
                 ) : (
                   <div className="pullup-no-data">{t('pullup_no_data')}</div>
                 )}
 
-                {/* Streak */}
-                <div className="stats-row">
-                  <div className="stat-box primary">
-                    <span className="label">{t('hero_streak')}</span>
-                    <div className="value">
-                      {pullupStreak > 0 && <span className="streak-flame">🔥</span>}
-                      <AnimatedCounter value={pullupStreak} />{' '}
-                      {pullupStreak === 1 ? t('hero_day_singular') : t('hero_days_plural')}
+                {/* Rozwijane szczegóły */}
+                {pullupOverall && (
+                  <button
+                    type="button"
+                    className="pullup-expand-btn"
+                    onClick={() => setPullupStatsExpanded(v => !v)}
+                    aria-expanded={pullupStatsExpanded}
+                  >
+                    <span>{lang === 'en' ? 'All stats' : 'Wszystkie statystyki'}</span>
+                    <span className={`pullup-expand-chevron${pullupStatsExpanded ? ' open' : ''}`}>▾</span>
+                  </button>
+                )}
+
+                {pullupStatsExpanded && pullupOverall && (
+                  <div className="pullup-details-grid">
+                    <div className="pullup-detail-item">
+                      <div className="pullup-detail-value">{myPullupTotal}</div>
+                      <div className="pullup-detail-label">{lang === 'en' ? 'total reps' : 'łącznie'}</div>
+                    </div>
+                    <div className="pullup-detail-item">
+                      <div className="pullup-detail-value">{pullupOverall.totalSessions}</div>
+                      <div className="pullup-detail-label">{lang === 'en' ? 'sessions' : 'sesji'}</div>
+                    </div>
+                    <div className="pullup-detail-item">
+                      <div className="pullup-detail-value">{pullupOverall.daysActive}</div>
+                      <div className="pullup-detail-label">{lang === 'en' ? 'active days' : 'aktywnych dni'}</div>
+                    </div>
+                    <div className="pullup-detail-item">
+                      <div className="pullup-detail-value">{pullupOverall.avgPerSession}</div>
+                      <div className="pullup-detail-label">{lang === 'en' ? 'avg / session' : 'śr. / seria'}</div>
+                    </div>
+                    <div className="pullup-detail-item">
+                      <div className="pullup-detail-value">{pullupOverall.avgPerActiveDay}</div>
+                      <div className="pullup-detail-label">{lang === 'en' ? 'avg / active day' : 'śr. / dzień'}</div>
+                    </div>
+                    <div className="pullup-detail-item">
+                      <div className="pullup-detail-value">{weekPullupTotal}</div>
+                      <div className="pullup-detail-label">{lang === 'en' ? 'this week' : 'ten tydzień'}</div>
+                    </div>
+                    {pullupStats?.avgDaysBetweenRecords && (
+                      <div className="pullup-detail-item">
+                        <div className="pullup-detail-value">~{pullupStats.avgDaysBetweenRecords}d</div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'between records' : 'między rekordami'}</div>
+                      </div>
+                    )}
+                    <div className="pullup-detail-item">
+                      <div className="pullup-detail-value" style={{ fontSize: '0.75rem' }}>
+                        {formatShortDate(pullupOverall.firstDate, t)}
+                      </div>
+                      <div className="pullup-detail-label">{lang === 'en' ? 'first session' : 'pierwsza sesja'}</div>
                     </div>
                   </div>
-                  <div className="stat-box secondary">
-                    <span className="label">{t('pullup_week')}</span>
-                    <div className="value"><AnimatedCounter value={weekPullupTotal} /> {t('topbar_pullup')}</div>
-                  </div>
-                </div>
+                )}
               </>
             )}
             </div>
