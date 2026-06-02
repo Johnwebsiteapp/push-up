@@ -1470,7 +1470,7 @@ export default function Dashboard({ session }) {
                       <div className="pullup-mini-bar-wrap">
                         <div
                           className={`pullup-mini-bar${d.isToday ? ' today' : ''}`}
-                          style={{ height: d.count === 0 ? 2 : Math.max(4, (d.count / weeklyChartPullup.max) * 34) }}
+                          style={{ height: d.count === 0 ? 2 : Math.max(6, (d.count / weeklyChartPullup.max) * 48) }}
                         />
                       </div>
                       <span className={`pullup-mini-day${d.isToday ? ' today' : ''}`}>{d.dayName}</span>
