@@ -1367,7 +1367,14 @@ export default function Dashboard({ session }) {
             ref={homePanelRef}
             aria-hidden={tab !== 'home'}
           >
-          <section className={`hero hero-${exerciseMode}`}>
+          <section
+            className={`hero hero-${exerciseMode}`}
+            style={exerciseMode === 'pullup' ? {
+              '--primary': '#BF5FFF',
+              '--primary-rgb': '191, 95, 255',
+              '--primary-dim': 'rgba(191, 95, 255, 0.15)',
+            } : undefined}
+          >
             <div
               key={exerciseMode}
               className={`hero-body${heroExiting ? ' hero-body-exit' : ''}`}
@@ -1515,43 +1522,45 @@ export default function Dashboard({ session }) {
                   </button>
                 )}
 
-                {pullupStatsExpanded && pullupOverall && (
-                  <div className="pullup-details-grid">
-                    <div className="pullup-detail-item">
-                      <div className="pullup-detail-value">{myPullupTotal}</div>
-                      <div className="pullup-detail-label">{lang === 'en' ? 'total reps' : 'łącznie'}</div>
-                    </div>
-                    <div className="pullup-detail-item">
-                      <div className="pullup-detail-value">{pullupOverall.totalSessions}</div>
-                      <div className="pullup-detail-label">{lang === 'en' ? 'sessions' : 'sesji'}</div>
-                    </div>
-                    <div className="pullup-detail-item">
-                      <div className="pullup-detail-value">{pullupOverall.daysActive}</div>
-                      <div className="pullup-detail-label">{lang === 'en' ? 'active days' : 'aktywnych dni'}</div>
-                    </div>
-                    <div className="pullup-detail-item">
-                      <div className="pullup-detail-value">{pullupOverall.avgPerSession}</div>
-                      <div className="pullup-detail-label">{lang === 'en' ? 'avg / session' : 'śr. / seria'}</div>
-                    </div>
-                    <div className="pullup-detail-item">
-                      <div className="pullup-detail-value">{pullupOverall.avgPerActiveDay}</div>
-                      <div className="pullup-detail-label">{lang === 'en' ? 'avg / active day' : 'śr. / dzień'}</div>
-                    </div>
-                    <div className="pullup-detail-item">
-                      <div className="pullup-detail-value">{weekPullupTotal}</div>
-                      <div className="pullup-detail-label">{lang === 'en' ? 'this week' : 'ten tydzień'}</div>
-                    </div>
-                    {pullupStats?.avgDaysBetweenRecords && (
+                {pullupOverall && (
+                  <div className={`pullup-details-wrapper${pullupStatsExpanded ? ' expanded' : ''}`}>
+                    <div className="pullup-details-grid">
                       <div className="pullup-detail-item">
-                        <div className="pullup-detail-value">~{pullupStats.avgDaysBetweenRecords}d</div>
-                        <div className="pullup-detail-label">{lang === 'en' ? 'between records' : 'między rekordami'}</div>
+                        <div className="pullup-detail-value">{myPullupTotal}</div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'total reps' : 'łącznie'}</div>
                       </div>
-                    )}
-                    <div className="pullup-detail-item">
-                      <div className="pullup-detail-value" style={{ fontSize: '0.75rem' }}>
-                        {formatShortDate(pullupOverall.firstDate, t)}
+                      <div className="pullup-detail-item">
+                        <div className="pullup-detail-value">{pullupOverall.totalSessions}</div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'sessions' : 'sesji'}</div>
                       </div>
-                      <div className="pullup-detail-label">{lang === 'en' ? 'first session' : 'pierwsza sesja'}</div>
+                      <div className="pullup-detail-item">
+                        <div className="pullup-detail-value">{pullupOverall.daysActive}</div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'active days' : 'aktywnych dni'}</div>
+                      </div>
+                      <div className="pullup-detail-item">
+                        <div className="pullup-detail-value">{pullupOverall.avgPerSession}</div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'avg / session' : 'śr. / seria'}</div>
+                      </div>
+                      <div className="pullup-detail-item">
+                        <div className="pullup-detail-value">{pullupOverall.avgPerActiveDay}</div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'avg / active day' : 'śr. / dzień'}</div>
+                      </div>
+                      <div className="pullup-detail-item">
+                        <div className="pullup-detail-value">{weekPullupTotal}</div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'this week' : 'ten tydzień'}</div>
+                      </div>
+                      {pullupStats?.avgDaysBetweenRecords && (
+                        <div className="pullup-detail-item">
+                          <div className="pullup-detail-value">~{pullupStats.avgDaysBetweenRecords}d</div>
+                          <div className="pullup-detail-label">{lang === 'en' ? 'between records' : 'między rekordami'}</div>
+                        </div>
+                      )}
+                      <div className="pullup-detail-item">
+                        <div className="pullup-detail-value" style={{ fontSize: '0.75rem' }}>
+                          {formatShortDate(pullupOverall.firstDate, t)}
+                        </div>
+                        <div className="pullup-detail-label">{lang === 'en' ? 'first session' : 'pierwsza sesja'}</div>
+                      </div>
                     </div>
                   </div>
                 )}

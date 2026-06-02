@@ -3622,17 +3622,30 @@
   transform: rotate(180deg);
 }
 
+/* Wrapper z animacją rozwijania/zwijania */
+.pullup-details-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s ease;
+}
+.pullup-details-wrapper.expanded {
+  grid-template-rows: 1fr;
+}
+.pullup-details-wrapper > .pullup-details-grid {
+  overflow: hidden;
+  padding-top: 0;
+  transition: padding-top 0.28s ease;
+}
+.pullup-details-wrapper.expanded > .pullup-details-grid {
+  padding-top: 8px;
+}
+
 /* Siatka szczegółów */
 .pullup-details-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   width: 100%;
-  animation: fadeSlideIn 0.2s ease;
-}
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 .pullup-detail-item {
   background: var(--bg-elevated);
