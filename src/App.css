@@ -607,7 +607,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 24px;
-  margin-top: 10px;
+  margin-top: 20px;
   margin-bottom: 8px;
   overflow: visible;
   animation: fadeSlideUp 540ms cubic-bezier(0.22, 0.9, 0.32, 1) 60ms backwards;
