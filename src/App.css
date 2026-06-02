@@ -3655,3 +3655,19 @@
   margin-top: 4px;
 }
 
+
+/* ============================================================
+   PULL-UP — violet accent color
+   ============================================================ */
+.hero-pullup,
+.quick-log-pullup {
+  --primary: #BF5FFF;
+  --primary-rgb: 191, 95, 255;
+  --primary-dim: rgba(191, 95, 255, 0.15);
+}
+
+.topbar-count-pullup {
+  background: rgba(191, 95, 255, 0.08) !important;
+  border-color: rgba(191, 95, 255, 0.25) !important;
+  color: #BF5FFF !important;
+}

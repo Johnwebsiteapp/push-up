@@ -132,7 +132,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
   return (
     <form
       onSubmit={displayMode === 'pullup' ? handlePullupSubmit : handlePushupSubmit}
-      className="quick-log"
+      className={`quick-log${mode === 'pullup' ? ' quick-log-pullup' : ''}`}
     >
       <div className="quick-log-header">
         <input
