@@ -7,9 +7,7 @@ import { showReminder } from '../notifications'
 import { useLang } from '../LangContext'
 import {
   ACHIEVEMENTS_BY_LANG,
-  PLANK_ACHIEVEMENTS_BY_LANG,
   ZERO_ACHIEVEMENT_BY_LANG,
-  PLANK_ZERO_ACHIEVEMENT_BY_LANG,
 } from '../i18n'
 
 function todayISO() {
@@ -315,7 +313,7 @@ export default function Dashboard({ session }) {
   const [nickPromptNick, setNickPromptNick] = useState('')
   const [nickPromptSaving, setNickPromptSaving] = useState(false)
   const [nickPromptError, setNickPromptError] = useState(null)
-  const [exerciseMode, setExerciseMode] = useState('pushup') // 'pushup' | 'plank'
+  const [exerciseMode, setExerciseMode] = useState('pushup') // 'pushup' | 'pullup'
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
   const [statsVisible, setStatsVisible] = useState(false)
   const [chartMode, setChartMode] = useState('pushup')
@@ -323,12 +321,12 @@ export default function Dashboard({ session }) {
   const [historyMode, setHistoryMode] = useState('pushup')
   const [heroExiting, setHeroExiting] = useState(false)
   const heroAnimTimer = useRef(null)
-  const heroDir = useRef(1) // 1 = w prawo (→plank), -1 = w lewo (→pushup)
-  const [totalStatsModal, setTotalStatsModal] = useState(null) // 'pushup' | 'plank' | null
+  const heroDir = useRef(1) // 1 = w prawo (→pullup), -1 = w lewo (→pushup)
+  const [totalStatsModal, setTotalStatsModal] = useState(null) // 'pushup' | 'pullup' | null
 
   function changeExerciseMode(newMode) {
     if (newMode === exerciseMode || heroExiting) return
-    heroDir.current = newMode === 'plank' ? 1 : -1
+    heroDir.current = newMode === 'pullup' ? 1 : -1
     setHeroExiting(true)
     heroAnimTimer.current = setTimeout(() => {
       setExerciseMode(newMode)
@@ -373,9 +371,7 @@ export default function Dashboard({ session }) {
 
   // Teksty motywacyjne zależne od języka
   const ACHIEVEMENTS = ACHIEVEMENTS_BY_LANG[lang] || ACHIEVEMENTS_BY_LANG.pl
-  const PLANK_ACHIEVEMENTS = PLANK_ACHIEVEMENTS_BY_LANG[lang] || PLANK_ACHIEVEMENTS_BY_LANG.pl
   const ZERO_ACHIEVEMENT = ZERO_ACHIEVEMENT_BY_LANG[lang] || ZERO_ACHIEVEMENT_BY_LANG.pl
-  const PLANK_ZERO_ACHIEVEMENT = PLANK_ZERO_ACHIEVEMENT_BY_LANG[lang] || PLANK_ZERO_ACHIEVEMENT_BY_LANG.pl
 
   const TABS = ['ranking', 'home', 'profile']
   const tabIndex = TABS.indexOf(tab)
@@ -611,13 +607,13 @@ export default function Dashboard({ session }) {
     [workouts, user.id]
   )
 
-  // Separacja: pompki vs deska
+  // Separacja: pompki vs podciągania
   const myPushups = useMemo(
-    () => myWorkouts.filter((w) => w.exercise_type !== 'plank'),
+    () => myWorkouts.filter((w) => w.exercise_type === 'pushup'),
     [myWorkouts]
   )
-  const myPlanks = useMemo(
-    () => myWorkouts.filter((w) => w.exercise_type === 'plank'),
+  const myPullups = useMemo(
+    () => myWorkouts.filter((w) => w.exercise_type === 'pullup'),
     [myWorkouts]
   )
 
@@ -626,9 +622,9 @@ export default function Dashboard({ session }) {
     [myPushups]
   )
 
-  const myPlankTotalSeconds = useMemo(
-    () => myPlanks.reduce((sum, w) => sum + (w.duration_seconds || 0), 0),
-    [myPlanks]
+  const myPullupTotal = useMemo(
+    () => myPullups.reduce((sum, w) => sum + (w.count || 0), 0),
+    [myPullups]
   )
 
   const todayTotal = useMemo(() => {
@@ -638,12 +634,10 @@ export default function Dashboard({ session }) {
       .reduce((sum, w) => sum + (w.count || 0), 0)
   }, [myPushups])
 
-  const todayPlankSeconds = useMemo(() => {
-    const t = todayISO()
-    return myPlanks
-      .filter((w) => w.performed_at === t)
-      .reduce((sum, w) => sum + (w.duration_seconds || 0), 0)
-  }, [myPlanks])
+  const todayPullupTotal = useMemo(() => {
+    const today = todayISO()
+    return myPullups.filter((w) => w.performed_at === today).reduce((sum, w) => sum + (w.count || 0), 0)
+  }, [myPullups])
 
   // Tydzień = od poniedziałku do dziś
   const mondayISOVal = useMemo(() => {
@@ -661,15 +655,13 @@ export default function Dashboard({ session }) {
       .reduce((sum, w) => sum + (w.count || 0), 0)
   }, [myPushups, mondayISOVal])
 
-  const weekPlankSeconds = useMemo(() => {
-    return myPlanks
-      .filter((w) => w.performed_at >= mondayISOVal)
-      .reduce((sum, w) => sum + (w.duration_seconds || 0), 0)
-  }, [myPlanks, mondayISOVal])
+  const weekPullupTotal = useMemo(() => {
+    return myPullups.filter((w) => w.performed_at >= mondayISOVal).reduce((sum, w) => sum + (w.count || 0), 0)
+  }, [myPullups, mondayISOVal])
 
   const streak = useMemo(() => calculateStreak(myWorkouts), [myWorkouts])
   const pushupStreak = useMemo(() => calculateStreak(myPushups), [myPushups])
-  const plankStreak = useMemo(() => calculateStreak(myPlanks), [myPlanks])
+  const pullupStreak = useMemo(() => calculateStreak(myPullups), [myPullups])
   const maxStreak = useMemo(() => calculateMaxStreak(myWorkouts), [myWorkouts])
 
   // Wykres tygodniowy — aktualny tydzień od poniedziałku do niedzieli
@@ -700,8 +692,8 @@ export default function Dashboard({ session }) {
     return { days, max }
   }, [myWorkouts, t])
 
-  // Wykres tygodniowy — Plank (sekundy)
-  const weeklyChartPlank = useMemo(() => {
+  // Wykres tygodniowy — Podciągania (liczba)
+  const weeklyChartPullup = useMemo(() => {
     const days = []
     const now = new Date()
     const daysSinceMonday = (now.getDay() + 6) % 7
@@ -712,14 +704,14 @@ export default function Dashboard({ session }) {
       const d = new Date(monday)
       d.setDate(monday.getDate() + i)
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      const secs = myPlanks
+      const count = myPullups
         .filter((w) => w.performed_at === iso)
-        .reduce((sum, w) => sum + (w.duration_seconds || 0), 0)
-      days.push({ iso, dayName: t(`dshort_${d.getDay()}`), count: secs, isToday: iso === todayIso })
+        .reduce((sum, w) => sum + (w.count || 0), 0)
+      days.push({ iso, dayName: t(`dshort_${d.getDay()}`), count, isToday: iso === todayIso })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
     return { days, max }
-  }, [myPlanks, t])
+  }, [myPullups, t])
 
   // Rekordy osobiste + dodatkowe statystyki potrzebne do odznak
   const records = useMemo(() => {
@@ -776,18 +768,18 @@ export default function Dashboard({ session }) {
     }
   }, [myWorkouts])
 
-  // Rekordy osobiste — Plank
-  const plankRecords = useMemo(() => {
-    if (myPlanks.length === 0) return { maxSession: 0, maxDay: 0, maxWeek: 0, maxSessionDate: null, maxDayDate: null }
-    const maxSession = Math.max(...myPlanks.map((w) => w.duration_seconds || 0))
-    const maxSessionEntry = myPlanks.find((w) => (w.duration_seconds || 0) === maxSession)
+  // Rekordy osobiste — Podciągania
+  const pullupRecords = useMemo(() => {
+    if (myPullups.length === 0) return { maxSession: 0, maxDay: 0, maxWeek: 0, maxSessionDate: null, maxDayDate: null }
+    const maxSession = Math.max(...myPullups.map((w) => w.count || 0))
+    const maxSessionEntry = myPullups.find((w) => (w.count || 0) === maxSession)
     const byDay = {}
-    for (const w of myPlanks) {
-      byDay[w.performed_at] = (byDay[w.performed_at] || 0) + (w.duration_seconds || 0)
+    for (const w of myPullups) {
+      byDay[w.performed_at] = (byDay[w.performed_at] || 0) + (w.count || 0)
     }
     let maxDay = 0, maxDayDate = null
-    for (const [date, secs] of Object.entries(byDay)) {
-      if (secs > maxDay) { maxDay = secs; maxDayDate = date }
+    for (const [date, cnt] of Object.entries(byDay)) {
+      if (cnt > maxDay) { maxDay = cnt; maxDayDate = date }
     }
     const sortedDates = Object.keys(byDay).sort()
     let maxWeek = 0
@@ -802,7 +794,34 @@ export default function Dashboard({ session }) {
       if (sum > maxWeek) maxWeek = sum
     }
     return { maxSession, maxSessionDate: maxSessionEntry?.performed_at, maxDay, maxDayDate, maxWeek }
-  }, [myPlanks])
+  }, [myPullups])
+
+  // Statystyki postępu dla podciągnięć
+  const pullupStats = useMemo(() => {
+    if (myPullups.length === 0) return null
+    const byDay = {}
+    for (const w of myPullups) {
+      byDay[w.performed_at] = (byDay[w.performed_at] || 0) + (w.count || 0)
+    }
+    const sortedDays = Object.entries(byDay).sort(([a], [b]) => a.localeCompare(b)).map(([date, count]) => ({ date, count }))
+    const firstDayCount = sortedDays[0]?.count || 0
+    const bestDay = Math.max(...sortedDays.map(d => d.count))
+    const improvement = bestDay - firstDayCount
+    const improvementPct = firstDayCount > 0 ? Math.round((improvement / firstDayCount) * 100) : null
+    let currentBest = 0
+    const recordDates = []
+    for (const { date, count } of sortedDays) {
+      if (count > currentBest) { currentBest = count; recordDates.push(date) }
+    }
+    let avgDaysBetweenRecords = null
+    if (recordDates.length >= 3) {
+      const first = new Date(recordDates[0])
+      const last = new Date(recordDates[recordDates.length - 1])
+      const totalDays = Math.round((last - first) / (1000 * 60 * 60 * 24))
+      avgDaysBetweenRecords = Math.round(totalDays / (recordDates.length - 1))
+    }
+    return { firstDayCount, bestDay, improvement, improvementPct, avgDaysBetweenRecords }
+  }, [myPullups])
 
   const levelInfo = useMemo(() => getLevelInfo(myTotal), [myTotal])
 
@@ -819,17 +838,17 @@ export default function Dashboard({ session }) {
     return { firstDate, daysAgo, daysActive, avgPerActiveDay, avgPerCalendarDay }
   }, [myPushups, myTotal])
 
-  const plankOverall = useMemo(() => {
-    if (myPlanks.length === 0) return null
-    const sorted = [...myPlanks].sort((a, b) => a.performed_at.localeCompare(b.performed_at))
+  const pullupOverall = useMemo(() => {
+    if (myPullups.length === 0) return null
+    const sorted = [...myPullups].sort((a, b) => a.performed_at.localeCompare(b.performed_at))
     const firstDate = sorted[0].performed_at
     const [y, m, d] = firstDate.split('-').map(Number)
     const daysAgo = Math.round((new Date() - new Date(y, m - 1, d)) / (1000 * 60 * 60 * 24))
-    const daysActive = new Set(myPlanks.map((w) => w.performed_at)).size
-    const totalSessions = myPlanks.length
-    const avgSecsPerSession = totalSessions > 0 ? Math.round(myPlankTotalSeconds / totalSessions) : 0
-    return { firstDate, daysAgo, daysActive, totalSessions, avgSecsPerSession }
-  }, [myPlanks, myPlankTotalSeconds])
+    const daysActive = new Set(myPullups.map((w) => w.performed_at)).size
+    const avgPerActiveDay = daysActive > 0 ? Math.round(myPullupTotal / daysActive) : 0
+    const avgPerCalendarDay = daysAgo > 0 ? Math.round(myPullupTotal / daysAgo) : myPullupTotal
+    return { firstDate, daysAgo, daysActive, avgPerActiveDay, avgPerCalendarDay }
+  }, [myPullups, myPullupTotal])
 
   const badges = useMemo(
     () =>
@@ -849,25 +868,13 @@ export default function Dashboard({ session }) {
   const myProfileData = profiles[user.id]
   const dailyGoal = myProfileData?.daily_goal || 30
   const weeklyGoal = myProfileData?.weekly_goal || 150
-  const dailyGoalPlank = myProfileData?.daily_goal_plank_seconds || 180
-  const weeklyGoalPlank = myProfileData?.weekly_goal_plank_seconds || 900
   const dailyProgress = Math.min(100, Math.round((todayTotal / dailyGoal) * 100))
   const weeklyProgress = Math.min(
     100,
     Math.round((weekTotal / weeklyGoal) * 100)
   )
-  const dailyPlankProgress = Math.min(
-    100,
-    Math.round((todayPlankSeconds / dailyGoalPlank) * 100)
-  )
-  const weeklyPlankProgress = Math.min(
-    100,
-    Math.round((weekPlankSeconds / weeklyGoalPlank) * 100)
-  )
   const dailyMet = todayTotal >= dailyGoal && dailyGoal > 0
   const weeklyMet = weekTotal >= weeklyGoal && weeklyGoal > 0
-  const dailyPlankMet = todayPlankSeconds >= dailyGoalPlank && dailyGoalPlank > 0
-  const weeklyPlankMet = weekPlankSeconds >= weeklyGoalPlank && weeklyGoalPlank > 0
 
   // Celebracja — banner gdy po raz pierwszy osiągnięto cel dziś/tydzień
   const [celebration, setCelebration] = useState(null)
@@ -922,27 +929,6 @@ export default function Dashboard({ session }) {
   const achievement =
     myTotal === 0 ? ZERO_ACHIEVEMENT : ACHIEVEMENTS[achievementIdx]
   const achievementKey = myTotal === 0 ? 'zero' : `a-${achievementIdx}`
-
-  // Achievement rotation — plank (rotuje przy każdej nowej sesji deski)
-  const [plankAchievementIdx, setPlankAchievementIdx] = useState(() =>
-    Math.floor(Math.random() * PLANK_ACHIEVEMENTS.length)
-  )
-  const prevPlankCountRef = useRef(myPlanks.length)
-  useEffect(() => {
-    if (myPlanks.length > prevPlankCountRef.current) {
-      setPlankAchievementIdx((current) => {
-        if (PLANK_ACHIEVEMENTS.length <= 1) return 0
-        let next = current
-        while (next === current) next = Math.floor(Math.random() * PLANK_ACHIEVEMENTS.length)
-        return next
-      })
-    }
-    prevPlankCountRef.current = myPlanks.length
-  }, [myPlanks.length])
-
-  const plankAchievement =
-    myPlanks.length === 0 ? PLANK_ZERO_ACHIEVEMENT : PLANK_ACHIEVEMENTS[plankAchievementIdx]
-  const plankAchievementKey = myPlanks.length === 0 ? 'plank-zero' : `pa-${plankAchievementIdx}`
 
   // Przypomnienie gdy wracasz do apki i nie zrobiłeś celu
   useEffect(() => {
@@ -1167,15 +1153,15 @@ export default function Dashboard({ session }) {
           </button>
           <button
             type="button"
-            className="topbar-count topbar-count-plank"
-            aria-label={`${formatDuration(myPlankTotalSeconds)} ${t('topbar_plank')}`}
-            onClick={() => setTotalStatsModal('plank')}
+            className="topbar-count topbar-count-pullup"
+            aria-label={`${myPullupTotal} ${t('topbar_pullup')}`}
+            onClick={() => setTotalStatsModal('pullup')}
           >
-            <span className="topbar-count-icon">🧘</span>
+            <span className="topbar-count-icon">🏋️</span>
             <span className="topbar-count-value">
-              {formatDuration(myPlankTotalSeconds)}
+              <AnimatedCounter value={myPullupTotal} />
             </span>
-            <span className="topbar-count-label">{t('topbar_plank')}</span>
+            <span className="topbar-count-label">{t('topbar_pullup')}</span>
           </button>
         </div>
         <div className="avatar-menu">
@@ -1345,10 +1331,10 @@ export default function Dashboard({ session }) {
                 </button>
                 <button
                   type="button"
-                  className={`history-mode-btn ${historyMode === 'plank' ? 'active' : ''}`}
-                  onClick={() => setHistoryMode('plank')}
+                  className={`history-mode-btn ${historyMode === 'pullup' ? 'active' : ''}`}
+                  onClick={() => setHistoryMode('pullup')}
                 >
-                  {t('btn_plank')}
+                  {t('btn_pullup')}
                 </button>
               </div>
               {loading ? (
@@ -1357,7 +1343,7 @@ export default function Dashboard({ session }) {
                 <p className="error">Błąd: {error}</p>
               ) : (
                 <WorkoutList
-                  workouts={historyMode === 'pushup' ? myPushups : myPlanks}
+                  workouts={historyMode === 'pushup' ? myPushups : myPullups}
                   profiles={profiles}
                   currentUserId={user.id}
                   onDelete={requestDelete}
@@ -1385,11 +1371,11 @@ export default function Dashboard({ session }) {
               <button
                 type="button"
                 role="tab"
-                aria-selected={exerciseMode === 'plank'}
-                className={`hero-mode-btn ${exerciseMode === 'plank' ? 'active' : ''}`}
-                onClick={() => changeExerciseMode('plank')}
+                aria-selected={exerciseMode === 'pullup'}
+                className={`hero-mode-btn ${exerciseMode === 'pullup' ? 'active' : ''}`}
+                onClick={() => changeExerciseMode('pullup')}
               >
-                {t('btn_plank')}
+                {t('btn_pullup')}
               </button>
             </div>
 
@@ -1473,68 +1459,62 @@ export default function Dashboard({ session }) {
             ) : (
               <>
                 <div className="hero-count">
-                  <div className="hero-number hero-number-plank">
-                    {formatDuration(todayPlankSeconds)}
+                  <div className="hero-number"><AnimatedCounter value={todayPullupTotal} /></div>
+                  <div className="hero-label">{t('hero_pullup_today')}</div>
+                </div>
+
+                {/* Mini weekly chart */}
+                <div className="pullup-weekly-mini">
+                  {weeklyChartPullup.days.map((d) => (
+                    <div key={d.iso} className="pullup-mini-col">
+                      <span className="pullup-mini-val">{d.count > 0 ? d.count : '–'}</span>
+                      <div className="pullup-mini-bar-wrap">
+                        <div className="pullup-mini-bar" style={{ height: d.count === 0 ? 2 : Math.max(6, (d.count / weeklyChartPullup.max) * 48) }} />
+                      </div>
+                      <span className={`pullup-mini-day ${d.isToday ? 'today' : ''}`}>{d.dayName}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Progress insights */}
+                {pullupStats ? (
+                  <div className="pullup-insights">
+                    <div className="pullup-insight-row">
+                      <div className="pullup-insight-item">
+                        <div className="pullup-insight-value">{pullupStats.bestDay}</div>
+                        <div className="pullup-insight-label">{t('pullup_record')}</div>
+                      </div>
+                      {pullupStats.improvementPct !== null && pullupStats.improvement > 0 && (
+                        <div className="pullup-insight-item">
+                          <div className="pullup-insight-value">+{pullupStats.improvement}</div>
+                          <div className="pullup-insight-label">{t('pullup_improvement')}</div>
+                        </div>
+                      )}
+                      {pullupStats.avgDaysBetweenRecords && (
+                        <div className="pullup-insight-item">
+                          <div className="pullup-insight-value">~{pullupStats.avgDaysBetweenRecords}d</div>
+                          <div className="pullup-insight-label">{lang === 'en' ? 'record freq.' : 'między rekordami'}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="hero-label">{t('hero_plank_today')}</div>
-                </div>
-                <div className="hero-motivation" key={plankAchievementKey}>
-                  <h2 className="hero-title">{plankAchievement.title}</h2>
-                  <p className="hero-sub">{plankAchievement.sub}</p>
-                </div>
+                ) : (
+                  <div className="pullup-no-data">{t('pullup_no_data')}</div>
+                )}
+
+                {/* Streak */}
                 <div className="stats-row">
                   <div className="stat-box primary">
                     <span className="label">{t('hero_streak')}</span>
                     <div className="value">
-                      {plankStreak > 0 && <span className="streak-flame">🔥</span>}
-                      <AnimatedCounter value={plankStreak} />{' '}
-                      {plankStreak === 1 ? t('hero_day_singular') : t('hero_days_plural')}
+                      {pullupStreak > 0 && <span className="streak-flame">🔥</span>}
+                      <AnimatedCounter value={pullupStreak} />{' '}
+                      {pullupStreak === 1 ? t('hero_day_singular') : t('hero_days_plural')}
                     </div>
                   </div>
                   <div className="stat-box secondary">
-                    <span className="label">{t('hero_week')}</span>
-                    <div className="value">
-                      {formatDurationShort(weekPlankSeconds)}
-                    </div>
-                  </div>
-                </div>
-                <div className="goal-bars">
-                  <div className={`goal-bar ${dailyPlankMet ? 'met' : ''}`}>
-                    <div className="goal-bar-head">
-                      <span className="label">
-                        {t('goal_daily')}
-                        {dailyPlankMet && <span className="goal-check">✓</span>}
-                      </span>
-                      <span className="goal-bar-value">
-                        {formatDuration(todayPlankSeconds)} /{' '}
-                        {formatDuration(dailyGoalPlank)}
-                      </span>
-                    </div>
-                    <div className="goal-bar-track">
-                      <div
-                        className="goal-bar-fill"
-                        style={{ width: `${dailyPlankProgress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className={`goal-bar ${weeklyPlankMet ? 'met' : ''}`}>
-                    <div className="goal-bar-head">
-                      <span className="label secondary">
-                        {t('goal_weekly')}
-                        {weeklyPlankMet && <span className="goal-check">✓</span>}
-                      </span>
-                      <span className="goal-bar-value">
-                        {formatDurationShort(weekPlankSeconds)} /{' '}
-                        {formatDurationShort(weeklyGoalPlank)}
-                      </span>
-                    </div>
-                    <div className="goal-bar-track">
-                      <div
-                        className="goal-bar-fill secondary"
-                        style={{ width: `${weeklyPlankProgress}%` }}
-                      />
-                    </div>
+                    <span className="label">{t('pullup_week')}</span>
+                    <div className="value"><AnimatedCounter value={weekPullupTotal} /> {t('topbar_pullup')}</div>
                   </div>
                 </div>
               </>
@@ -1690,15 +1670,15 @@ export default function Dashboard({ session }) {
                   </button>
                   <button
                     type="button"
-                    className={`stats-toggle-btn ${chartMode === 'plank' ? 'active' : ''}`}
-                    onClick={() => setChartMode('plank')}
+                    className={`stats-toggle-btn ${chartMode === 'pullup' ? 'active' : ''}`}
+                    onClick={() => setChartMode('pullup')}
                   >
-                    {t('btn_plank')}
+                    {t('btn_pullup')}
                   </button>
                 </div>
                 {(() => {
-                  const chart = chartMode === 'pushup' ? weeklyChart : weeklyChartPlank
-                  const isPlank = chartMode === 'plank'
+                  const chart = chartMode === 'pushup' ? weeklyChart : weeklyChartPullup
+                  const isPullup = chartMode === 'pullup'
                   const total = chart.days.reduce((s, d) => s + d.count, 0)
                   return (
                     <>
@@ -1708,17 +1688,17 @@ export default function Dashboard({ session }) {
                           return (
                             <div className="chart-col" key={d.iso}>
                               <span className="chart-value">
-                                {isPlank ? (d.count > 0 ? formatDuration(d.count) : '–') : d.count}
+                                {d.count > 0 ? d.count : '–'}
                               </span>
-                              <div className={`chart-bar ${isPlank ? 'plank' : ''} ${d.isToday ? 'today' : ''}`} style={{ height: `${heightPct}%` }} />
+                              <div className={`chart-bar ${isPullup ? 'pullup' : ''} ${d.isToday ? 'today' : ''}`} style={{ height: `${heightPct}%` }} />
                               <span className={`chart-day ${d.isToday ? 'today' : ''}`}>{d.dayName}</span>
                             </div>
                           )
                         })}
                       </div>
                       <div className="chart-total">
-                        {t('chart_total')} <strong>{isPlank ? formatDuration(total) : total}</strong>{' '}
-                        {isPlank ? t('chart_plank_unit') : t('chart_pushup_unit')}
+                        {t('chart_total')} <strong>{total}</strong>{' '}
+                        {isPullup ? t('topbar_pullup') : t('chart_pushup_unit')}
                       </div>
                     </>
                   )
@@ -1749,10 +1729,10 @@ export default function Dashboard({ session }) {
                   </button>
                   <button
                     type="button"
-                    className={`stats-toggle-btn ${recordsMode === 'plank' ? 'active' : ''}`}
-                    onClick={() => setRecordsMode('plank')}
+                    className={`stats-toggle-btn ${recordsMode === 'pullup' ? 'active' : ''}`}
+                    onClick={() => setRecordsMode('pullup')}
                   >
-                    {t('btn_plank')}
+                    {t('btn_pullup')}
                   </button>
                 </div>
                 {recordsMode === 'pushup' ? (
@@ -1783,26 +1763,26 @@ export default function Dashboard({ session }) {
                 ) : (
                   <div className="records-grid">
                     <div className="record">
-                      <span className="record-icon">🧘</span>
+                      <span className="record-icon">🏋️</span>
                       <div className="record-label">{t('records_max_session')}</div>
-                      <div className="record-value">{formatDuration(plankRecords.maxSession)}</div>
-                      {plankRecords.maxSessionDate && <div className="record-date">{formatShortDate(plankRecords.maxSessionDate, t)}</div>}
+                      <div className="record-value">{pullupRecords.maxSession}<span className="record-unit"> reps</span></div>
+                      {pullupRecords.maxSessionDate && <div className="record-date">{formatShortDate(pullupRecords.maxSessionDate, t)}</div>}
                     </div>
                     <div className="record">
                       <span className="record-icon">☀️</span>
                       <div className="record-label">{t('records_max_day')}</div>
-                      <div className="record-value">{formatDuration(plankRecords.maxDay)}</div>
-                      {plankRecords.maxDayDate && <div className="record-date">{formatShortDate(plankRecords.maxDayDate, t)}</div>}
+                      <div className="record-value">{pullupRecords.maxDay}<span className="record-unit"> reps</span></div>
+                      {pullupRecords.maxDayDate && <div className="record-date">{formatShortDate(pullupRecords.maxDayDate, t)}</div>}
                     </div>
                     <div className="record">
                       <span className="record-icon">📅</span>
                       <div className="record-label">{t('records_max_week')}</div>
-                      <div className="record-value">{formatDuration(plankRecords.maxWeek)}</div>
+                      <div className="record-value">{pullupRecords.maxWeek}<span className="record-unit"> reps</span></div>
                     </div>
                     <div className="record">
                       <span className="record-icon">🔥</span>
                       <div className="record-label">{t('records_longest_streak')}</div>
-                      <div className="record-value">{plankStreak}<span className="record-unit"> {plankStreak === 1 ? t('records_day_singular') : t('records_days_plural')}</span></div>
+                      <div className="record-value">{pullupStreak}<span className="record-unit"> {pullupStreak === 1 ? t('records_day_singular') : t('records_days_plural')}</span></div>
                     </div>
                   </div>
                 )}
@@ -1860,43 +1840,43 @@ export default function Dashboard({ session }) {
               </>
             )}
 
-            {totalStatsModal === 'plank' && (
+            {totalStatsModal === 'pullup' && (
               <>
                 <div className="total-stats-header">
-                  <span className="total-stats-icon">🧘</span>
+                  <span className="total-stats-icon">🏋️</span>
                   <div>
-                    <div className="total-stats-title">{t('stats_plank_total')}</div>
-                    {plankOverall
-                      ? <div className="total-stats-since">{t('stats_since')} {formatShortDate(plankOverall.firstDate, t)} · {plankOverall.daysAgo} {plankOverall.daysAgo === 1 ? t('stats_ago_singular') : t('stats_ago_plural')}</div>
+                    <div className="total-stats-title">{t('stats_pullup_total')}</div>
+                    {pullupOverall
+                      ? <div className="total-stats-since">{t('stats_since')} {formatShortDate(pullupOverall.firstDate, t)} · {pullupOverall.daysAgo} {pullupOverall.daysAgo === 1 ? t('stats_ago_singular') : t('stats_ago_plural')}</div>
                       : <div className="total-stats-since">{t('stats_no_data')}</div>}
                   </div>
                 </div>
-                <div className="total-stats-big">{formatDuration(myPlankTotalSeconds)}<span className="total-stats-unit"> {t('stats_total_unit')}</span></div>
-                {plankOverall && (
+                <div className="total-stats-big">{myPullupTotal.toLocaleString()}<span className="total-stats-unit"> {t('topbar_pullup')}</span></div>
+                {pullupOverall && (
                   <div className="total-stats-grid">
                     <div className="total-stat-item">
-                      <div className="total-stat-value">{plankOverall.totalSessions}</div>
+                      <div className="total-stat-value">{myPullups.length}</div>
                       <div className="total-stat-label">{t('stats_sessions')}</div>
                     </div>
                     <div className="total-stat-item">
-                      <div className="total-stat-value">{plankOverall.daysActive}</div>
+                      <div className="total-stat-value">{pullupOverall.daysActive}</div>
                       <div className="total-stat-label">{t('stats_active_days')}</div>
                     </div>
                     <div className="total-stat-item">
-                      <div className="total-stat-value">{formatDuration(plankOverall.avgSecsPerSession)}</div>
-                      <div className="total-stat-label">{t('stats_avg_session_len')}</div>
+                      <div className="total-stat-value">{pullupOverall.avgPerActiveDay}</div>
+                      <div className="total-stat-label">{t('stats_avg_active')}</div>
                     </div>
                     <div className="total-stat-item">
-                      <div className="total-stat-value">{formatDuration(plankRecords.maxSession)}</div>
+                      <div className="total-stat-value">{pullupOverall.avgPerCalendarDay}</div>
+                      <div className="total-stat-label">{t('stats_avg_calendar')}</div>
+                    </div>
+                    <div className="total-stat-item">
+                      <div className="total-stat-value">{pullupRecords.maxSession}</div>
                       <div className="total-stat-label">{t('stats_session_record')}</div>
                     </div>
                     <div className="total-stat-item">
-                      <div className="total-stat-value">{formatDuration(plankRecords.maxDay)}</div>
+                      <div className="total-stat-value">{pullupRecords.maxDay}</div>
                       <div className="total-stat-label">{t('stats_day_record')}</div>
-                    </div>
-                    <div className="total-stat-item">
-                      <div className="total-stat-value">{plankStreak}</div>
-                      <div className="total-stat-label">{t('stats_current_streak')}</div>
                     </div>
                   </div>
                 )}
@@ -1983,7 +1963,7 @@ export default function Dashboard({ session }) {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{t('delete_title')}</h3>
             <p>
-              <strong className="modal-highlight">{deleteTarget.count || formatDuration(deleteTarget.duration_seconds)} {deleteTarget.exercise_type === 'plank' ? t('chart_plank_unit') : t('delete_pushups_unit')}</strong>
+              <strong className="modal-highlight">{deleteTarget.count || formatDuration(deleteTarget.duration_seconds)} {deleteTarget.exercise_type === 'plank' ? t('chart_plank_unit') : deleteTarget.exercise_type === 'pullup' ? t('topbar_pullup') : t('delete_pushups_unit')}</strong>
               {' '}{t('delete_from')} {formatShortDate(deleteTarget.performed_at, t)}
               {deleteTarget.note && <> — „{deleteTarget.note}"</>}
               <br />

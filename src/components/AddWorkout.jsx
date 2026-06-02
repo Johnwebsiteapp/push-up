@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
-import PlankTimer from './PlankTimer'
 import { useLang } from '../LangContext'
 
 function todayISO() {
@@ -9,12 +8,6 @@ function todayISO() {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
-}
-
-function formatDuration(seconds) {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
 }
 
 export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorkoutSaved }) {
@@ -26,7 +19,6 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
   const [date, setDate] = useState(todayISO())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
-  const [showTimer, setShowTimer] = useState(false)
 
   // Animacja przełączania trybu
   const [displayMode, setDisplayMode] = useState(mode)
@@ -36,7 +28,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
 
   useEffect(() => {
     if (mode === displayMode) return
-    dirRef.current = mode === 'plank' ? 1 : -1
+    dirRef.current = mode === 'pullup' ? 1 : -1
     setExiting(true)
     timerRef.current = setTimeout(() => {
       setDisplayMode(mode)
@@ -105,151 +97,183 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
     }
   }
 
-  async function handlePlankSave(seconds) {
+  async function handlePullupSubmit(e) {
+    e.preventDefault()
+    setError(null)
+
+    const n = parseInt(count, 10)
+    if (!n || n <= 0) {
+      setError(t('add_error_pullup_count'))
+      return
+    }
+
     setSaving(true)
     const { data: saved, error: saveError } = await supabase.from('workouts').insert({
       user_id: user.id,
       user_email: user.email,
-      exercise_type: 'plank',
-      count: null,
-      duration_seconds: seconds,
-      performed_at: todayISO(),
+      exercise_type: 'pullup',
+      count: n,
+      duration_seconds: null,
+      performed_at: date,
       note: null,
     }).select().single()
     setSaving(false)
 
     if (saveError) {
-      alert(t('profile_save_error') + saveError.message)
+      setError(saveError.message)
     } else {
       if (saved) onWorkoutSaved?.(saved)
-      setShowTimer(false)
+      setCount('')
+      setDate(todayISO())
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   return (
-    <>
-      <form
-        onSubmit={handlePushupSubmit}
-        className="quick-log"
-        onSubmitCapture={(e) => {
-          if (mode === 'plank') e.preventDefault()
-        }}
-      >
-        <div className="quick-log-header">
-          <input
-            type="date"
-            className="quick-log-date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            aria-label={t('add_date_label')}
-            disabled={displayMode === 'plank'}
-          />
-          <div className="quick-log-mode-switch" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === 'pushup'}
-              className={`mode-btn ${mode === 'pushup' ? 'active' : ''}`}
-              onClick={() => setMode('pushup')}
-            >
-              {t('btn_pushups')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === 'plank'}
-              className={`mode-btn ${mode === 'plank' ? 'active' : ''}`}
-              onClick={() => setMode('plank')}
-            >
-              {t('btn_plank')}
-            </button>
-          </div>
+    <form
+      onSubmit={displayMode === 'pullup' ? handlePullupSubmit : handlePushupSubmit}
+      className="quick-log"
+    >
+      <div className="quick-log-header">
+        <input
+          type="date"
+          className="quick-log-date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+          aria-label={t('add_date_label')}
+        />
+        <div className="quick-log-mode-switch" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'pushup'}
+            className={`mode-btn ${mode === 'pushup' ? 'active' : ''}`}
+            onClick={() => setMode('pushup')}
+          >
+            {t('btn_pushups')}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'pullup'}
+            className={`mode-btn ${mode === 'pullup' ? 'active' : ''}`}
+            onClick={() => setMode('pullup')}
+          >
+            {t('btn_pullup')}
+          </button>
         </div>
+      </div>
 
-        <div
-          key={displayMode}
-          className={`hero-body${exiting ? ' hero-body-exit' : ''}`}
-          style={{ '--hero-dir': dirRef.current }}
-        >
-          {displayMode === 'pushup' && (
-            <>
-              <div className="quick-log-big">
-                <input
-                  className="quick-log-input"
-                  type="number"
-                  min="1"
-                  inputMode="numeric"
-                  value={count}
-                  onChange={(e) => setCount(e.target.value)}
-                  placeholder="00"
-                  required={mode === 'pushup'}
-                />
-                <div className="quick-log-sub">{t('add_count_sub')}</div>
-              </div>
+      <div
+        key={displayMode}
+        className={`hero-body${exiting ? ' hero-body-exit' : ''}`}
+        style={{ '--hero-dir': dirRef.current }}
+      >
+        {displayMode === 'pushup' && (
+          <>
+            <div className="quick-log-big">
+              <input
+                className="quick-log-input"
+                type="number"
+                min="1"
+                inputMode="numeric"
+                value={count}
+                onChange={(e) => setCount(e.target.value)}
+                placeholder="00"
+                required={mode === 'pushup'}
+              />
+              <div className="quick-log-sub">{t('add_count_sub')}</div>
+            </div>
 
-              <div className="quick-add-row">
-                {QUICK_ADDS.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className="quick-add-btn"
-                    onClick={(e) => quickAdd(n, e)}
-                    disabled={saving}
-                    aria-label={`+${n}`}
-                  >
-                    +{n}
-                  </button>
-                ))}
+            <div className="quick-add-row">
+              {QUICK_ADDS.map((n) => (
                 <button
+                  key={n}
                   type="button"
-                  className="quick-add-reset"
-                  onClick={resetCount}
-                  disabled={saving || !count}
-                  aria-label={t('add_clear')}
-                  title={t('add_clear')}
+                  className="quick-add-btn"
+                  onClick={(e) => quickAdd(n, e)}
+                  disabled={saving}
+                  aria-label={`+${n}`}
                 >
-                  ↺
+                  +{n}
                 </button>
-              </div>
-
-              <button type="submit" className="confirm-btn" disabled={saving}>
-                {saving ? t('add_saving') : t('add_save')}
-              </button>
-              {error && (
-                <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
-                  {error}
-                </p>
-              )}
-            </>
-          )}
-
-          {displayMode === 'plank' && (
-            <div className="plank-launch">
-              <div className="plank-launch-icon">🧘</div>
-              <div className="plank-launch-text">
-                {t('add_plank_text')}
-              </div>
+              ))}
               <button
                 type="button"
-                className="confirm-btn plank-launch-btn"
-                onClick={() => setShowTimer(true)}
-                disabled={saving}
+                className="quick-add-reset"
+                onClick={resetCount}
+                disabled={saving || !count}
+                aria-label={t('add_clear')}
+                title={t('add_clear')}
               >
-                {t('add_plank_btn')}
+                ↺
               </button>
             </div>
-          )}
-        </div>
-      </form>
 
-      {showTimer && (
-        <PlankTimer
-          onSave={handlePlankSave}
-          onClose={() => setShowTimer(false)}
-        />
-      )}
-    </>
+            <button type="submit" className="confirm-btn" disabled={saving}>
+              {saving ? t('add_saving') : t('add_save')}
+            </button>
+            {error && (
+              <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
+                {error}
+              </p>
+            )}
+          </>
+        )}
+
+        {displayMode === 'pullup' && (
+          <>
+            <div className="quick-log-big">
+              <input
+                className="quick-log-input"
+                type="number"
+                min="1"
+                inputMode="numeric"
+                value={count}
+                onChange={(e) => setCount(e.target.value)}
+                placeholder="00"
+                required={mode === 'pullup'}
+              />
+              <div className="quick-log-sub">{t('add_pullup_count_sub')}</div>
+            </div>
+
+            <div className="quick-add-row">
+              {QUICK_ADDS.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className="quick-add-btn"
+                  onClick={(e) => quickAdd(n, e)}
+                  disabled={saving}
+                  aria-label={`+${n}`}
+                >
+                  +{n}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="quick-add-reset"
+                onClick={resetCount}
+                disabled={saving || !count}
+                aria-label={t('add_clear')}
+                title={t('add_clear')}
+              >
+                ↺
+              </button>
+            </div>
+
+            <button type="submit" className="confirm-btn" disabled={saving}>
+              {saving ? t('add_saving') : t('add_save')}
+            </button>
+            {error && (
+              <p className="error" style={{ marginTop: 10, textAlign: 'center' }}>
+                {error}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </form>
   )
 }

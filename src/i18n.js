@@ -55,57 +55,6 @@ export const ACHIEVEMENTS_BY_LANG = {
   ],
 }
 
-export const PLANK_ZERO_ACHIEVEMENT_BY_LANG = {
-  pl: { title: 'Podłoga czeka.', sub: 'Przyjmij pozycję i oddychaj.' },
-  en: { title: 'The floor is waiting.', sub: 'Get into position and breathe.' },
-}
-
-export const PLANK_ACHIEVEMENTS_BY_LANG = {
-  pl: [
-    { title: 'Spokój to siła.', sub: 'Nie ruszaj się.' },
-    { title: 'Oddech równy.', sub: 'Ciało w linii.' },
-    { title: 'Drżenie? Dobry znak.', sub: 'Mięśnie pracują.' },
-    { title: 'Czas zwalnia.', sub: 'Ale Ty trwasz.' },
-    { title: 'Core nie kłamie.', sub: 'Wyniki mówią same za siebie.' },
-    { title: 'Sekundy mijają.', sub: 'Siła zostaje.' },
-    { title: 'Nie myśl. Trzymaj.', sub: 'Głowa wyłączona, ciało włączone.' },
-    { title: 'Wytrzymałość to wybór.', sub: 'I Ty go robisz.' },
-    { title: 'Każda sekunda się liczy.', sub: 'Dosłownie.' },
-    { title: 'Ciało chce odpuścić.', sub: 'Ty decydujesz inaczej.' },
-    { title: 'Cisza i praca.', sub: 'Najlepsza kombinacja.' },
-    { title: 'Kręgosłup dziękuje.', sub: 'Poważnie.' },
-    { title: 'Minuty budują miesiące.', sub: 'Jeden plank na raz.' },
-    { title: 'Równowaga to też siła.', sub: 'Pamiętaj o tym.' },
-    { title: 'Skupienie > ból.', sub: 'Zawsze.' },
-    { title: 'Solidna podstawa.', sub: 'Wszystko zaczyna się od core.' },
-    { title: 'Boli? Normalnie.', sub: 'Jutro będzie łatwiej.' },
-    { title: 'Trzymałeś.', sub: 'I to wystarczy.' },
-    { title: 'Cicho, ale mocno.', sub: 'Plank nie hałasuje. Wyniki tak.' },
-    { title: 'Jeszcze kilka sekund.', sub: 'Zawsze można trochę więcej.' },
-  ],
-  en: [
-    { title: 'Stillness is strength.', sub: "Don't move." },
-    { title: 'Breath steady.', sub: 'Body in line.' },
-    { title: 'Shaking? Good sign.', sub: 'Muscles working.' },
-    { title: 'Time slows down.', sub: 'But you hold on.' },
-    { title: "Core doesn't lie.", sub: 'Results speak for themselves.' },
-    { title: 'Seconds pass.', sub: 'Strength stays.' },
-    { title: "Don't think. Hold.", sub: 'Mind off, body on.' },
-    { title: 'Endurance is a choice.', sub: "And you're making it." },
-    { title: 'Every second counts.', sub: 'Literally.' },
-    { title: 'The body wants to quit.', sub: 'You decide otherwise.' },
-    { title: 'Silence and work.', sub: 'The best combination.' },
-    { title: 'Your spine thanks you.', sub: 'Seriously.' },
-    { title: 'Minutes build months.', sub: 'One plank at a time.' },
-    { title: 'Balance is strength too.', sub: 'Remember that.' },
-    { title: 'Focus > pain.', sub: 'Always.' },
-    { title: 'Solid foundation.', sub: 'Everything starts with core.' },
-    { title: "Hurts? Normal.", sub: "It'll be easier tomorrow." },
-    { title: 'You held.', sub: "That's enough." },
-    { title: 'Quiet, but strong.', sub: "Plank is silent. Results aren't." },
-    { title: 'Just a few more seconds.', sub: 'You can always do a little more.' },
-  ],
-}
 
 // ============================================================
 // UI Strings
@@ -163,15 +112,15 @@ const pl = {
 
   // Exercise buttons
   btn_pushups: '💪 Pompki',
-  btn_plank: '🧘 Plank',
+  btn_pullup: '🏋️ Podciąganie',
 
   // Topbar
   topbar_pompek: 'pompek',
-  topbar_plank: 'plank',
+  topbar_pullup: 'podciągnięć',
 
   // Hero section
   hero_pushups_today: 'Pompki dzisiaj',
-  hero_plank_today: 'Plank dzisiaj',
+  hero_pullup_today: 'Podciągania dzisiaj',
   hero_streak: 'Seria',
   hero_week: 'Tydzień',
   hero_day_singular: 'dzień',
@@ -205,6 +154,7 @@ const pl = {
   wl_user: 'Użytkownik',
   wl_plank_unit: 'plank',
   wl_pushup_unit: 'pompek',
+  wl_pullup_unit: 'podciągnięć',
   wl_delete_label: 'Usuń',
 
   // Stats modal — chart
@@ -233,8 +183,15 @@ const pl = {
   to_lvl: 'Do LVL',
   sign_out: 'Wyloguj',
 
+  // Pull-up stats
+  pullup_record: 'Rekord sesji',
+  pullup_improvement: 'Poprawa od dnia 1',
+  pullup_no_data: 'Dodaj pierwszą sesję aby zobaczyć progres',
+  pullup_week: 'Tydzień',
+
   // Total stats popup
   stats_pushups_total: 'Pompki ogółem',
+  stats_pullup_total: 'Podciągania ogółem',
   stats_plank_total: 'Plank ogółem',
   stats_no_data: 'brak danych',
   stats_since: 'od',
@@ -282,19 +239,12 @@ const pl = {
   // AddWorkout
   add_date_label: 'Data treningu',
   add_count_sub: 'Liczba pompek',
+  add_pullup_count_sub: 'Liczba podciągnięć',
   add_save: 'Zapisz trening',
   add_saving: 'Zapisywanie…',
-  add_plank_text: 'Timer wbudowany — kliknij Rozpocznij, przyjmij pozycję i wytrzymaj.',
-  add_plank_btn: '▶ Rozpocznij Plank',
   add_error_count: 'Podaj liczbę pompek większą od zera.',
+  add_error_pullup_count: 'Podaj liczbę podciągnięć większą od zera.',
   add_clear: 'Wyczyść licznik',
-
-  // PlankTimer
-  plank_hold: 'Trzymaj pozycję',
-  plank_saved: 'zapisano',
-  plank_stop: '⏹ STOP',
-  plank_saving: 'Zapisywanie…',
-  plank_close: 'Zamknij',
 
   // Profile
   profile_loading: 'Ładowanie profilu…',
@@ -316,8 +266,6 @@ const pl = {
   profile_goals_section: 'Cele',
   profile_daily_pushups: 'Cel dzienny pompek',
   profile_weekly_pushups: 'Cel tygodniowy pompek',
-  profile_daily_plank: 'Cel dzienny deski (s)',
-  profile_weekly_plank: 'Cel tygodniowy deski (s)',
   profile_save: 'Zapisz zmiany',
   profile_saving: 'Zapisywanie…',
   profile_saved: 'Profil zapisany.',
@@ -394,15 +342,15 @@ const en = {
 
   // Exercise buttons
   btn_pushups: '💪 Push-ups',
-  btn_plank: '🧘 Plank',
+  btn_pullup: '🏋️ Pull-ups',
 
   // Topbar
   topbar_pompek: 'push-ups',
-  topbar_plank: 'plank',
+  topbar_pullup: 'pull-ups',
 
   // Hero section
   hero_pushups_today: 'Push-ups today',
-  hero_plank_today: 'Plank today',
+  hero_pullup_today: 'Pull-ups today',
   hero_streak: 'Streak',
   hero_week: 'Week',
   hero_day_singular: 'day',
@@ -436,6 +384,7 @@ const en = {
   wl_user: 'User',
   wl_plank_unit: 'plank',
   wl_pushup_unit: 'push-ups',
+  wl_pullup_unit: 'pull-ups',
   wl_delete_label: 'Delete',
 
   // Stats modal — chart
@@ -464,8 +413,15 @@ const en = {
   to_lvl: 'To LVL',
   sign_out: 'Sign out',
 
+  // Pull-up stats
+  pullup_record: 'Session record',
+  pullup_improvement: 'Improvement since day 1',
+  pullup_no_data: 'Add your first session to see progress',
+  pullup_week: 'Week',
+
   // Total stats popup
   stats_pushups_total: 'Push-ups total',
+  stats_pullup_total: 'Pull-ups total',
   stats_plank_total: 'Plank total',
   stats_no_data: 'no data',
   stats_since: 'since',
@@ -513,19 +469,12 @@ const en = {
   // AddWorkout
   add_date_label: 'Workout date',
   add_count_sub: 'Number of push-ups',
+  add_pullup_count_sub: 'Number of pull-ups',
   add_save: 'Save workout',
   add_saving: 'Saving…',
-  add_plank_text: 'Built-in timer — click Start, get into position and hold.',
-  add_plank_btn: '▶ Start Plank',
   add_error_count: 'Enter a number of push-ups greater than zero.',
+  add_error_pullup_count: 'Enter a number of pull-ups greater than zero.',
   add_clear: 'Clear counter',
-
-  // PlankTimer
-  plank_hold: 'Hold position',
-  plank_saved: 'saved',
-  plank_stop: '⏹ STOP',
-  plank_saving: 'Saving…',
-  plank_close: 'Close',
 
   // Profile
   profile_loading: 'Loading profile…',
@@ -547,8 +496,6 @@ const en = {
   profile_goals_section: 'Goals',
   profile_daily_pushups: 'Daily push-up goal',
   profile_weekly_pushups: 'Weekly push-up goal',
-  profile_daily_plank: 'Daily plank goal (s)',
-  profile_weekly_plank: 'Weekly plank goal (s)',
   profile_save: 'Save changes',
   profile_saving: 'Saving…',
   profile_saved: 'Profile saved.',

@@ -42,13 +42,21 @@ export default function WorkoutList({ workouts, profiles, currentUserId, onDelet
           (w.user_email ? w.user_email.split('@')[0] : t('wl_user'))
 
         const isPlank = w.exercise_type === 'plank'
-        const label = isPlank
-          ? `${formatDuration(w.duration_seconds)} ${t('wl_plank_unit')}`
-          : `${w.count} ${t('wl_pushup_unit')}`
-        const icon = isPlank ? '🧘' : '💪'
+        const isPullup = w.exercise_type === 'pullup'
+        let label, icon
+        if (isPlank) {
+          label = `${formatDuration(w.duration_seconds)} ${t('wl_plank_unit')}`
+          icon = '🧘'
+        } else if (isPullup) {
+          label = `${w.count} ${t('wl_pullup_unit')}`
+          icon = '🏋️'
+        } else {
+          label = `${w.count} ${t('wl_pushup_unit')}`
+          icon = '💪'
+        }
 
         return (
-          <li key={w.id} className={`${mine ? 'mine' : 'other'} ${isPlank ? 'plank' : ''}`}>
+          <li key={w.id} className={`${mine ? 'mine' : 'other'} ${isPlank ? 'plank' : ''} ${isPullup ? 'pullup' : ''}`}>
             <div className="workout-main">
               <div className="workout-top">
                 <strong className="workout-count">
