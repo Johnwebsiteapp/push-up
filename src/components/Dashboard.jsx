@@ -1493,9 +1493,9 @@ export default function Dashboard({ session }) {
                     </div>
                     <div className="pullup-key-card">
                       <div className="pullup-key-value">
-                        {pullupStreak > 0 ? `🔥${pullupStreak}` : pullupStreak}
+                        {pullupOverall ? pullupOverall.daysActive : 0}
                       </div>
-                      <div className="pullup-key-label">{t('hero_streak')}</div>
+                      <div className="pullup-key-label">{lang === 'en' ? 'days active' : 'dni treningu'}</div>
                     </div>
                   </div>
                 ) : (
