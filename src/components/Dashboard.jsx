@@ -1788,22 +1788,20 @@ export default function Dashboard({ session }) {
                   </button>
                 </div>
                 {/* Nawigacja tygodniowa */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '10px' }}>
                   <button
                     type="button"
-                    className="chart-week-btn"
                     onClick={() => setChartWeekOffset(o => o - 1)}
-                    style={{ flexShrink: 0 }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.1rem', lineHeight: 1, cursor: 'pointer', padding: '2px 6px', opacity: 1 }}
                   >←</button>
-                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-dim)', minWidth: 130, textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', lineHeight: 1 }}>
                     {(chartMode === 'pushup' ? weeklyChart : weeklyChartPullup).weekLabel}
                   </span>
                   <button
                     type="button"
-                    className="chart-week-btn"
                     onClick={() => setChartWeekOffset(o => Math.min(0, o + 1))}
                     disabled={chartWeekOffset >= 0}
-                    style={{ flexShrink: 0 }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.1rem', lineHeight: 1, cursor: 'pointer', padding: '2px 6px', opacity: chartWeekOffset >= 0 ? 0.25 : 1 }}
                   >→</button>
                 </div>
 
