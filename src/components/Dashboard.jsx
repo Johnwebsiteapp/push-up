@@ -710,13 +710,7 @@ export default function Dashboard({ session }) {
       })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
-    // Label tygodnia
-    const first = days[0]
-    const last = days[6]
-    const fmt = (iso) => { const [,m,d] = iso.split('-'); return `${parseInt(d)}.${parseInt(m)}` }
-    const weekLabel = chartWeekOffset === 0
-      ? (lang === 'en' ? 'This week' : 'Ten tydzień')
-      : `${fmt(first.iso)} – ${fmt(last.iso)}`
+    const weekLabel = weekOffsetLabel(chartWeekOffset, lang)
     return { days, max, weekLabel }
   }, [myWorkouts, t, chartWeekOffset, lang])
 
