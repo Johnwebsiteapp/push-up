@@ -3684,3 +3684,62 @@
   border-color: rgba(191, 95, 255, 0.25) !important;
   color: #BF5FFF !important;
 }
+
+/* ============================================================
+   RANKING DETAIL — weekly chart
+   ============================================================ */
+.rd-week {
+  padding: 12px 16px 4px;
+  border-top: 1px solid var(--border);
+}
+.rd-week-title {
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.rd-week-chart {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.rd-week-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.rd-week-val {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  height: 13px;
+  display: flex;
+  align-items: center;
+}
+.rd-week-bar-wrap {
+  display: flex;
+  align-items: flex-end;
+  height: 44px;
+  width: 100%;
+}
+.rd-week-bar {
+  width: 100%;
+  background: rgba(var(--primary-rgb), 0.45);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.3s ease;
+}
+.rd-week-bar.today {
+  background: var(--primary);
+  filter: drop-shadow(0 0 3px rgba(var(--primary-rgb), 0.5));
+}
+.rd-week-day {
+  font-size: 0.56rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+.rd-week-day.today {
+  color: var(--primary);
+  font-weight: 800;
+}

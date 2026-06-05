@@ -1050,6 +1050,19 @@ export default function Dashboard({ session }) {
         const userStreak = calculateStreak(userPushups)
         const sessionsCount = userPushups.length
 
+        // Tygodniowy wykres (Pn–Nd bieżącego tygodnia)
+        const weekDays = []
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(mondayISOVal)
+          d.setDate(d.getDate() + i)
+          const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+          const count = userPushups
+            .filter((w) => w.performed_at === iso)
+            .reduce((s, w) => s + (w.count || 0), 0)
+          weekDays.push({ iso, dayName: t(`dshort_${d.getDay()}`), count, isToday: iso === todayStr })
+        }
+        const weekMax = Math.max(1, ...weekDays.map((d) => d.count))
+
         return {
           user_id,
           ...v,
@@ -1062,10 +1075,12 @@ export default function Dashboard({ session }) {
           maxSession,
           streak: userStreak,
           sessionsCount,
+          weekDays,
+          weekMax,
         }
       })
       .sort((a, b) => b.total - a.total)
-  }, [workouts, profiles, t])
+  }, [workouts, profiles, t, mondayISOVal])
 
   const myProfile = profiles[user.id]
   const myDisplayName =
@@ -1675,6 +1690,25 @@ export default function Dashboard({ session }) {
               <div className="rd-stat">
                 <span className="rd-stat-value">{rankingDetail.daysActive}</span>
                 <span className="rd-stat-label">{t('rd_active_days')}</span>
+              </div>
+            </div>
+
+            {/* Tygodniowy wykres */}
+            <div className="rd-week">
+              <div className="rd-week-title">{lang === 'en' ? 'This week' : 'Ten tydzień'}</div>
+              <div className="rd-week-chart">
+                {rankingDetail.weekDays?.map((d) => (
+                  <div key={d.iso} className="rd-week-col">
+                    <span className="rd-week-val">{d.count > 0 ? d.count : '–'}</span>
+                    <div className="rd-week-bar-wrap">
+                      <div
+                        className={`rd-week-bar${d.isToday ? ' today' : ''}`}
+                        style={{ height: d.count === 0 ? 2 : Math.max(4, (d.count / rankingDetail.weekMax) * 44) }}
+                      />
+                    </div>
+                    <span className={`rd-week-day${d.isToday ? ' today' : ''}`}>{d.dayName}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
