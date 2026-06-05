@@ -1010,10 +1010,12 @@ export default function Dashboard({ session }) {
 
   const leaderboard = useMemo(() => {
     const map = new Map()
+    // Liczymy tylko pompki (pushup) w rankingu
     for (const w of workouts) {
+      if (w.exercise_type === 'pullup') continue
       const prev = map.get(w.user_id) ?? { total: 0, email: w.user_email }
       map.set(w.user_id, {
-        total: prev.total + w.count,
+        total: prev.total + (w.count || 0),
         email: prev.email || w.user_email,
       })
     }
@@ -1036,17 +1038,17 @@ export default function Dashboard({ session }) {
         const avatarInitials = customInitials || derivedInitials
         const entryLevel = getLevelInfo(v.total).level
 
-        // Per-user dodatkowe statystyki
-        const userWorkouts = workouts.filter((w) => w.user_id === user_id)
-        const todayCount = userWorkouts
+        // Per-user — tylko pompki
+        const userPushups = workouts.filter((w) => w.user_id === user_id && w.exercise_type !== 'pullup')
+        const todayCount = userPushups
           .filter((w) => w.performed_at === todayStr)
-          .reduce((s, w) => s + w.count, 0)
-        const daysActive = new Set(userWorkouts.map((w) => w.performed_at)).size
-        const maxSession = userWorkouts.length
-          ? Math.max(...userWorkouts.map((w) => w.count))
+          .reduce((s, w) => s + (w.count || 0), 0)
+        const daysActive = new Set(userPushups.map((w) => w.performed_at)).size
+        const maxSession = userPushups.length
+          ? Math.max(...userPushups.map((w) => w.count || 0))
           : 0
-        const userStreak = calculateStreak(userWorkouts)
-        const sessionsCount = userWorkouts.length
+        const userStreak = calculateStreak(userPushups)
+        const sessionsCount = userPushups.length
 
         return {
           user_id,
