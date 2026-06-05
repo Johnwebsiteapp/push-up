@@ -317,6 +317,7 @@ export default function Dashboard({ session }) {
   const [statsModal, setStatsModal] = useState(null) // 'chart' | 'records' | null
   const [statsVisible, setStatsVisible] = useState(false)
   const [chartMode, setChartMode] = useState('pushup')
+  const [chartWeekOffset, setChartWeekOffset] = useState(0) // 0 = bieżący tydzień, -1 = poprzedni itd.
   const [recordsMode, setRecordsMode] = useState('pushup')
   const [historyMode, setHistoryMode] = useState('pushup')
   const [heroExiting, setHeroExiting] = useState(false)
@@ -674,14 +675,14 @@ export default function Dashboard({ session }) {
   const pullupStreak = useMemo(() => calculateStreak(myPullups), [myPullups])
   const maxStreak = useMemo(() => calculateMaxStreak(myWorkouts), [myWorkouts])
 
-  // Wykres tygodniowy — aktualny tydzień od poniedziałku do niedzieli
+  // Wykres tygodniowy — z obsługą offsetu tygodniowego
   const weeklyChart = useMemo(() => {
     const days = []
     const now = new Date()
-    const todayDay = now.getDay() // 0=Nd, 1=Pn, ..., 6=Sb
-    const daysSinceMonday = (todayDay + 6) % 7 // Pn=0, Nd=6
+    const todayDay = now.getDay()
+    const daysSinceMonday = (todayDay + 6) % 7
     const monday = new Date(now)
-    monday.setDate(now.getDate() - daysSinceMonday)
+    monday.setDate(now.getDate() - daysSinceMonday + chartWeekOffset * 7)
 
     const todayIso = todayISO()
     for (let i = 0; i < 7; i++) {
@@ -690,7 +691,7 @@ export default function Dashboard({ session }) {
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       const count = myWorkouts
         .filter((w) => w.performed_at === iso)
-        .reduce((sum, w) => sum + w.count, 0)
+        .reduce((sum, w) => sum + (w.count || 0), 0)
       days.push({
         iso,
         dayName: t(`dshort_${d.getDay()}`),
@@ -699,16 +700,23 @@ export default function Dashboard({ session }) {
       })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
-    return { days, max }
-  }, [myWorkouts, t])
+    // Label tygodnia
+    const first = days[0]
+    const last = days[6]
+    const fmt = (iso) => { const [,m,d] = iso.split('-'); return `${parseInt(d)}.${parseInt(m)}` }
+    const weekLabel = chartWeekOffset === 0
+      ? (lang === 'en' ? 'This week' : 'Ten tydzień')
+      : `${fmt(first.iso)} – ${fmt(last.iso)}`
+    return { days, max, weekLabel }
+  }, [myWorkouts, t, chartWeekOffset, lang])
 
-  // Wykres tygodniowy — Podciągania (liczba)
+  // Wykres tygodniowy — Podciągania (z offsetem)
   const weeklyChartPullup = useMemo(() => {
     const days = []
     const now = new Date()
     const daysSinceMonday = (now.getDay() + 6) % 7
     const monday = new Date(now)
-    monday.setDate(now.getDate() - daysSinceMonday)
+    monday.setDate(now.getDate() - daysSinceMonday + chartWeekOffset * 7)
     const todayIso = todayISO()
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday)
@@ -720,8 +728,12 @@ export default function Dashboard({ session }) {
       days.push({ iso, dayName: t(`dshort_${d.getDay()}`), count, isToday: iso === todayIso })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
-    return { days, max }
-  }, [myPullups, t])
+    const fmt = (iso) => { const [,m,d] = iso.split('-'); return `${parseInt(d)}.${parseInt(m)}` }
+    const weekLabel = chartWeekOffset === 0
+      ? (lang === 'en' ? 'This week' : 'Ten tydzień')
+      : `${fmt(days[0].iso)} – ${fmt(days[6].iso)}`
+    return { days, max, weekLabel }
+  }, [myPullups, t, chartWeekOffset, lang])
 
   // Rekordy osobiste + dodatkowe statystyki potrzebne do odznak
   const records = useMemo(() => {
@@ -1342,7 +1354,7 @@ export default function Dashboard({ session }) {
               <button
                 type="button"
                 className="stats-tile"
-                onClick={() => setStatsModal('chart')}
+                onClick={() => { setStatsModal('chart'); setChartWeekOffset(0) }}
               >
                 <span className="stats-tile-icon">📊</span>
                 <span className="stats-tile-label">{t('ranking_weekly_chart')}</span>
@@ -1774,6 +1786,24 @@ export default function Dashboard({ session }) {
                     {t('btn_pullup')}
                   </button>
                 </div>
+                {/* Nawigacja tygodniowa */}
+                <div className="chart-week-nav">
+                  <button
+                    type="button"
+                    className="chart-week-btn"
+                    onClick={() => setChartWeekOffset(o => o - 1)}
+                  >←</button>
+                  <span className="chart-week-label">
+                    {(chartMode === 'pushup' ? weeklyChart : weeklyChartPullup).weekLabel}
+                  </span>
+                  <button
+                    type="button"
+                    className="chart-week-btn"
+                    onClick={() => setChartWeekOffset(o => Math.min(0, o + 1))}
+                    disabled={chartWeekOffset >= 0}
+                  >→</button>
+                </div>
+
                 {(() => {
                   const chart = chartMode === 'pushup' ? weeklyChart : weeklyChartPullup
                   const isPullup = chartMode === 'pullup'

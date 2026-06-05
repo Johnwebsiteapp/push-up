@@ -3768,3 +3768,40 @@
 .modal.closing {
   animation: modalSlideDown 220ms ease forwards;
 }
+
+/* ============================================================
+   CHART — week navigation
+   ============================================================ */
+.chart-week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.chart-week-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+.chart-week-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.chart-week-btn:hover:not(:disabled) {
+  border-color: rgba(var(--primary-rgb), 0.5);
+  color: var(--primary);
+}
+.chart-week-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
