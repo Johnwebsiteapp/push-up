@@ -3775,26 +3775,30 @@
 .chart-week-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 .chart-week-label {
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-dim);
   letter-spacing: 0.04em;
+  min-width: 110px;
+  text-align: center;
 }
 .chart-week-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.85rem;
   display: grid;
   place-items: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: border-color 0.15s, color 0.15s;
 }
 .chart-week-btn:hover:not(:disabled) {
