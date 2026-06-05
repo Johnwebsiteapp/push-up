@@ -1047,6 +1047,11 @@ export default function Dashboard({ session }) {
         const maxSession = userPushups.length
           ? Math.max(...userPushups.map((w) => w.count || 0))
           : 0
+        const byDay = {}
+        for (const w of userPushups) {
+          byDay[w.performed_at] = (byDay[w.performed_at] || 0) + (w.count || 0)
+        }
+        const maxDay = Object.values(byDay).length ? Math.max(...Object.values(byDay)) : 0
         const userStreak = calculateStreak(userPushups)
         const sessionsCount = userPushups.length
 
@@ -1075,6 +1080,7 @@ export default function Dashboard({ session }) {
           maxSession,
           streak: userStreak,
           sessionsCount,
+          maxDay,
           weekDays,
           weekMax,
         }
@@ -1684,8 +1690,8 @@ export default function Dashboard({ session }) {
                 <span className="rd-stat-label">{t('rd_streak')}</span>
               </div>
               <div className="rd-stat">
-                <span className="rd-stat-value">{rankingDetail.maxSession}</span>
-                <span className="rd-stat-label">{t('rd_max_session')}</span>
+                <span className="rd-stat-value">{rankingDetail.maxDay}</span>
+                <span className="rd-stat-label">{t('records_max_day')}</span>
               </div>
               <div className="rd-stat">
                 <span className="rd-stat-value">{rankingDetail.daysActive}</span>
