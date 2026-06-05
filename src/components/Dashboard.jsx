@@ -1788,13 +1788,14 @@ export default function Dashboard({ session }) {
                   </button>
                 </div>
                 {/* Nawigacja tygodniowa */}
-                <div className="chart-week-nav">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
                   <button
                     type="button"
                     className="chart-week-btn"
                     onClick={() => setChartWeekOffset(o => o - 1)}
+                    style={{ flexShrink: 0 }}
                   >←</button>
-                  <span className="chart-week-label">
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-dim)', minWidth: 130, textAlign: 'center' }}>
                     {(chartMode === 'pushup' ? weeklyChart : weeklyChartPullup).weekLabel}
                   </span>
                   <button
@@ -1802,6 +1803,7 @@ export default function Dashboard({ session }) {
                     className="chart-week-btn"
                     onClick={() => setChartWeekOffset(o => Math.min(0, o + 1))}
                     disabled={chartWeekOffset >= 0}
+                    style={{ flexShrink: 0 }}
                   >→</button>
                 </div>
 
