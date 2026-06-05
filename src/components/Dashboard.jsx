@@ -675,6 +675,16 @@ export default function Dashboard({ session }) {
   const pullupStreak = useMemo(() => calculateStreak(myPullups), [myPullups])
   const maxStreak = useMemo(() => calculateMaxStreak(myWorkouts), [myWorkouts])
 
+  function weekOffsetLabel(offset, lang) {
+    if (offset === 0) return lang === 'en' ? 'This week' : 'Ten tydzień'
+    if (offset === -1) return lang === 'en' ? 'Last week' : 'Ostatni tydzień'
+    const n = Math.abs(offset)
+    if (lang === 'en') return `${n} weeks ago`
+    const words = ['', '', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć', 'Dziesięć']
+    const word = words[n] || `${n}`
+    return n < 5 ? `${word} tygodnie temu` : `${word} tygodni temu`
+  }
+
   // Wykres tygodniowy — z obsługą offsetu tygodniowego
   const weeklyChart = useMemo(() => {
     const days = []
@@ -728,10 +738,7 @@ export default function Dashboard({ session }) {
       days.push({ iso, dayName: t(`dshort_${d.getDay()}`), count, isToday: iso === todayIso })
     }
     const max = Math.max(1, ...days.map((d) => d.count))
-    const fmt = (iso) => { const [,m,d] = iso.split('-'); return `${parseInt(d)}.${parseInt(m)}` }
-    const weekLabel = chartWeekOffset === 0
-      ? (lang === 'en' ? 'This week' : 'Ten tydzień')
-      : `${fmt(days[0].iso)} – ${fmt(days[6].iso)}`
+    const weekLabel = weekOffsetLabel(chartWeekOffset, lang)
     return { days, max, weekLabel }
   }, [myPullups, t, chartWeekOffset, lang])
 
