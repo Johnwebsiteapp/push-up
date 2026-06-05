@@ -334,6 +334,15 @@ export default function Dashboard({ session }) {
     }, 210)
   }
   const [rankingDetail, setRankingDetail] = useState(null) // leaderboard entry or null
+  const [rankingDetailClosing, setRankingDetailClosing] = useState(false)
+
+  function closeRankingDetail() {
+    setRankingDetailClosing(true)
+    setTimeout(() => {
+      setRankingDetail(null)
+      setRankingDetailClosing(false)
+    }, 220)
+  }
 
   // Trigger transition IN after mount — double RAF ensures browser paints hidden state first
   useEffect(() => {
@@ -1644,11 +1653,11 @@ export default function Dashboard({ session }) {
 
       {rankingDetail && (
         <div
-          className="modal-backdrop"
-          onClick={() => setRankingDetail(null)}
+          className={`modal-backdrop${rankingDetailClosing ? ' closing' : ''}`}
+          onClick={closeRankingDetail}
         >
           <div
-            className="modal ranking-detail"
+            className={`modal ranking-detail${rankingDetailClosing ? ' closing' : ''}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="rd-header">
@@ -1667,7 +1676,7 @@ export default function Dashboard({ session }) {
               <button
                 type="button"
                 className="modal-close rd-close"
-                onClick={() => setRankingDetail(null)}
+                onClick={closeRankingDetail}
               >
                 ✕
               </button>

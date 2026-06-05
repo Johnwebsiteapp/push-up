@@ -3743,3 +3743,28 @@
   color: var(--primary);
   font-weight: 800;
 }
+
+/* ============================================================
+   MODAL — exit animations
+   ============================================================ */
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes modalSlideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+}
+
+.modal-backdrop.closing {
+  animation: modalFadeOut 220ms ease forwards;
+}
+.modal.closing {
+  animation: modalSlideDown 220ms ease forwards;
+}
