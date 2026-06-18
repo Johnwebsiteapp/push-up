@@ -37,7 +37,7 @@ export default function AddWorkout({ user, mode: modeProp, onModeChange, onWorko
     return () => clearTimeout(timerRef.current)
   }, [mode])
 
-  const QUICK_ADDS = [10, 20, 30]
+  const QUICK_ADDS = displayMode === 'pullup' ? [5, 10, 20] : [10, 20, 30]
 
   function quickAdd(n, event) {
     const current = parseInt(count, 10) || 0
