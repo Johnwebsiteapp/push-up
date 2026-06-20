@@ -82,8 +82,7 @@ export default function Gym({ user }) {
   const [editSet, setEditSet] = useState(null)     // { exerciseId, setId, weight, reps, saving, error }
   const [editName, setEditName] = useState(null)   // { exerciseId, value }
   const [confirmDelete, setConfirmDelete] = useState(null) // exerciseId
-  const [expanded, setExpanded] = useState(new Set())      // exerciseIds expanded
-  const [history, setHistory] = useState({})       // { [exerciseId]: { loading, session } }
+  const [lastByExercise, setLastByExercise] = useState({}) // { [exerciseId]: { performed_at, sets } } — last workout before selected day
 
   // Reorder mode (drag)
   const [reorderMode, setReorderMode] = useState(false)
@@ -116,7 +115,7 @@ export default function Gym({ user }) {
     let ignore = false
     async function load() {
       setLoading(true)
-      const [{ data: exData }, { data: sessData }, { data: weekData }] = await Promise.all([
+      const [{ data: exData }, { data: sessData }, { data: weekData }, { data: prevData }] = await Promise.all([
         supabase.from('gym_exercises').select('*').eq('user_id', user.id).order('sort_order').order('name'),
         supabase
           .from('gym_sessions')
@@ -130,6 +129,12 @@ export default function Gym({ user }) {
           .eq('user_id', user.id)
           .gte('performed_at', weekDays[0])
           .lte('performed_at', weekDays[6]),
+        supabase
+          .from('gym_sessions')
+          .select('exercise_id, performed_at, sets:gym_sets(*)')
+          .eq('user_id', user.id)
+          .lt('performed_at', date)
+          .order('performed_at', { ascending: false }),
       ])
       if (!ignore) {
         setExercises(exData || [])
@@ -139,8 +144,17 @@ export default function Gym({ user }) {
         })))
         // only count days that actually have at least one set as "trained"
         setWeekActivity(new Set((weekData || []).filter(s => (s.sets || []).length > 0).map(s => s.performed_at)))
-        setExpanded(new Set())
-        setHistory({})
+        // last workout (with sets) per exercise, before the selected day — for the inline preview
+        const lastMap = {}
+        for (const s of (prevData || [])) {
+          if (!lastMap[s.exercise_id] && (s.sets || []).length > 0) {
+            lastMap[s.exercise_id] = {
+              performed_at: s.performed_at,
+              sets: (s.sets || []).slice().sort((a, b) => a.set_number - b.set_number),
+            }
+          }
+        }
+        setLastByExercise(lastMap)
         setLoading(false)
       }
     }
@@ -295,7 +309,6 @@ export default function Gym({ user }) {
   }
 
   function startEditName(ex) {
-    setExpanded(prev => new Set(prev).add(ex.id))
     setEditName({ exerciseId: ex.id, value: ex.name || '' })
   }
 
@@ -363,30 +376,6 @@ export default function Gym({ user }) {
     ))
   }
 
-  async function toggleExpand(ex) {
-    const isOpen = expanded.has(ex.id)
-    setExpanded(prev => {
-      const n = new Set(prev)
-      isOpen ? n.delete(ex.id) : n.add(ex.id)
-      return n
-    })
-    if (!isOpen && !history[ex.id]) {
-      setHistory(prev => ({ ...prev, [ex.id]: { loading: true, session: null } }))
-      const { data } = await supabase
-        .from('gym_sessions')
-        .select('performed_at, sets:gym_sets(*)')
-        .eq('user_id', user.id)
-        .eq('exercise_id', ex.id)
-        .lt('performed_at', date)
-        .order('performed_at', { ascending: false })
-        .limit(5)
-      // pick the most recent session that actually has sets
-      const prevSess = (data || []).map(s => ({ ...s, sets: (s.sets || []).slice().sort((a, b) => a.set_number - b.set_number) }))
-        .find(s => s.sets.length > 0) || null
-      setHistory(prev => ({ ...prev, [ex.id]: { loading: false, session: prevSess } }))
-    }
-  }
-
   return (
     <div className="gym-view">
       {/* Compact week chart — sticky */}
@@ -434,8 +423,7 @@ export default function Gym({ user }) {
             const sess = sessionByExercise[ex.id]
             const sets = sess?.sets || []
             const qf = quickSet[ex.id]
-            const isExpanded = expanded.has(ex.id)
-            const hist = history[ex.id]
+            const last = lastByExercise[ex.id]
             if (reorderMode) {
               return (
                 <div key={ex.id} data-ex-id={ex.id} className={`gym-card gym-card-reorder${draggingId === ex.id ? ' dragging' : ''}`}>
@@ -476,9 +464,9 @@ export default function Gym({ user }) {
                         onKeyDown={e => { if (e.key === 'Enter') saveEditName(); if (e.key === 'Escape') setEditName(null) }}
                       />
                     ) : (
-                      <button type="button" className="gym-card-toggle" onClick={() => toggleExpand(ex)}>
-                        <span className={`gym-chevron${isExpanded ? ' open' : ''}`}>›</span>
+                      <button type="button" className="gym-card-toggle" onClick={() => startEditName(ex)} title={t('gym_edit_name')}>
                         <span className="gym-card-name-text">{ex.name}</span>
+                        <span className="gym-card-edit-icon">✎</span>
                       </button>
                     )}
                     <button type="button" className="gym-card-delete" onClick={() => setConfirmDelete(ex.id)} title={t('gym_delete_exercise')}>✕</button>
@@ -529,23 +517,10 @@ export default function Gym({ user }) {
                   </button>
                 )}
 
-                {isExpanded && (
-                  <div className="gym-history">
-                    {hist?.loading ? (
-                      <p className="gym-history-empty">{t('loading')}</p>
-                    ) : hist?.session ? (
-                      <>
-                        <div className="gym-history-label">{t('gym_history_prev')} · {formatShortDate(hist.session.performed_at, lang)}</div>
-                        <div className="gym-sets-summary readonly">
-                          {hist.session.sets.map(st => (
-                            <span key={st.id} className="gym-set-chip readonly">{formatSet(st)}</span>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <p className="gym-history-empty">{t('gym_history_none')}</p>
-                    )}
-                    <button type="button" className="gym-rename-link" onClick={() => startEditName(ex)}>✎ {t('gym_edit_name')}</button>
+                {last && (
+                  <div className="gym-last-preview">
+                    <span className="gym-last-label">{t('gym_history_prev')} · {formatShortDate(last.performed_at, lang)}:</span>
+                    <span className="gym-last-sets">{last.sets.map(formatSet).join('  ·  ')}</span>
                   </div>
                 )}
               </div>
@@ -565,7 +540,6 @@ export default function Gym({ user }) {
               onMouseDown={e => e.preventDefault()}
               onClick={() => {
                 setReorderMode(m => !m)
-                setExpanded(new Set())
                 requestAnimationFrame(() => { const vp = document.querySelector('.tabs-viewport'); if (vp) vp.scrollTop = 0 })
               }}
             >

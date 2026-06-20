@@ -3938,7 +3938,7 @@
 }
 .gym-card-name:hover { color: var(--primary); }
 
-/* Expandable name toggle */
+/* Name (tap to rename) */
 .gym-card-toggle {
   display: flex;
   align-items: center;
@@ -3954,15 +3954,6 @@
   text-transform: none;
   letter-spacing: normal;
 }
-.gym-chevron {
-  display: inline-block;
-  color: var(--muted);
-  font-size: 1.2rem;
-  line-height: 1;
-  transition: transform 0.2s, color 0.15s;
-  flex-shrink: 0;
-}
-.gym-chevron.open { transform: rotate(90deg); color: var(--primary); }
 .gym-card-name-text {
   font-size: 1.05rem;
   font-weight: 700;
@@ -3971,7 +3962,38 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.gym-card-edit-icon {
+  font-size: 0.8rem;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
 .gym-card-toggle:hover .gym-card-name-text { color: var(--primary); }
+.gym-card-toggle:hover .gym-card-edit-icon { opacity: 1; }
+
+/* Inline "last workout" preview — always visible, no click needed */
+.gym-last-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.gym-last-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.gym-last-sets {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
 
 /* Edit / reorder controls */
 .gym-reorder-hint {
