@@ -70,6 +70,7 @@ export default function Gym({ user }) {
   // Add panel
   const [addOpen, setAddOpen] = useState(false)
   const [addName, setAddName] = useState('')
+  const [addSets, setAddSets] = useState([{ weight: '', reps: '' }])
   const [addSaving, setAddSaving] = useState(false)
   const [addError, setAddError] = useState(null)
   const nameInputRef = useRef(null)
@@ -83,6 +84,13 @@ export default function Gym({ user }) {
   const [confirmDelete, setConfirmDelete] = useState(null) // exerciseId
   const [expanded, setExpanded] = useState(new Set())      // exerciseIds expanded
   const [history, setHistory] = useState({})       // { [exerciseId]: { loading, session } }
+
+  // Reorder mode (drag)
+  const [reorderMode, setReorderMode] = useState(false)
+  const [draggingId, setDraggingId] = useState(null)
+  const dragRef = useRef(null)
+  const exercisesRef = useRef([])
+  useEffect(() => { exercisesRef.current = exercises }, [exercises])
 
   // Swipe on chart
   const chartSwipeRef = useRef({ startX: 0, startY: 0 })
@@ -162,6 +170,7 @@ export default function Gym({ user }) {
 
   function openAdd() {
     setAddName('')
+    setAddSets([{ weight: '', reps: '' }])
     setAddError(null)
     setAddOpen(true)
     setTimeout(() => nameInputRef.current?.focus({ preventScroll: true }), 100)
@@ -171,23 +180,48 @@ export default function Gym({ user }) {
     setAddOpen(false)
   }
 
-  // Create a new exercise (a template that shows on every day)
+  // Create a new exercise (a template shown every day) + optionally log today's sets
   async function handleAddExercise() {
     const name = addName.trim()
     if (!name) { setAddError(t('gym_error_name')); return }
-    if (exercises.some(ex => ex.name.toLowerCase() === name.toLowerCase())) {
-      setAddError(lang === 'pl' ? 'Takie ćwiczenie już istnieje' : 'Exercise already exists')
-      return
-    }
+
     setAddSaving(true)
     setAddError(null)
-    const maxOrder = exercises.reduce((m, ex) => Math.max(m, ex.sort_order || 0), 0)
-    const { data, error } = await supabase
-      .from('gym_exercises')
-      .insert({ user_id: user.id, name, category: 'other', sort_order: maxOrder + 1 })
-      .select().single()
-    if (error) { setAddError(error.message); setAddSaving(false); return }
-    setExercises(prev => [...prev, data])
+
+    // reuse exercise if it already exists, otherwise create it
+    let exercise = exercises.find(ex => ex.name.toLowerCase() === name.toLowerCase())
+    if (!exercise) {
+      const maxOrder = exercises.reduce((m, ex) => Math.max(m, ex.sort_order || 0), 0)
+      const { data, error } = await supabase
+        .from('gym_exercises')
+        .insert({ user_id: user.id, name, category: 'other', sort_order: maxOrder + 1 })
+        .select().single()
+      if (error) { setAddError(error.message); setAddSaving(false); return }
+      exercise = data
+      setExercises(prev => [...prev, data])
+    }
+
+    // optional: log today's sets right away
+    const validSets = addSets.filter(s => s.reps && parseInt(s.reps, 10) > 0)
+    if (validSets.length > 0) {
+      const { data: sess, error: sessErr } = await supabase
+        .from('gym_sessions')
+        .insert({ user_id: user.id, exercise_id: exercise.id, performed_at: date })
+        .select('*').single()
+      if (sessErr) { setAddError(sessErr.message); setAddSaving(false); return }
+      const { data: setsData } = await supabase
+        .from('gym_sets')
+        .insert(validSets.map((s, i) => ({
+          session_id: sess.id,
+          set_number: i + 1,
+          weight_kg: s.weight ? parseFloat(s.weight) : null,
+          reps: parseInt(s.reps, 10),
+        })))
+        .select()
+      setSessions(prev => [...prev, { ...sess, sets: setsData || [] }])
+      setWeekActivity(prev => new Set([...prev, date]))
+    }
+
     setAddSaving(false)
     closeAdd()
   }
@@ -292,20 +326,41 @@ export default function Gym({ user }) {
     setSessions(prev => prev.filter(s => s.exercise_id !== exerciseId))
   }
 
-  async function moveExercise(index, dir) {
-    const target = index + dir
-    if (target < 0 || target >= exercises.length) return
-    const a = exercises[index], b = exercises[target]
-    const newList = exercises.map(ex => {
-      if (ex.id === a.id) return { ...ex, sort_order: b.sort_order }
-      if (ex.id === b.id) return { ...ex, sort_order: a.sort_order }
-      return ex
-    }).sort((x, y) => (x.sort_order - y.sort_order) || x.name.localeCompare(y.name))
-    setExercises(newList)
-    await Promise.all([
-      supabase.from('gym_exercises').update({ sort_order: b.sort_order }).eq('id', a.id),
-      supabase.from('gym_exercises').update({ sort_order: a.sort_order }).eq('id', b.id),
-    ])
+  function onHandlePointerDown(e, exId) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragRef.current = { id: exId }
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* noop */ }
+    setDraggingId(exId)
+  }
+
+  function onHandlePointerMove(e) {
+    const drag = dragRef.current
+    if (!drag) return
+    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const card = el?.closest('.gym-card')
+    const overId = card?.getAttribute('data-ex-id')
+    if (!overId || overId === drag.id) return
+    setExercises(prev => {
+      const from = prev.findIndex(x => x.id === drag.id)
+      const to = prev.findIndex(x => x.id === overId)
+      if (from === -1 || to === -1 || from === to) return prev
+      const arr = prev.slice()
+      const [moved] = arr.splice(from, 1)
+      arr.splice(to, 0, moved)
+      return arr
+    })
+  }
+
+  async function onHandlePointerUp() {
+    if (!dragRef.current) return
+    dragRef.current = null
+    setDraggingId(null)
+    const reindexed = exercisesRef.current.map((ex, i) => ({ ...ex, sort_order: i + 1 }))
+    setExercises(reindexed)
+    await Promise.all(reindexed.map(ex =>
+      supabase.from('gym_exercises').update({ sort_order: ex.sort_order }).eq('id', ex.id)
+    ))
   }
 
   async function toggleExpand(ex) {
@@ -371,14 +426,43 @@ export default function Gym({ user }) {
             </div>
           )}
 
+          {exercises.length > 1 && !addOpen && (
+            <div className="gym-toolbar">
+              {reorderMode && <span className="gym-reorder-hint">{t('gym_reorder_hint')}</span>}
+              <button
+                type="button"
+                className={`gym-edit-toggle${reorderMode ? ' active' : ''}`}
+                onClick={() => { setReorderMode(m => !m); setExpanded(new Set()) }}
+              >
+                {reorderMode ? t('gym_reorder_done') : `✎ ${t('gym_reorder')}`}
+              </button>
+            </div>
+          )}
+
           {exercises.map((ex, i) => {
             const sess = sessionByExercise[ex.id]
             const sets = sess?.sets || []
             const qf = quickSet[ex.id]
             const isExpanded = expanded.has(ex.id)
             const hist = history[ex.id]
+            if (reorderMode) {
+              return (
+                <div key={ex.id} data-ex-id={ex.id} className={`gym-card gym-card-reorder${draggingId === ex.id ? ' dragging' : ''}`}>
+                  <span className="gym-card-name-text">{ex.name}</span>
+                  <button
+                    type="button"
+                    className="gym-drag-handle"
+                    onPointerDown={e => onHandlePointerDown(e, ex.id)}
+                    onPointerMove={onHandlePointerMove}
+                    onPointerUp={onHandlePointerUp}
+                    onPointerCancel={onHandlePointerUp}
+                    title={t('gym_drag')}
+                  >☰</button>
+                </div>
+              )
+            }
             return (
-              <div key={ex.id} className="gym-card">
+              <div key={ex.id} data-ex-id={ex.id} className="gym-card">
                 {confirmDelete === ex.id ? (
                   <div className="gym-confirm-bar">
                     <span className="gym-confirm-text">{t('gym_confirm_delete_full')} „{ex.name}"?</span>
@@ -406,11 +490,7 @@ export default function Gym({ user }) {
                         <span className="gym-card-name-text">{ex.name}</span>
                       </button>
                     )}
-                    <div className="gym-card-tools">
-                      <button type="button" className="gym-reorder" onClick={() => moveExercise(i, -1)} disabled={i === 0} title={t('gym_move_up')}>▲</button>
-                      <button type="button" className="gym-reorder" onClick={() => moveExercise(i, 1)} disabled={i === exercises.length - 1} title={t('gym_move_down')}>▼</button>
-                      <button type="button" className="gym-card-delete" onClick={() => setConfirmDelete(ex.id)} title={t('gym_delete_exercise')}>✕</button>
-                    </div>
+                    <button type="button" className="gym-card-delete" onClick={() => setConfirmDelete(ex.id)} title={t('gym_delete_exercise')}>✕</button>
                   </div>
                 )}
 
@@ -481,7 +561,7 @@ export default function Gym({ user }) {
             )
           })}
 
-          {!addOpen && (
+          {!addOpen && !reorderMode && (
             <button type="button" className="gym-add-exercise-btn" onClick={openAdd}>
               + Dodaj ćwiczenie
             </button>
@@ -497,11 +577,41 @@ export default function Gym({ user }) {
                   placeholder={t('gym_modal_name_placeholder')}
                   value={addName}
                   onChange={e => setAddName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleAddExercise() }}
                   maxLength={60}
                   disabled={addSaving}
                 />
                 <p className="gym-add-hint">{t('gym_add_hint')}</p>
+
+                <div className="gym-add-sets-table">
+                  <div className="gym-add-sets-header">
+                    <span>Seria</span>
+                    <span>Ciężar × Powtórzenia</span>
+                  </div>
+                  {addSets.map((s, i) => (
+                    <div key={i} className="gym-add-set-row">
+                      <span className="gym-add-set-num">{i + 1}</span>
+                      <div className="gym-add-set-inputs">
+                        <input type="number" className="gym-add-set-input" placeholder="kg" value={s.weight} min="0" step="0.5" inputMode="decimal"
+                          onChange={e => setAddSets(prev => prev.map((row, j) => j === i ? { ...row, weight: e.target.value } : row))}
+                          disabled={addSaving} />
+                        <span className="gym-add-set-x">×</span>
+                        <input type="number" className="gym-add-set-input" placeholder="pow." value={s.reps} min="1" inputMode="numeric"
+                          onChange={e => setAddSets(prev => prev.map((row, j) => j === i ? { ...row, reps: e.target.value } : row))}
+                          disabled={addSaving} />
+                        {addSets.length > 1 && (
+                          <button type="button" className="gym-add-set-remove"
+                            onClick={() => setAddSets(prev => prev.filter((_, j) => j !== i))}
+                            disabled={addSaving}>✕</button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" className="gym-add-more-set-btn"
+                    onClick={() => setAddSets(prev => [...prev, { weight: '', reps: '' }])}
+                    disabled={addSaving}>
+                    + seria
+                  </button>
+                </div>
 
                 {addError && <p className="error" style={{ margin: '8px 0 0', fontSize: '0.82rem' }}>{addError}</p>}
 
