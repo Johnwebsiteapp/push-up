@@ -3961,6 +3961,47 @@
 }
 .gym-card-delete:hover { color: #ef4444; }
 
+/* Inline delete confirmation */
+.gym-confirm-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.gym-confirm-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+.gym-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+.gym-confirm-actions button { flex: 1; padding: 8px 12px; font-size: 0.9rem; }
+.gym-confirm-yes {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.gym-confirm-no {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 /* Sets chips */
 .gym-sets-summary {
   display: flex;

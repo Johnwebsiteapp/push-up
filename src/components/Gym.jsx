@@ -74,6 +74,7 @@ export default function Gym({ user }) {
   // Inline editing
   const [editSet, setEditSet] = useState(null)   // { sessionId, setId, weight, reps, saving, error }
   const [editName, setEditName] = useState(null) // { sessionId, exerciseId, value, saving }
+  const [confirmDelete, setConfirmDelete] = useState(null) // sessionId pending delete confirmation
 
   // Swipe on chart
   const chartSwipeRef = useRef({ startX: 0, startY: 0 })
@@ -327,6 +328,15 @@ export default function Gym({ user }) {
             const qf = quickSet[sess.id]
             return (
               <div key={sess.id} className="gym-card">
+                {confirmDelete === sess.id ? (
+                  <div className="gym-confirm-bar">
+                    <span className="gym-confirm-text">{t('gym_confirm_delete_full')} „{sess.exercise?.name}"?</span>
+                    <div className="gym-confirm-actions">
+                      <button type="button" className="gym-confirm-yes" onClick={() => { deleteSession(sess.id); setConfirmDelete(null) }}>{t('gym_confirm_yes')}</button>
+                      <button type="button" className="gym-confirm-no" onClick={() => setConfirmDelete(null)}>{t('gym_confirm_no')}</button>
+                    </div>
+                  </div>
+                ) : (
                 <div className="gym-card-header">
                   {editName && editName.sessionId === sess.id ? (
                     <input
@@ -344,8 +354,9 @@ export default function Gym({ user }) {
                       {sess.exercise?.name}
                     </button>
                   )}
-                  <button type="button" className="gym-card-delete" onClick={() => deleteSession(sess.id)}>✕</button>
+                  <button type="button" className="gym-card-delete" onClick={() => setConfirmDelete(sess.id)} title={t('gym_delete_exercise')}>✕</button>
                 </div>
+                )}
                 <div className="gym-sets-summary">
                   {sess.sets.map(st => {
                     if (editSet && editSet.setId === st.id) {
