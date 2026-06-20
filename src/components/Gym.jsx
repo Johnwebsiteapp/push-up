@@ -38,6 +38,14 @@ function formatDateHeader(iso, lang) {
   return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`
 }
 
+function formatShortDate(iso, lang) {
+  const d = new Date(iso + 'T12:00:00')
+  const months = lang === 'pl'
+    ? ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru']
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  return `${d.getDate()} ${months[d.getMonth()]}`
+}
+
 function formatSet(st) {
   if (st.weight_kg != null) return `${st.weight_kg}×${st.reps}`
   return `${st.reps} pow.`
@@ -52,8 +60,8 @@ export default function Gym({ user }) {
 
   const [weekOffset, setWeekOffset] = useState(0)
   const [date, setDate] = useState(today)
-  const [sessions, setSessions] = useState([])
-  const [allExercises, setAllExercises] = useState([])
+  const [sessions, setSessions] = useState([])      // today's sessions (with sets)
+  const [exercises, setExercises] = useState([])    // all exercises, ordered by sort_order
   const [weekActivity, setWeekActivity] = useState(new Set())
   const [loading, setLoading] = useState(true)
 
@@ -62,29 +70,35 @@ export default function Gym({ user }) {
   // Add panel
   const [addOpen, setAddOpen] = useState(false)
   const [addName, setAddName] = useState('')
-  const [addSets, setAddSets] = useState([{ weight: '', reps: '' }])
   const [addSaving, setAddSaving] = useState(false)
   const [addError, setAddError] = useState(null)
-  const [showSuggestions, setShowSuggestions] = useState(false)
   const nameInputRef = useRef(null)
 
-  // Quick-add per existing session
+  // Quick-add per exercise (keyed by exerciseId)
   const [quickSet, setQuickSet] = useState({})
 
-  // Inline editing
-  const [editSet, setEditSet] = useState(null)   // { sessionId, setId, weight, reps, saving, error }
-  const [editName, setEditName] = useState(null) // { sessionId, exerciseId, value, saving }
-  const [confirmDelete, setConfirmDelete] = useState(null) // sessionId pending delete confirmation
+  // Inline editing & UI state
+  const [editSet, setEditSet] = useState(null)     // { exerciseId, setId, weight, reps, saving, error }
+  const [editName, setEditName] = useState(null)   // { exerciseId, value }
+  const [confirmDelete, setConfirmDelete] = useState(null) // exerciseId
+  const [expanded, setExpanded] = useState(new Set())      // exerciseIds expanded
+  const [history, setHistory] = useState({})       // { [exerciseId]: { loading, session } }
 
   // Swipe on chart
   const chartSwipeRef = useRef({ startX: 0, startY: 0 })
+
+  // session for an exercise on the selected day
+  const sessionByExercise = useMemo(() => {
+    const m = {}
+    sessions.forEach(s => { m[s.exercise_id] = s })
+    return m
+  }, [sessions])
 
   // When week changes, auto-select appropriate day
   useEffect(() => {
     if (weekOffset === 0) {
       setDate(today)
     } else {
-      // Select Sunday of that week (last day), but not in the future
       const lastDay = weekDays[6]
       setDate(lastDay > today ? today : lastDay)
     }
@@ -95,39 +109,36 @@ export default function Gym({ user }) {
     async function load() {
       setLoading(true)
       const [{ data: exData }, { data: sessData }, { data: weekData }] = await Promise.all([
-        supabase.from('gym_exercises').select('*').eq('user_id', user.id).order('name'),
+        supabase.from('gym_exercises').select('*').eq('user_id', user.id).order('sort_order').order('name'),
         supabase
           .from('gym_sessions')
-          .select('*, exercise:gym_exercises(id, name, category), sets:gym_sets(*)')
+          .select('*, sets:gym_sets(*)')
           .eq('user_id', user.id)
           .eq('performed_at', date)
           .order('created_at'),
         supabase
           .from('gym_sessions')
-          .select('performed_at')
+          .select('performed_at, sets:gym_sets(id)')
           .eq('user_id', user.id)
           .gte('performed_at', weekDays[0])
           .lte('performed_at', weekDays[6]),
       ])
       if (!ignore) {
-        setAllExercises(exData || [])
+        setExercises(exData || [])
         setSessions((sessData || []).map(s => ({
           ...s,
           sets: (s.sets || []).slice().sort((a, b) => a.set_number - b.set_number),
         })))
-        setWeekActivity(new Set((weekData || []).map(s => s.performed_at)))
+        // only count days that actually have at least one set as "trained"
+        setWeekActivity(new Set((weekData || []).filter(s => (s.sets || []).length > 0).map(s => s.performed_at)))
+        setExpanded(new Set())
+        setHistory({})
         setLoading(false)
       }
     }
     load()
     return () => { ignore = true }
   }, [user.id, date, weekDays[0]])
-
-  const suggestions = useMemo(() => {
-    if (!addName.trim()) return []
-    const q = addName.toLowerCase()
-    return allExercises.filter(ex => ex.name.toLowerCase().includes(q)).slice(0, 5)
-  }, [addName, allExercises])
 
   function selectDay(d) {
     if (d > today) return
@@ -151,7 +162,6 @@ export default function Gym({ user }) {
 
   function openAdd() {
     setAddName('')
-    setAddSets([{ weight: '', reps: '' }])
     setAddError(null)
     setAddOpen(true)
     setTimeout(() => nameInputRef.current?.focus({ preventScroll: true }), 100)
@@ -159,79 +169,75 @@ export default function Gym({ user }) {
 
   function closeAdd() {
     setAddOpen(false)
-    setShowSuggestions(false)
   }
 
-  async function handleSave() {
+  // Create a new exercise (a template that shows on every day)
+  async function handleAddExercise() {
     const name = addName.trim()
     if (!name) { setAddError(t('gym_error_name')); return }
-    const validSets = addSets.filter(s => s.reps && parseInt(s.reps, 10) > 0)
-    if (validSets.length === 0) { setAddError(t('gym_error_reps')); return }
-
+    if (exercises.some(ex => ex.name.toLowerCase() === name.toLowerCase())) {
+      setAddError(lang === 'pl' ? 'Takie ćwiczenie już istnieje' : 'Exercise already exists')
+      return
+    }
     setAddSaving(true)
     setAddError(null)
-
-    let exercise = allExercises.find(ex => ex.name.toLowerCase() === name.toLowerCase())
-    if (!exercise) {
-      const { data, error } = await supabase
-        .from('gym_exercises')
-        .insert({ user_id: user.id, name, category: 'other' })
-        .select().single()
-      if (error) { setAddError(error.message); setAddSaving(false); return }
-      exercise = data
-      setAllExercises(prev => [...prev, exercise].sort((a, b) => a.name.localeCompare(b.name)))
-    }
-
-    const { data: sess, error: sessErr } = await supabase
-      .from('gym_sessions')
-      .insert({ user_id: user.id, exercise_id: exercise.id, performed_at: date })
-      .select('*, exercise:gym_exercises(id, name, category)')
-      .single()
-    if (sessErr) { setAddError(sessErr.message); setAddSaving(false); return }
-
-    const { data: setsData } = await supabase
-      .from('gym_sets')
-      .insert(validSets.map((s, i) => ({
-        session_id: sess.id,
-        set_number: i + 1,
-        weight_kg: s.weight ? parseFloat(s.weight) : null,
-        reps: parseInt(s.reps, 10),
-      })))
-      .select()
-
-    setSessions(prev => [...prev, { ...sess, sets: setsData || [] }])
-    setWeekActivity(prev => new Set([...prev, date]))
+    const maxOrder = exercises.reduce((m, ex) => Math.max(m, ex.sort_order || 0), 0)
+    const { data, error } = await supabase
+      .from('gym_exercises')
+      .insert({ user_id: user.id, name, category: 'other', sort_order: maxOrder + 1 })
+      .select().single()
+    if (error) { setAddError(error.message); setAddSaving(false); return }
+    setExercises(prev => [...prev, data])
     setAddSaving(false)
     closeAdd()
   }
 
-  async function quickSaveSet(sessionId) {
-    const form = quickSet[sessionId]
+  // Ensure a session exists for this exercise on the selected day
+  async function ensureSession(exerciseId) {
+    const existing = sessionByExercise[exerciseId]
+    if (existing) return existing
+    const { data, error } = await supabase
+      .from('gym_sessions')
+      .insert({ user_id: user.id, exercise_id: exerciseId, performed_at: date })
+      .select('*').single()
+    if (error) return null
+    const newSess = { ...data, sets: [] }
+    setSessions(prev => [...prev, newSess])
+    return newSess
+  }
+
+  async function quickSaveSet(exerciseId) {
+    const form = quickSet[exerciseId]
     if (!form) return
     const reps = parseInt(form.reps, 10)
     if (!reps || reps <= 0) {
-      setQuickSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], error: t('gym_error_reps') } }))
+      setQuickSet(prev => ({ ...prev, [exerciseId]: { ...prev[exerciseId], error: t('gym_error_reps') } }))
       return
     }
-    const sess = sessions.find(s => s.id === sessionId)
-    const nextNum = (sess?.sets?.length || 0) + 1
-    setQuickSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], saving: true } }))
+    setQuickSet(prev => ({ ...prev, [exerciseId]: { ...prev[exerciseId], saving: true } }))
+    const sess = await ensureSession(exerciseId)
+    if (!sess) {
+      setQuickSet(prev => ({ ...prev, [exerciseId]: { ...prev[exerciseId], saving: false, error: 'Błąd' } }))
+      return
+    }
+    const nextNum = (sess.sets?.length || 0) + 1
     const { data, error } = await supabase
       .from('gym_sets')
-      .insert({ session_id: sessionId, set_number: nextNum, weight_kg: form.weight ? parseFloat(form.weight) : null, reps })
+      .insert({ session_id: sess.id, set_number: nextNum, weight_kg: form.weight ? parseFloat(form.weight) : null, reps })
       .select().single()
     if (error) {
-      setQuickSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], saving: false, error: error.message } }))
+      setQuickSet(prev => ({ ...prev, [exerciseId]: { ...prev[exerciseId], saving: false, error: error.message } }))
       return
     }
-    setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, sets: [...s.sets, data] } : s))
-    setQuickSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
+    setSessions(prev => prev.map(s => s.id === sess.id ? { ...s, sets: [...s.sets, data] } : s))
+    setWeekActivity(prev => new Set([...prev, date]))
+    setQuickSet(prev => { const n = { ...prev }; delete n[exerciseId]; return n })
   }
 
-  function startEditSet(sessionId, st) {
-    setQuickSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
+  function startEditSet(exerciseId, st) {
+    setQuickSet(prev => { const n = { ...prev }; delete n[exerciseId]; return n })
     setEditSet({
-      sessionId,
+      exerciseId,
       setId: st.id,
       weight: st.weight_kg != null ? String(st.weight_kg) : '',
       reps: String(st.reps),
@@ -248,41 +254,82 @@ export default function Gym({ user }) {
     setEditSet(p => ({ ...p, saving: true, error: null }))
     const { error } = await supabase.from('gym_sets').update({ weight_kg, reps }).eq('id', editSet.setId)
     if (error) { setEditSet(p => ({ ...p, saving: false, error: error.message })); return }
-    setSessions(prev => prev.map(s => s.id === editSet.sessionId
+    setSessions(prev => prev.map(s => s.exercise_id === editSet.exerciseId
       ? { ...s, sets: s.sets.map(st => st.id === editSet.setId ? { ...st, weight_kg, reps } : st) }
       : s))
     setEditSet(null)
   }
 
-  function startEditName(sess) {
-    setEditName({ sessionId: sess.id, exerciseId: sess.exercise?.id, value: sess.exercise?.name || '', saving: false })
+  function startEditName(ex) {
+    setExpanded(prev => new Set(prev).add(ex.id))
+    setEditName({ exerciseId: ex.id, value: ex.name || '' })
   }
 
   async function saveEditName() {
     if (!editName) return
     const name = editName.value.trim()
-    if (!name || name === sessions.find(s => s.id === editName.sessionId)?.exercise?.name) { setEditName(null); return }
+    const current = exercises.find(ex => ex.id === editName.exerciseId)
+    if (!name || name === current?.name) { setEditName(null); return }
     const { error } = await supabase.from('gym_exercises').update({ name }).eq('id', editName.exerciseId)
     if (!error) {
-      setSessions(prev => prev.map(s => s.exercise?.id === editName.exerciseId ? { ...s, exercise: { ...s.exercise, name } } : s))
-      setAllExercises(prev => prev.map(ex => ex.id === editName.exerciseId ? { ...ex, name } : ex).sort((a, b) => a.name.localeCompare(b.name)))
+      setExercises(prev => prev.map(ex => ex.id === editName.exerciseId ? { ...ex, name } : ex))
     }
     setEditName(null)
   }
 
-  async function deleteSet(sessionId, setId) {
+  async function deleteSet(exerciseId, setId) {
     await supabase.from('gym_sets').delete().eq('id', setId)
     setSessions(prev => prev.map(s =>
-      s.id === sessionId
+      s.exercise_id === exerciseId
         ? { ...s, sets: s.sets.filter(st => st.id !== setId).map((st, i) => ({ ...st, set_number: i + 1 })) }
         : s
     ))
   }
 
-  async function deleteSession(sessionId) {
-    await supabase.from('gym_sessions').delete().eq('id', sessionId)
-    setSessions(prev => prev.filter(s => s.id !== sessionId))
-    setQuickSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
+  async function deleteExercise(exerciseId) {
+    await supabase.from('gym_exercises').delete().eq('id', exerciseId)
+    setExercises(prev => prev.filter(ex => ex.id !== exerciseId))
+    setSessions(prev => prev.filter(s => s.exercise_id !== exerciseId))
+  }
+
+  async function moveExercise(index, dir) {
+    const target = index + dir
+    if (target < 0 || target >= exercises.length) return
+    const a = exercises[index], b = exercises[target]
+    const newList = exercises.map(ex => {
+      if (ex.id === a.id) return { ...ex, sort_order: b.sort_order }
+      if (ex.id === b.id) return { ...ex, sort_order: a.sort_order }
+      return ex
+    }).sort((x, y) => (x.sort_order - y.sort_order) || x.name.localeCompare(y.name))
+    setExercises(newList)
+    await Promise.all([
+      supabase.from('gym_exercises').update({ sort_order: b.sort_order }).eq('id', a.id),
+      supabase.from('gym_exercises').update({ sort_order: a.sort_order }).eq('id', b.id),
+    ])
+  }
+
+  async function toggleExpand(ex) {
+    const isOpen = expanded.has(ex.id)
+    setExpanded(prev => {
+      const n = new Set(prev)
+      isOpen ? n.delete(ex.id) : n.add(ex.id)
+      return n
+    })
+    if (!isOpen && !history[ex.id]) {
+      setHistory(prev => ({ ...prev, [ex.id]: { loading: true, session: null } }))
+      const { data } = await supabase
+        .from('gym_sessions')
+        .select('performed_at, sets:gym_sets(*)')
+        .eq('user_id', user.id)
+        .eq('exercise_id', ex.id)
+        .lt('performed_at', date)
+        .order('performed_at', { ascending: false })
+        .limit(5)
+      // pick the most recent session that actually has sets
+      const prevSess = (data || []).map(s => ({ ...s, sets: (s.sets || []).slice().sort((a, b) => a.set_number - b.set_number) }))
+        .find(s => s.sets.length > 0) || null
+      setHistory(prev => ({ ...prev, [ex.id]: { loading: false, session: prevSess } }))
+    }
   }
 
   return (
@@ -317,48 +364,58 @@ export default function Gym({ user }) {
         <div className="empty" style={{ padding: '2rem 0' }}>{t('loading')}</div>
       ) : (
         <div className="gym-sessions">
-          {sessions.length === 0 && !addOpen && (
+          {exercises.length === 0 && !addOpen && (
             <div className="gym-empty-state">
               <div className="gym-empty-icon">🏋️</div>
               <p className="gym-empty-text">{t('gym_no_exercises')}</p>
             </div>
           )}
 
-          {sessions.map(sess => {
-            const qf = quickSet[sess.id]
+          {exercises.map((ex, i) => {
+            const sess = sessionByExercise[ex.id]
+            const sets = sess?.sets || []
+            const qf = quickSet[ex.id]
+            const isExpanded = expanded.has(ex.id)
+            const hist = history[ex.id]
             return (
-              <div key={sess.id} className="gym-card">
-                {confirmDelete === sess.id ? (
+              <div key={ex.id} className="gym-card">
+                {confirmDelete === ex.id ? (
                   <div className="gym-confirm-bar">
-                    <span className="gym-confirm-text">{t('gym_confirm_delete_full')} „{sess.exercise?.name}"?</span>
+                    <span className="gym-confirm-text">{t('gym_confirm_delete_full')} „{ex.name}"?</span>
                     <div className="gym-confirm-actions">
-                      <button type="button" className="gym-confirm-yes" onClick={() => { deleteSession(sess.id); setConfirmDelete(null) }}>{t('gym_confirm_yes')}</button>
+                      <button type="button" className="gym-confirm-yes" onClick={() => { deleteExercise(ex.id); setConfirmDelete(null) }}>{t('gym_confirm_yes')}</button>
                       <button type="button" className="gym-confirm-no" onClick={() => setConfirmDelete(null)}>{t('gym_confirm_no')}</button>
                     </div>
                   </div>
                 ) : (
-                <div className="gym-card-header">
-                  {editName && editName.sessionId === sess.id ? (
-                    <input
-                      type="text"
-                      className="gym-name-edit-input"
-                      value={editName.value}
-                      autoFocus
-                      maxLength={60}
-                      onChange={e => setEditName(p => ({ ...p, value: e.target.value }))}
-                      onBlur={saveEditName}
-                      onKeyDown={e => { if (e.key === 'Enter') saveEditName(); if (e.key === 'Escape') setEditName(null) }}
-                    />
-                  ) : (
-                    <button type="button" className="gym-card-name" onClick={() => startEditName(sess)} title={t('gym_edit_name')}>
-                      {sess.exercise?.name}
-                    </button>
-                  )}
-                  <button type="button" className="gym-card-delete" onClick={() => setConfirmDelete(sess.id)} title={t('gym_delete_exercise')}>✕</button>
-                </div>
+                  <div className="gym-card-header">
+                    {editName && editName.exerciseId === ex.id ? (
+                      <input
+                        type="text"
+                        className="gym-name-edit-input"
+                        value={editName.value}
+                        autoFocus
+                        maxLength={60}
+                        onChange={e => setEditName(p => ({ ...p, value: e.target.value }))}
+                        onBlur={saveEditName}
+                        onKeyDown={e => { if (e.key === 'Enter') saveEditName(); if (e.key === 'Escape') setEditName(null) }}
+                      />
+                    ) : (
+                      <button type="button" className="gym-card-toggle" onClick={() => toggleExpand(ex)}>
+                        <span className={`gym-chevron${isExpanded ? ' open' : ''}`}>›</span>
+                        <span className="gym-card-name-text">{ex.name}</span>
+                      </button>
+                    )}
+                    <div className="gym-card-tools">
+                      <button type="button" className="gym-reorder" onClick={() => moveExercise(i, -1)} disabled={i === 0} title={t('gym_move_up')}>▲</button>
+                      <button type="button" className="gym-reorder" onClick={() => moveExercise(i, 1)} disabled={i === exercises.length - 1} title={t('gym_move_down')}>▼</button>
+                      <button type="button" className="gym-card-delete" onClick={() => setConfirmDelete(ex.id)} title={t('gym_delete_exercise')}>✕</button>
+                    </div>
+                  </div>
                 )}
+
                 <div className="gym-sets-summary">
-                  {sess.sets.map(st => {
+                  {sets.map(st => {
                     if (editSet && editSet.setId === st.id) {
                       return (
                         <div key={st.id} className="gym-set-edit">
@@ -368,36 +425,57 @@ export default function Gym({ user }) {
                           <input type="number" className="gym-quick-input" placeholder="pow." value={editSet.reps} min="1" inputMode="numeric"
                             onChange={e => setEditSet(p => ({ ...p, reps: e.target.value }))} disabled={editSet.saving} />
                           <button type="button" className="gym-quick-save" onClick={saveEditSet} disabled={editSet.saving} title={t('gym_modal_save')}>✓</button>
-                          <button type="button" className="gym-set-edit-delete" onClick={() => { deleteSet(sess.id, st.id); setEditSet(null) }} disabled={editSet.saving} title={t('gym_delete_set')}>🗑</button>
+                          <button type="button" className="gym-set-edit-delete" onClick={() => { deleteSet(ex.id, st.id); setEditSet(null) }} disabled={editSet.saving} title={t('gym_delete_set')}>🗑</button>
                           <button type="button" className="gym-quick-cancel" onClick={() => setEditSet(null)}>✕</button>
                           {editSet.error && <p className="error" style={{ width: '100%', fontSize: '0.78rem', margin: '4px 0 0' }}>{editSet.error}</p>}
                         </div>
                       )
                     }
                     return (
-                      <button key={st.id} type="button" className="gym-set-chip" onClick={() => startEditSet(sess.id, st)} title={t('gym_edit_set')}>
+                      <button key={st.id} type="button" className="gym-set-chip" onClick={() => startEditSet(ex.id, st)} title={t('gym_edit_set')}>
                         {formatSet(st)}
                       </button>
                     )
                   })}
                 </div>
+
                 {qf ? (
                   <div className="gym-quick-set-form">
                     <input type="number" className="gym-quick-input" placeholder="kg" value={qf.weight} min="0" step="0.5" inputMode="decimal"
-                      onChange={e => setQuickSet(prev => ({ ...prev, [sess.id]: { ...prev[sess.id], weight: e.target.value } }))}
+                      onChange={e => setQuickSet(prev => ({ ...prev, [ex.id]: { ...prev[ex.id], weight: e.target.value } }))}
                       disabled={qf.saving} autoFocus />
                     <span className="gym-quick-x">×</span>
                     <input type="number" className="gym-quick-input" placeholder="pow." value={qf.reps} min="1" inputMode="numeric"
-                      onChange={e => setQuickSet(prev => ({ ...prev, [sess.id]: { ...prev[sess.id], reps: e.target.value } }))}
+                      onChange={e => setQuickSet(prev => ({ ...prev, [ex.id]: { ...prev[ex.id], reps: e.target.value } }))}
                       disabled={qf.saving} />
-                    <button type="button" className="gym-quick-save" onClick={() => quickSaveSet(sess.id)} disabled={qf.saving}>✓</button>
-                    <button type="button" className="gym-quick-cancel" onClick={() => setQuickSet(prev => { const n = { ...prev }; delete n[sess.id]; return n })}>✕</button>
+                    <button type="button" className="gym-quick-save" onClick={() => quickSaveSet(ex.id)} disabled={qf.saving}>✓</button>
+                    <button type="button" className="gym-quick-cancel" onClick={() => setQuickSet(prev => { const n = { ...prev }; delete n[ex.id]; return n })}>✕</button>
                     {qf.error && <p className="error" style={{ width: '100%', fontSize: '0.78rem', margin: '4px 0 0' }}>{qf.error}</p>}
                   </div>
                 ) : (
-                  <button type="button" className="gym-add-set-inline" onClick={() => setQuickSet(prev => ({ ...prev, [sess.id]: { weight: '', reps: '', saving: false, error: null } }))}>
+                  <button type="button" className="gym-add-set-inline" onClick={() => setQuickSet(prev => ({ ...prev, [ex.id]: { weight: '', reps: '', saving: false, error: null } }))}>
                     + seria
                   </button>
+                )}
+
+                {isExpanded && (
+                  <div className="gym-history">
+                    {hist?.loading ? (
+                      <p className="gym-history-empty">{t('loading')}</p>
+                    ) : hist?.session ? (
+                      <>
+                        <div className="gym-history-label">{t('gym_history_prev')} · {formatShortDate(hist.session.performed_at, lang)}</div>
+                        <div className="gym-sets-summary readonly">
+                          {hist.session.sets.map(st => (
+                            <span key={st.id} className="gym-set-chip readonly">{formatSet(st)}</span>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="gym-history-empty">{t('gym_history_none')}</p>
+                    )}
+                    <button type="button" className="gym-rename-link" onClick={() => startEditName(ex)}>✎ {t('gym_edit_name')}</button>
+                  </div>
                 )}
               </div>
             )
@@ -412,66 +490,23 @@ export default function Gym({ user }) {
           {addOpen && (
             <div className="gym-add-panel">
               <div className="gym-add-panel-inner">
-                <div className="gym-add-name-wrap">
-                  <input
-                    ref={nameInputRef}
-                    type="text"
-                    className="gym-add-name-input"
-                    placeholder={t('gym_modal_name_placeholder')}
-                    value={addName}
-                    onChange={e => { setAddName(e.target.value); setShowSuggestions(true) }}
-                    onFocus={() => setShowSuggestions(true)}
-                    maxLength={60}
-                    disabled={addSaving}
-                  />
-                  {showSuggestions && suggestions.length > 0 && (
-                    <div className="gym-suggestions">
-                      {suggestions.map(ex => (
-                        <button key={ex.id} type="button" className="gym-suggestion-btn"
-                          onMouseDown={e => e.preventDefault()}
-                          onClick={() => { setAddName(ex.name); setShowSuggestions(false) }}>
-                          {ex.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <input
+                  ref={nameInputRef}
+                  type="text"
+                  className="gym-add-name-input"
+                  placeholder={t('gym_modal_name_placeholder')}
+                  value={addName}
+                  onChange={e => setAddName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleAddExercise() }}
+                  maxLength={60}
+                  disabled={addSaving}
+                />
+                <p className="gym-add-hint">{t('gym_add_hint')}</p>
 
-                <div className="gym-add-sets-table">
-                  <div className="gym-add-sets-header">
-                    <span>Seria</span>
-                    <span>Ciężar × Powtórzenia</span>
-                  </div>
-                  {addSets.map((s, i) => (
-                    <div key={i} className="gym-add-set-row">
-                      <span className="gym-add-set-num">{i + 1}</span>
-                      <div className="gym-add-set-inputs">
-                        <input type="number" className="gym-add-set-input" placeholder="kg" value={s.weight} min="0" step="0.5" inputMode="decimal"
-                          onChange={e => setAddSets(prev => prev.map((row, j) => j === i ? { ...row, weight: e.target.value } : row))}
-                          disabled={addSaving} />
-                        <span className="gym-add-set-x">×</span>
-                        <input type="number" className="gym-add-set-input" placeholder="pow." value={s.reps} min="1" inputMode="numeric"
-                          onChange={e => setAddSets(prev => prev.map((row, j) => j === i ? { ...row, reps: e.target.value } : row))}
-                          disabled={addSaving} />
-                        {addSets.length > 1 && (
-                          <button type="button" className="gym-add-set-remove"
-                            onClick={() => setAddSets(prev => prev.filter((_, j) => j !== i))}
-                            disabled={addSaving}>✕</button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  <button type="button" className="gym-add-more-set-btn"
-                    onClick={() => setAddSets(prev => [...prev, { weight: '', reps: '' }])}
-                    disabled={addSaving}>
-                    + seria
-                  </button>
-                </div>
-
-                {addError && <p className="error" style={{ margin: '0 0 8px', fontSize: '0.82rem' }}>{addError}</p>}
+                {addError && <p className="error" style={{ margin: '8px 0 0', fontSize: '0.82rem' }}>{addError}</p>}
 
                 <div className="gym-add-actions">
-                  <button type="button" className="gym-save-btn" onClick={handleSave} disabled={addSaving}>
+                  <button type="button" className="gym-save-btn" onClick={handleAddExercise} disabled={addSaving}>
                     {addSaving ? t('gym_saving') : t('gym_modal_save')}
                   </button>
                   <button type="button" className="gym-cancel-btn" onClick={closeAdd} disabled={addSaving}>

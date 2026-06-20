@@ -3937,6 +3937,109 @@
   transition: color 0.15s;
 }
 .gym-card-name:hover { color: var(--primary); }
+
+/* Expandable name toggle */
+.gym-card-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.gym-chevron {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: transform 0.2s, color 0.15s;
+  flex-shrink: 0;
+}
+.gym-chevron.open { transform: rotate(90deg); color: var(--primary); }
+.gym-card-name-text {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gym-card-toggle:hover .gym-card-name-text { color: var(--primary); }
+
+/* Reorder + tools */
+.gym-card-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.gym-reorder {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  padding: 4px 5px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.gym-reorder:hover:not(:disabled) { color: var(--primary); }
+.gym-reorder:disabled { opacity: 0.25; cursor: default; }
+
+/* History (expanded) */
+.gym-history {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.gym-history-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.gym-history-empty {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 0 0 8px;
+}
+.gym-set-chip.readonly {
+  cursor: default;
+  opacity: 0.85;
+}
+.gym-set-chip.readonly:hover {
+  border-color: var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+.gym-rename-link {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 6px 0 0;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.gym-rename-link:hover { color: var(--primary); }
+
+/* Add panel hint */
+.gym-add-hint {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin: 8px 2px 0;
+  line-height: 1.35;
+}
 .gym-name-edit-input {
   flex: 1;
   min-width: 0;
