@@ -1692,7 +1692,7 @@
 .bottom-nav button {
   background: transparent;
   color: var(--muted);
-  padding: 11px 26px;
+  padding: 11px 18px;
   font-size: 0.72rem;
   border-radius: 999px;
   box-shadow: none;
@@ -3808,4 +3808,317 @@
 .chart-week-btn:disabled {
   opacity: 0.25;
   cursor: default;
+}
+
+/* ===== GYM SECTION ===== */
+.gym-view {
+  padding: 0 0 2rem;
+}
+.gym-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 1rem 0 0.75rem;
+}
+.gym-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+.gym-date-input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.gym-empty {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 2rem 0 1rem;
+  font-size: 0.9rem;
+}
+.gym-exercise-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.gym-exercise-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.gym-exercise-name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.gym-exercise-cat {
+  display: inline-block;
+  margin-top: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.12);
+  border-radius: 6px;
+  padding: 2px 8px;
+  letter-spacing: 0.03em;
+}
+.gym-delete-session-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.gym-delete-session-btn:hover { color: #ef4444; }
+.gym-sets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.gym-set-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+.gym-set-num {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 50px;
+}
+.gym-set-value {
+  flex: 1;
+  color: var(--text);
+  font-weight: 600;
+}
+.gym-delete-set-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.gym-delete-set-btn:hover { color: #ef4444; }
+.gym-add-set-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.gym-set-input {
+  width: 72px;
+  padding: 7px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: center;
+}
+.gym-set-input:focus {
+  outline: none;
+  border-color: rgba(var(--primary-rgb), 0.5);
+}
+.gym-save-set-btn {
+  padding: 7px 14px;
+  background: var(--primary);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.gym-save-set-btn:disabled { opacity: 0.5; }
+.gym-cancel-set-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+.gym-set-error {
+  width: 100%;
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+}
+.gym-add-set-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s, background 0.15s;
+}
+.gym-add-set-btn:hover {
+  border-color: rgba(var(--primary-rgb), 0.5);
+  background: rgba(var(--primary-rgb), 0.06);
+}
+.gym-add-exercise-btn {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px;
+  background: rgba(var(--primary-rgb), 0.1);
+  border: 1px solid rgba(var(--primary-rgb), 0.25);
+  border-radius: 14px;
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.gym-add-exercise-btn:hover {
+  background: rgba(var(--primary-rgb), 0.18);
+  border-color: rgba(var(--primary-rgb), 0.4);
+}
+/* Gym modal */
+.gym-modal {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+.gym-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+.gym-modal-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.gym-modal-tabs button {
+  flex: 1;
+  padding: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.gym-modal-tabs button.active {
+  background: rgba(var(--primary-rgb), 0.15);
+  border-color: rgba(var(--primary-rgb), 0.4);
+  color: var(--primary);
+}
+.gym-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+.gym-modal-exercise-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+}
+.gym-modal-exercise-btn:hover {
+  border-color: rgba(var(--primary-rgb), 0.4);
+  background: rgba(var(--primary-rgb), 0.07);
+}
+.gym-modal-ex-name {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.gym-modal-ex-cat {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.12);
+  border-radius: 6px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.gym-modal-new-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gym-modal-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.gym-modal-input {
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.gym-modal-input:focus {
+  outline: none;
+  border-color: rgba(var(--primary-rgb), 0.5);
+}
+.gym-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.gym-modal-save-btn {
+  flex: 1;
+  padding: 11px;
+  background: var(--primary);
+  color: var(--bg);
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.gym-modal-save-btn:disabled { opacity: 0.5; }
+.gym-modal-cancel-btn {
+  padding: 11px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
 }

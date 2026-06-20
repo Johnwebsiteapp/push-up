@@ -287,6 +287,39 @@ const pl = {
   reminder_remaining: 'Zostało Ci',
   reminder_to_goal: 'pompek do celu dziennego!',
   reminder_pompek: 'pompek.',
+
+  // Nav — gym
+  nav_gym: 'Siłownia',
+
+  // Gym page
+  gym_title: 'Siłownia',
+  gym_date_label: 'Data',
+  gym_no_exercises: 'Brak ćwiczeń tego dnia.',
+  gym_add_exercise: '+ Dodaj ćwiczenie',
+  gym_add_set: '+ Seria',
+  gym_set_label: 'Seria',
+  gym_set_placeholder_weight: 'kg',
+  gym_set_placeholder_reps: 'pow.',
+  gym_save_set: 'Zapisz',
+  gym_saving: 'Zapis…',
+  gym_delete_set: 'Usuń',
+  gym_delete_exercise: 'Usuń ćwiczenie',
+  gym_modal_title: 'Wybierz ćwiczenie',
+  gym_modal_new: 'Nowe ćwiczenie',
+  gym_modal_name: 'Nazwa',
+  gym_modal_name_placeholder: 'np. Wyciskanie ławka płaska',
+  gym_modal_category: 'Kategoria',
+  gym_modal_save: 'Dodaj',
+  gym_modal_cancel: 'Anuluj',
+  gym_cat_chest: 'Klatka',
+  gym_cat_back: 'Plecy',
+  gym_cat_shoulders: 'Barki',
+  gym_cat_legs: 'Nogi',
+  gym_cat_biceps: 'Biceps',
+  gym_cat_triceps: 'Triceps',
+  gym_cat_other: 'Inne',
+  gym_error_name: 'Wpisz nazwę ćwiczenia.',
+  gym_error_reps: 'Wpisz liczbę powtórzeń.',
 }
 
 const en = {
@@ -517,6 +550,39 @@ const en = {
   reminder_remaining: 'You have',
   reminder_to_goal: 'push-ups left to reach your daily goal!',
   reminder_pompek: 'push-ups.',
+
+  // Nav — gym
+  nav_gym: 'Gym',
+
+  // Gym page
+  gym_title: 'Gym',
+  gym_date_label: 'Date',
+  gym_no_exercises: 'No exercises on this day.',
+  gym_add_exercise: '+ Add exercise',
+  gym_add_set: '+ Set',
+  gym_set_label: 'Set',
+  gym_set_placeholder_weight: 'kg',
+  gym_set_placeholder_reps: 'reps',
+  gym_save_set: 'Save',
+  gym_saving: 'Saving…',
+  gym_delete_set: 'Delete',
+  gym_delete_exercise: 'Remove exercise',
+  gym_modal_title: 'Choose exercise',
+  gym_modal_new: 'New exercise',
+  gym_modal_name: 'Name',
+  gym_modal_name_placeholder: 'e.g. Bench press',
+  gym_modal_category: 'Category',
+  gym_modal_save: 'Add',
+  gym_modal_cancel: 'Cancel',
+  gym_cat_chest: 'Chest',
+  gym_cat_back: 'Back',
+  gym_cat_shoulders: 'Shoulders',
+  gym_cat_legs: 'Legs',
+  gym_cat_biceps: 'Biceps',
+  gym_cat_triceps: 'Triceps',
+  gym_cat_other: 'Other',
+  gym_error_name: 'Enter exercise name.',
+  gym_error_reps: 'Enter number of reps.',
 }
 
 export const STRINGS = { pl, en }

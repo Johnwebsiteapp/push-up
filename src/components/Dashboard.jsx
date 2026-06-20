@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import AddWorkout from './AddWorkout'
 import WorkoutList from './WorkoutList'
 import Profile from './Profile'
+import Gym from './Gym'
 import { showReminder } from '../notifications'
 import { useLang } from '../LangContext'
 import {
@@ -375,6 +376,7 @@ export default function Dashboard({ session }) {
   const viewportRef = useRef(null)
   const rankingPanelRef = useRef(null)
   const homePanelRef = useRef(null)
+  const gymPanelRef = useRef(null)
   const profilePanelRef = useRef(null)
   const touchRef = useRef({ startX: 0, startY: 0, lockDir: null })
 
@@ -384,7 +386,7 @@ export default function Dashboard({ session }) {
   const ACHIEVEMENTS = ACHIEVEMENTS_BY_LANG[lang] || ACHIEVEMENTS_BY_LANG.pl
   const ZERO_ACHIEVEMENT = ZERO_ACHIEVEMENT_BY_LANG[lang] || ZERO_ACHIEVEMENT_BY_LANG.pl
 
-  const TABS = ['ranking', 'home', 'profile']
+  const TABS = ['ranking', 'home', 'gym', 'profile']
   const tabIndex = TABS.indexOf(tab)
 
   function changeTab(newTab) {
@@ -577,6 +579,7 @@ export default function Dashboard({ session }) {
     const panels = [
       rankingPanelRef.current,
       homePanelRef.current,
+      gymPanelRef.current,
       profilePanelRef.current,
     ]
     const active = panels[tabIndex]
@@ -1630,6 +1633,14 @@ export default function Dashboard({ session }) {
 
           <div
             className="tab-panel"
+            ref={gymPanelRef}
+            aria-hidden={tab !== 'gym'}
+          >
+            <Gym user={user} />
+          </div>
+
+          <div
+            className="tab-panel"
             ref={profilePanelRef}
             aria-hidden={tab !== 'profile'}
           >
@@ -1655,6 +1666,12 @@ export default function Dashboard({ session }) {
           onClick={() => changeTab('home')}
         >
           {t('nav_home')}
+        </button>
+        <button
+          className={tab === 'gym' ? 'active' : ''}
+          onClick={() => changeTab('gym')}
+        >
+          {t('nav_gym')}
         </button>
         <button
           className={tab === 'profile' ? 'active' : ''}
