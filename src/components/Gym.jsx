@@ -71,6 +71,10 @@ export default function Gym({ user }) {
   // Quick-add per existing session
   const [quickSet, setQuickSet] = useState({})
 
+  // Inline editing
+  const [editSet, setEditSet] = useState(null)   // { sessionId, setId, weight, reps, saving, error }
+  const [editName, setEditName] = useState(null) // { sessionId, exerciseId, value, saving }
+
   // Swipe on chart
   const chartSwipeRef = useRef({ startX: 0, startY: 0 })
 
@@ -223,6 +227,48 @@ export default function Gym({ user }) {
     setQuickSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
   }
 
+  function startEditSet(sessionId, st) {
+    setQuickSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
+    setEditSet({
+      sessionId,
+      setId: st.id,
+      weight: st.weight_kg != null ? String(st.weight_kg) : '',
+      reps: String(st.reps),
+      saving: false,
+      error: null,
+    })
+  }
+
+  async function saveEditSet() {
+    if (!editSet) return
+    const reps = parseInt(editSet.reps, 10)
+    if (!reps || reps <= 0) { setEditSet(p => ({ ...p, error: t('gym_error_reps') })); return }
+    const weight_kg = editSet.weight ? parseFloat(editSet.weight) : null
+    setEditSet(p => ({ ...p, saving: true, error: null }))
+    const { error } = await supabase.from('gym_sets').update({ weight_kg, reps }).eq('id', editSet.setId)
+    if (error) { setEditSet(p => ({ ...p, saving: false, error: error.message })); return }
+    setSessions(prev => prev.map(s => s.id === editSet.sessionId
+      ? { ...s, sets: s.sets.map(st => st.id === editSet.setId ? { ...st, weight_kg, reps } : st) }
+      : s))
+    setEditSet(null)
+  }
+
+  function startEditName(sess) {
+    setEditName({ sessionId: sess.id, exerciseId: sess.exercise?.id, value: sess.exercise?.name || '', saving: false })
+  }
+
+  async function saveEditName() {
+    if (!editName) return
+    const name = editName.value.trim()
+    if (!name || name === sessions.find(s => s.id === editName.sessionId)?.exercise?.name) { setEditName(null); return }
+    const { error } = await supabase.from('gym_exercises').update({ name }).eq('id', editName.exerciseId)
+    if (!error) {
+      setSessions(prev => prev.map(s => s.exercise?.id === editName.exerciseId ? { ...s, exercise: { ...s.exercise, name } } : s))
+      setAllExercises(prev => prev.map(ex => ex.id === editName.exerciseId ? { ...ex, name } : ex).sort((a, b) => a.name.localeCompare(b.name)))
+    }
+    setEditName(null)
+  }
+
   async function deleteSet(sessionId, setId) {
     await supabase.from('gym_sets').delete().eq('id', setId)
     setSessions(prev => prev.map(s =>
@@ -282,15 +328,47 @@ export default function Gym({ user }) {
             return (
               <div key={sess.id} className="gym-card">
                 <div className="gym-card-header">
-                  <span className="gym-card-name">{sess.exercise?.name}</span>
+                  {editName && editName.sessionId === sess.id ? (
+                    <input
+                      type="text"
+                      className="gym-name-edit-input"
+                      value={editName.value}
+                      autoFocus
+                      maxLength={60}
+                      onChange={e => setEditName(p => ({ ...p, value: e.target.value }))}
+                      onBlur={saveEditName}
+                      onKeyDown={e => { if (e.key === 'Enter') saveEditName(); if (e.key === 'Escape') setEditName(null) }}
+                    />
+                  ) : (
+                    <button type="button" className="gym-card-name" onClick={() => startEditName(sess)} title={t('gym_edit_name')}>
+                      {sess.exercise?.name}
+                    </button>
+                  )}
                   <button type="button" className="gym-card-delete" onClick={() => deleteSession(sess.id)}>✕</button>
                 </div>
                 <div className="gym-sets-summary">
-                  {sess.sets.map(st => (
-                    <button key={st.id} type="button" className="gym-set-chip" onClick={() => deleteSet(sess.id, st.id)} title={t('gym_delete_set')}>
-                      {formatSet(st)}
-                    </button>
-                  ))}
+                  {sess.sets.map(st => {
+                    if (editSet && editSet.setId === st.id) {
+                      return (
+                        <div key={st.id} className="gym-set-edit">
+                          <input type="number" className="gym-quick-input" placeholder="kg" value={editSet.weight} min="0" step="0.5" inputMode="decimal" autoFocus
+                            onChange={e => setEditSet(p => ({ ...p, weight: e.target.value }))} disabled={editSet.saving} />
+                          <span className="gym-quick-x">×</span>
+                          <input type="number" className="gym-quick-input" placeholder="pow." value={editSet.reps} min="1" inputMode="numeric"
+                            onChange={e => setEditSet(p => ({ ...p, reps: e.target.value }))} disabled={editSet.saving} />
+                          <button type="button" className="gym-quick-save" onClick={saveEditSet} disabled={editSet.saving} title={t('gym_modal_save')}>✓</button>
+                          <button type="button" className="gym-set-edit-delete" onClick={() => { deleteSet(sess.id, st.id); setEditSet(null) }} disabled={editSet.saving} title={t('gym_delete_set')}>🗑</button>
+                          <button type="button" className="gym-quick-cancel" onClick={() => setEditSet(null)}>✕</button>
+                          {editSet.error && <p className="error" style={{ width: '100%', fontSize: '0.78rem', margin: '4px 0 0' }}>{editSet.error}</p>}
+                        </div>
+                      )
+                    }
+                    return (
+                      <button key={st.id} type="button" className="gym-set-chip" onClick={() => startEditSet(sess.id, st)} title={t('gym_edit_set')}>
+                        {formatSet(st)}
+                      </button>
+                    )
+                  })}
                 </div>
                 {qf ? (
                   <div className="gym-quick-set-form">
