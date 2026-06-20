@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useLang } from '../LangContext'
 
@@ -13,6 +13,18 @@ function addDays(iso, n) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function getWeekDays() {
+  const today = new Date()
+  const dow = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - ((dow + 6) % 7))
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
+}
+
 function formatDateLabel(iso, lang) {
   const today = todayISO()
   const yesterday = addDays(today, -1)
@@ -21,142 +33,169 @@ function formatDateLabel(iso, lang) {
   const d = new Date(iso + 'T12:00:00')
   const dayNames = lang === 'pl'
     ? ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
-    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   const months = lang === 'pl'
     ? ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru']
     : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   return `${dayNames[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`
 }
 
-const CATEGORIES = ['chest', 'back', 'shoulders', 'legs', 'biceps', 'triceps', 'other']
-const CAT_KEYS = {
-  chest: 'gym_cat_chest',
-  back: 'gym_cat_back',
-  shoulders: 'gym_cat_shoulders',
-  legs: 'gym_cat_legs',
-  biceps: 'gym_cat_biceps',
-  triceps: 'gym_cat_triceps',
-  other: 'gym_cat_other',
+function formatSet(st) {
+  if (st.weight_kg != null) return `${st.weight_kg}×${st.reps}`
+  return `${st.reps} pow.`
 }
 
 export default function Gym({ user }) {
   const { t, lang } = useLang()
-  const [date, setDate] = useState(todayISO)
-  const [exercises, setExercises] = useState([])
-  const [sessions, setSessions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
-  const [modalTab, setModalTab] = useState('pick')
-  const [newName, setNewName] = useState('')
-  const [newCat, setNewCat] = useState('chest')
-  const [modalSaving, setModalSaving] = useState(false)
-  const [modalError, setModalError] = useState(null)
-  const [addingSet, setAddingSet] = useState({})
-
   const today = todayISO()
-  const isToday = date === today
+  const weekDays = useMemo(getWeekDays, [])
+  const DAY_SHORTS = lang === 'pl'
+    ? ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd']
+    : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+
+  const [date, setDate] = useState(today)
+  const [sessions, setSessions] = useState([])
+  const [allExercises, setAllExercises] = useState([])
+  const [weekActivity, setWeekActivity] = useState(new Set())
+  const [loading, setLoading] = useState(true)
+
+  // Add panel
+  const [addOpen, setAddOpen] = useState(false)
+  const [addName, setAddName] = useState('')
+  const [addSets, setAddSets] = useState([{ weight: '', reps: '' }])
+  const [addSaving, setAddSaving] = useState(false)
+  const [addError, setAddError] = useState(null)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const nameInputRef = useRef(null)
+
+  // Quick-add set state per existing session
+  const [quickSet, setQuickSet] = useState({}) // { [sessionId]: { weight, reps, saving, error } | null }
 
   useEffect(() => {
     let ignore = false
     async function load() {
       setLoading(true)
-      const [{ data: exData }, { data: sessData }] = await Promise.all([
+      const weekStart = weekDays[0]
+      const weekEnd = weekDays[6]
+      const [{ data: exData }, { data: sessData }, { data: weekData }] = await Promise.all([
         supabase.from('gym_exercises').select('*').eq('user_id', user.id).order('name'),
         supabase
           .from('gym_sessions')
-          .select('*, exercise:gym_exercises(*), sets:gym_sets(*)')
+          .select('*, exercise:gym_exercises(id, name, category), sets:gym_sets(*)')
           .eq('user_id', user.id)
           .eq('performed_at', date)
           .order('created_at'),
+        supabase
+          .from('gym_sessions')
+          .select('performed_at')
+          .eq('user_id', user.id)
+          .gte('performed_at', weekStart)
+          .lte('performed_at', weekEnd),
       ])
       if (!ignore) {
-        setExercises(exData || [])
-        const sorted = (sessData || []).map(s => ({
+        setAllExercises(exData || [])
+        setSessions((sessData || []).map(s => ({
           ...s,
           sets: (s.sets || []).slice().sort((a, b) => a.set_number - b.set_number),
-        }))
-        setSessions(sorted)
+        })))
+        setWeekActivity(new Set((weekData || []).map(s => s.performed_at)))
         setLoading(false)
       }
     }
     load()
     return () => { ignore = true }
-  }, [user.id, date])
+  }, [user.id, date, weekDays])
 
-  async function addExerciseToDay(exerciseId) {
-    const { data, error } = await supabase
-      .from('gym_sessions')
-      .insert({ user_id: user.id, exercise_id: exerciseId, performed_at: date })
-      .select('*, exercise:gym_exercises(*), sets:gym_sets(*)')
-      .single()
-    if (!error && data) {
-      setSessions(prev => [...prev, { ...data, sets: [] }])
+  const suggestions = useMemo(() => {
+    if (!addName.trim()) return []
+    const q = addName.toLowerCase()
+    return allExercises.filter(ex => ex.name.toLowerCase().includes(q)).slice(0, 5)
+  }, [addName, allExercises])
+
+  function openAdd() {
+    setAddName('')
+    setAddSets([{ weight: '', reps: '' }])
+    setAddError(null)
+    setAddOpen(true)
+    setTimeout(() => nameInputRef.current?.focus(), 100)
+  }
+
+  function closeAdd() {
+    setAddOpen(false)
+    setShowSuggestions(false)
+  }
+
+  async function handleSave() {
+    const name = addName.trim()
+    if (!name) { setAddError(t('gym_error_name')); return }
+    const validSets = addSets.filter(s => s.reps && parseInt(s.reps, 10) > 0)
+    if (validSets.length === 0) { setAddError(t('gym_error_reps')); return }
+
+    setAddSaving(true)
+    setAddError(null)
+
+    let exercise = allExercises.find(ex => ex.name.toLowerCase() === name.toLowerCase())
+    if (!exercise) {
+      const { data, error } = await supabase
+        .from('gym_exercises')
+        .insert({ user_id: user.id, name, category: 'other' })
+        .select().single()
+      if (error) { setAddError(error.message); setAddSaving(false); return }
+      exercise = data
+      setAllExercises(prev => [...prev, exercise].sort((a, b) => a.name.localeCompare(b.name)))
     }
-    closeModal()
-  }
 
-  async function createAndAddExercise() {
-    if (!newName.trim()) { setModalError(t('gym_error_name')); return }
-    setModalSaving(true)
-    setModalError(null)
-    const { data: ex, error: exErr } = await supabase
-      .from('gym_exercises')
-      .insert({ user_id: user.id, name: newName.trim(), category: newCat })
-      .select()
+    const { data: sess, error: sessErr } = await supabase
+      .from('gym_sessions')
+      .insert({ user_id: user.id, exercise_id: exercise.id, performed_at: date })
+      .select('*, exercise:gym_exercises(id, name, category)')
       .single()
-    if (exErr) { setModalError(exErr.message); setModalSaving(false); return }
-    setExercises(prev => [...prev, ex].sort((a, b) => a.name.localeCompare(b.name)))
-    setModalSaving(false)
-    await addExerciseToDay(ex.id)
+    if (sessErr) { setAddError(sessErr.message); setAddSaving(false); return }
+
+    const { data: setsData } = await supabase
+      .from('gym_sets')
+      .insert(validSets.map((s, i) => ({
+        session_id: sess.id,
+        set_number: i + 1,
+        weight_kg: s.weight ? parseFloat(s.weight) : null,
+        reps: parseInt(s.reps, 10),
+      })))
+      .select()
+
+    setSessions(prev => [...prev, { ...sess, sets: setsData || [] }])
+    setWeekActivity(prev => new Set([...prev, date]))
+    setAddSaving(false)
+    closeAdd()
   }
 
-  function closeModal() {
-    setShowModal(false)
-    setModalTab('pick')
-    setNewName('')
-    setNewCat('chest')
-    setModalError(null)
-    setModalSaving(false)
-  }
-
-  function startAddSet(sessionId) {
-    setAddingSet(prev => ({
-      ...prev,
-      [sessionId]: { weight: '', reps: '', saving: false, error: null },
-    }))
-  }
-
-  function cancelAddSet(sessionId) {
-    setAddingSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
-  }
-
-  async function saveSet(sessionId) {
-    const form = addingSet[sessionId]
+  async function quickSaveSet(sessionId) {
+    const form = quickSet[sessionId]
     if (!form) return
     const reps = parseInt(form.reps, 10)
     if (!reps || reps <= 0) {
-      setAddingSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], error: t('gym_error_reps') } }))
+      setQuickSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], error: t('gym_error_reps') } }))
       return
     }
-    const weightVal = form.weight ? parseFloat(form.weight) : null
     const sess = sessions.find(s => s.id === sessionId)
     const nextNum = (sess?.sets?.length || 0) + 1
-
-    setAddingSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], saving: true, error: null } }))
+    setQuickSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], saving: true } }))
     const { data, error } = await supabase
       .from('gym_sets')
-      .insert({ session_id: sessionId, set_number: nextNum, weight_kg: weightVal, reps })
-      .select()
-      .single()
-
+      .insert({
+        session_id: sessionId,
+        set_number: nextNum,
+        weight_kg: form.weight ? parseFloat(form.weight) : null,
+        reps,
+      })
+      .select().single()
     if (error) {
-      setAddingSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], saving: false, error: error.message } }))
+      setQuickSet(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], saving: false, error: error.message } }))
       return
     }
     setSessions(prev => prev.map(s =>
       s.id === sessionId ? { ...s, sets: [...s.sets, data] } : s
     ))
-    setAddingSet(prev => ({ ...prev, [sessionId]: { weight: '', reps: '', saving: false, error: null } }))
+    setQuickSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
   }
 
   async function deleteSet(sessionId, setId) {
@@ -171,208 +210,218 @@ export default function Gym({ user }) {
   async function deleteSession(sessionId) {
     await supabase.from('gym_sessions').delete().eq('id', sessionId)
     setSessions(prev => prev.filter(s => s.id !== sessionId))
-    setAddingSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
+    setQuickSet(prev => { const n = { ...prev }; delete n[sessionId]; return n })
   }
-
-  const usedExerciseIds = new Set(sessions.map(s => s.exercise_id))
 
   return (
     <div className="gym-view">
+
+      {/* Weekly activity chart */}
+      <div className="gym-week">
+        {weekDays.map((d, i) => (
+          <button
+            key={d}
+            type="button"
+            className={`gym-week-day${weekActivity.has(d) ? ' has-activity' : ''}${d === date ? ' current' : ''}${d === today ? ' today' : ''}`}
+            onClick={() => setDate(d)}
+          >
+            <span className="gym-week-day-name">{DAY_SHORTS[i]}</span>
+            <span className="gym-week-dot" />
+          </button>
+        ))}
+      </div>
+
       {/* Date navigation */}
-      <div className="gym-date-nav">
-        <button
-          type="button"
-          className="gym-date-arrow"
-          onClick={() => setDate(d => addDays(d, -1))}
-          aria-label="Poprzedni dzień"
-        >‹</button>
+      <div className="gym-date-row">
+        <button type="button" className="gym-date-arrow" onClick={() => setDate(d => addDays(d, -1))}>‹</button>
         <span className="gym-date-label">{formatDateLabel(date, lang)}</span>
-        <button
-          type="button"
-          className="gym-date-arrow"
-          onClick={() => setDate(d => addDays(d, 1))}
-          disabled={isToday}
-          aria-label="Następny dzień"
-        >›</button>
+        <button type="button" className="gym-date-arrow" onClick={() => setDate(d => addDays(d, 1))} disabled={date >= today}>›</button>
       </div>
 
       {loading ? (
-        <div className="empty" style={{ padding: '3rem 0' }}>{t('loading')}</div>
+        <div className="empty" style={{ padding: '2rem 0' }}>{t('loading')}</div>
       ) : (
-        <>
-          {sessions.length === 0 && (
+        <div className="gym-sessions">
+          {sessions.length === 0 && !addOpen && (
             <div className="gym-empty-state">
               <div className="gym-empty-icon">🏋️</div>
               <p className="gym-empty-text">{t('gym_no_exercises')}</p>
-              <p className="gym-empty-hint">Dotknij + aby dodać ćwiczenie</p>
             </div>
           )}
 
           {sessions.map(sess => {
-            const form = addingSet[sess.id]
+            const qf = quickSet[sess.id]
             return (
-              <div key={sess.id} className="gym-exercise-card">
-                <div className="gym-exercise-header">
-                  <div>
-                    <span className="gym-exercise-name">{sess.exercise?.name}</span>
-                    <span className="gym-exercise-cat">{t(CAT_KEYS[sess.exercise?.category] || 'gym_cat_other')}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="gym-delete-session-btn"
-                    onClick={() => deleteSession(sess.id)}
-                    title={t('gym_delete_exercise')}
-                  >✕</button>
+              <div key={sess.id} className="gym-card">
+                <div className="gym-card-header">
+                  <span className="gym-card-name">{sess.exercise?.name}</span>
+                  <button type="button" className="gym-card-delete" onClick={() => deleteSession(sess.id)}>✕</button>
                 </div>
 
-                <div className="gym-sets-list">
+                {/* Sets summary */}
+                <div className="gym-sets-summary">
                   {sess.sets.map(st => (
-                    <div key={st.id} className="gym-set-row">
-                      <span className="gym-set-num">{st.set_number}</span>
-                      <span className="gym-set-value">
-                        {st.weight_kg != null ? `${st.weight_kg} kg` : '—'}<span className="gym-set-x">×</span>{st.reps} pow.
-                      </span>
-                      <button
-                        type="button"
-                        className="gym-delete-set-btn"
-                        onClick={() => deleteSet(sess.id, st.id)}
-                        title={t('gym_delete_set')}
-                      >✕</button>
-                    </div>
+                    <button
+                      key={st.id}
+                      type="button"
+                      className="gym-set-chip"
+                      onClick={() => deleteSet(sess.id, st.id)}
+                      title={t('gym_delete_set')}
+                    >
+                      {formatSet(st)}
+                    </button>
                   ))}
                 </div>
 
-                {form ? (
-                  <div className="gym-add-set-form">
+                {/* Quick add set */}
+                {qf ? (
+                  <div className="gym-quick-set-form">
                     <input
                       type="number"
-                      className="gym-set-input"
+                      className="gym-quick-input"
                       placeholder="kg"
-                      value={form.weight}
+                      value={qf.weight}
                       min="0"
                       step="0.5"
                       inputMode="decimal"
-                      onChange={e => setAddingSet(prev => ({ ...prev, [sess.id]: { ...prev[sess.id], weight: e.target.value } }))}
-                      disabled={form.saving}
+                      onChange={e => setQuickSet(prev => ({ ...prev, [sess.id]: { ...prev[sess.id], weight: e.target.value } }))}
+                      disabled={qf.saving}
                       autoFocus
                     />
-                    <span className="gym-set-x">×</span>
+                    <span className="gym-quick-x">×</span>
                     <input
                       type="number"
-                      className="gym-set-input"
+                      className="gym-quick-input"
                       placeholder="pow."
-                      value={form.reps}
+                      value={qf.reps}
                       min="1"
                       inputMode="numeric"
-                      onChange={e => setAddingSet(prev => ({ ...prev, [sess.id]: { ...prev[sess.id], reps: e.target.value } }))}
-                      disabled={form.saving}
+                      onChange={e => setQuickSet(prev => ({ ...prev, [sess.id]: { ...prev[sess.id], reps: e.target.value } }))}
+                      disabled={qf.saving}
                     />
-                    <button type="button" className="gym-save-set-btn" onClick={() => saveSet(sess.id)} disabled={form.saving}>
-                      {form.saving ? '…' : '✓'}
-                    </button>
-                    <button type="button" className="gym-cancel-set-btn" onClick={() => cancelAddSet(sess.id)} disabled={form.saving}>✕</button>
-                    {form.error && <p className="error gym-set-error">{form.error}</p>}
+                    <button type="button" className="gym-quick-save" onClick={() => quickSaveSet(sess.id)} disabled={qf.saving}>✓</button>
+                    <button type="button" className="gym-quick-cancel" onClick={() => setQuickSet(prev => { const n = {...prev}; delete n[sess.id]; return n })}>✕</button>
+                    {qf.error && <p className="error" style={{ width: '100%', fontSize: '0.78rem', margin: '4px 0 0' }}>{qf.error}</p>}
                   </div>
                 ) : (
-                  <button type="button" className="gym-add-set-btn" onClick={() => startAddSet(sess.id)}>
-                    + {t('gym_add_set')}
+                  <button
+                    type="button"
+                    className="gym-add-set-inline"
+                    onClick={() => setQuickSet(prev => ({ ...prev, [sess.id]: { weight: '', reps: '', saving: false, error: null } }))}
+                  >
+                    + seria
                   </button>
                 )}
               </div>
             )
           })}
-        </>
+
+          {/* Add exercise button */}
+          {!addOpen && (
+            <button type="button" className="gym-add-exercise-btn" onClick={openAdd}>
+              + Dodaj ćwiczenie
+            </button>
+          )}
+        </div>
       )}
 
-      {/* FAB */}
-      <button
-        type="button"
-        className="gym-fab"
-        onClick={() => { setShowModal(true); setModalTab('pick') }}
-        aria-label={t('gym_add_exercise')}
-      >+</button>
-
-      {showModal && (
-        <div className="modal-backdrop" onClick={closeModal}>
-          <div className="modal gym-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="gym-modal-title">{t('gym_modal_title')}</h3>
-
-            <div className="gym-modal-tabs">
-              <button
-                type="button"
-                className={modalTab === 'pick' ? 'active' : ''}
-                onClick={() => setModalTab('pick')}
-              >Lista</button>
-              <button
-                type="button"
-                className={modalTab === 'new' ? 'active' : ''}
-                onClick={() => setModalTab('new')}
-              >{t('gym_modal_new')}</button>
+      {/* Add exercise panel */}
+      {addOpen && (
+        <div className="gym-add-panel">
+          <div className="gym-add-panel-inner">
+            {/* Name field */}
+            <div className="gym-add-name-wrap">
+              <input
+                ref={nameInputRef}
+                type="text"
+                className="gym-add-name-input"
+                placeholder={t('gym_modal_name_placeholder')}
+                value={addName}
+                onChange={e => { setAddName(e.target.value); setShowSuggestions(true) }}
+                onFocus={() => setShowSuggestions(true)}
+                maxLength={60}
+                disabled={addSaving}
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="gym-suggestions">
+                  {suggestions.map(ex => (
+                    <button
+                      key={ex.id}
+                      type="button"
+                      className="gym-suggestion-btn"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => { setAddName(ex.name); setShowSuggestions(false) }}
+                    >
+                      {ex.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {modalTab === 'pick' && (
-              <div className="gym-modal-list">
-                {exercises.filter(ex => !usedExerciseIds.has(ex.id)).length === 0 ? (
-                  <p className="muted" style={{ textAlign: 'center', padding: '1.5rem 0', fontSize: '0.88rem' }}>
-                    Brak ćwiczeń na liście.<br/>Utwórz nowe →
-                  </p>
-                ) : (
-                  exercises
-                    .filter(ex => !usedExerciseIds.has(ex.id))
-                    .map(ex => (
+            {/* Sets table */}
+            <div className="gym-add-sets-table">
+              <div className="gym-add-sets-header">
+                <span>Seria</span>
+                <span>Ciężar × Powtórzenia</span>
+              </div>
+              {addSets.map((s, i) => (
+                <div key={i} className="gym-add-set-row">
+                  <span className="gym-add-set-num">{i + 1}</span>
+                  <div className="gym-add-set-inputs">
+                    <input
+                      type="number"
+                      className="gym-add-set-input"
+                      placeholder="kg"
+                      value={s.weight}
+                      min="0"
+                      step="0.5"
+                      inputMode="decimal"
+                      onChange={e => setAddSets(prev => prev.map((row, j) => j === i ? { ...row, weight: e.target.value } : row))}
+                      disabled={addSaving}
+                    />
+                    <span className="gym-add-set-x">×</span>
+                    <input
+                      type="number"
+                      className="gym-add-set-input"
+                      placeholder="pow."
+                      value={s.reps}
+                      min="1"
+                      inputMode="numeric"
+                      onChange={e => setAddSets(prev => prev.map((row, j) => j === i ? { ...row, reps: e.target.value } : row))}
+                      disabled={addSaving}
+                    />
+                    {addSets.length > 1 && (
                       <button
-                        key={ex.id}
                         type="button"
-                        className="gym-modal-exercise-btn"
-                        onClick={() => addExerciseToDay(ex.id)}
-                      >
-                        <span className="gym-modal-ex-name">{ex.name}</span>
-                        <span className="gym-modal-ex-cat">{t(CAT_KEYS[ex.category] || 'gym_cat_other')}</span>
-                      </button>
-                    ))
-                )}
-              </div>
-            )}
-
-            {modalTab === 'new' && (
-              <div className="gym-modal-new-form">
-                <label className="gym-modal-label">
-                  {t('gym_modal_name')}
-                  <input
-                    type="text"
-                    className="gym-modal-input"
-                    placeholder={t('gym_modal_name_placeholder')}
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    maxLength={60}
-                    disabled={modalSaving}
-                    autoFocus
-                  />
-                </label>
-                <label className="gym-modal-label">
-                  {t('gym_modal_category')}
-                  <select
-                    className="gym-modal-input"
-                    value={newCat}
-                    onChange={e => setNewCat(e.target.value)}
-                    disabled={modalSaving}
-                  >
-                    {CATEGORIES.map(c => (
-                      <option key={c} value={c}>{t(CAT_KEYS[c])}</option>
-                    ))}
-                  </select>
-                </label>
-                {modalError && <p className="error" style={{ marginTop: 8 }}>{modalError}</p>}
-                <div className="gym-modal-actions">
-                  <button type="button" className="gym-modal-save-btn" onClick={createAndAddExercise} disabled={modalSaving}>
-                    {modalSaving ? t('gym_saving') : t('gym_modal_save')}
-                  </button>
-                  <button type="button" className="gym-modal-cancel-btn" onClick={closeModal} disabled={modalSaving}>
-                    {t('gym_modal_cancel')}
-                  </button>
+                        className="gym-add-set-remove"
+                        onClick={() => setAddSets(prev => prev.filter((_, j) => j !== i))}
+                        disabled={addSaving}
+                      >✕</button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              ))}
+              <button
+                type="button"
+                className="gym-add-more-set-btn"
+                onClick={() => setAddSets(prev => [...prev, { weight: prev[prev.length - 1]?.weight || '', reps: '' }])}
+                disabled={addSaving}
+              >
+                + seria
+              </button>
+            </div>
+
+            {addError && <p className="error" style={{ margin: '0 0 8px', fontSize: '0.82rem' }}>{addError}</p>}
+
+            <div className="gym-add-actions">
+              <button type="button" className="gym-save-btn" onClick={handleSave} disabled={addSaving}>
+                {addSaving ? t('gym_saving') : t('gym_modal_save')}
+              </button>
+              <button type="button" className="gym-cancel-btn" onClick={closeAdd} disabled={addSaving}>
+                {t('gym_modal_cancel')}
+              </button>
+            </div>
           </div>
         </div>
       )}

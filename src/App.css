@@ -3810,352 +3810,375 @@
   cursor: default;
 }
 
+
 /* ===== GYM SECTION ===== */
 .gym-view {
-  padding: 0 0 5rem;
+  padding: 0 0 6rem;
 }
-.gym-date-nav {
+
+/* Weekly chart */
+.gym-week {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 1rem 0 0.5rem;
+}
+.gym-week-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 8px 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.gym-week-day:hover { background: var(--bg-elevated); }
+.gym-week-day.current { background: var(--bg-elevated); }
+.gym-week-day-name {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.gym-week-day.current .gym-week-day-name,
+.gym-week-day.today .gym-week-day-name { color: var(--text-dim); }
+.gym-week-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.gym-week-day.has-activity .gym-week-dot {
+  background: var(--primary);
+  box-shadow: 0 0 6px rgba(var(--primary-rgb), 0.5);
+}
+.gym-week-day.current .gym-week-dot {
+  outline: 2px solid rgba(var(--primary-rgb), 0.35);
+  outline-offset: 2px;
+}
+
+/* Date navigation */
+.gym-date-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 1rem 0 1.25rem;
+  gap: 12px;
+  padding: 0.25rem 0 1rem;
 }
 .gym-date-arrow {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--text);
-  width: 34px;
-  height: 34px;
-  font-size: 1.3rem;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.4rem;
   line-height: 1;
-  display: grid;
-  place-items: center;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
 }
 .gym-date-arrow:hover:not(:disabled) {
-  border-color: rgba(var(--primary-rgb), 0.5);
   color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.1);
 }
-.gym-date-arrow:disabled { opacity: 0.25; cursor: default; }
+.gym-date-arrow:disabled { opacity: 0.2; cursor: default; }
 .gym-date-label {
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: var(--text);
-  min-width: 120px;
+  color: var(--text-dim);
+  min-width: 100px;
   text-align: center;
+  letter-spacing: 0.02em;
 }
+
+/* Sessions */
+.gym-sessions { display: flex; flex-direction: column; gap: 10px; }
+
 .gym-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3rem 0 2rem;
-  gap: 8px;
+  padding: 2.5rem 0 1.5rem;
+  gap: 6px;
 }
-.gym-empty-icon { font-size: 2.5rem; }
-.gym-empty-text {
-  color: var(--text-dim);
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0;
-}
-.gym-empty-hint {
-  color: var(--muted);
-  font-size: 0.8rem;
-  margin: 0;
-}
-.gym-fab {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--bg);
-  border: none;
-  font-size: 1.6rem;
-  line-height: 1;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(var(--primary-rgb), 0.4);
-  z-index: 30;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.gym-fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(var(--primary-rgb), 0.5); }
-.gym-exercise-card {
+.gym-empty-icon { font-size: 2.2rem; }
+.gym-empty-text { color: var(--text-dim); font-size: 0.9rem; margin: 0; }
+
+/* Exercise card */
+.gym-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
+  padding: 14px 16px 12px;
 }
-.gym-exercise-header {
+.gym-card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
   margin-bottom: 10px;
 }
-.gym-exercise-name {
-  display: block;
-  font-size: 1rem;
+.gym-card-name {
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text);
 }
-.gym-exercise-cat {
-  display: inline-block;
-  margin-top: 3px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--primary);
-  background: rgba(var(--primary-rgb), 0.12);
-  border-radius: 6px;
-  padding: 2px 8px;
-  letter-spacing: 0.03em;
-}
-.gym-delete-session-btn {
+.gym-card-delete {
   background: none;
   border: none;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding: 2px 4px;
-  line-height: 1;
-  flex-shrink: 0;
+  padding: 4px 6px;
   transition: color 0.15s;
 }
-.gym-delete-session-btn:hover { color: #ef4444; }
-.gym-sets-list {
+.gym-card-delete:hover { color: #ef4444; }
+
+/* Sets chips */
+.gym-sets-summary {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 10px;
 }
-.gym-set-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: var(--bg-elevated);
-  border-radius: 10px;
-  font-size: 0.88rem;
-}
-.gym-set-num {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  width: 20px;
-  text-align: center;
-  flex-shrink: 0;
-}
-.gym-set-x {
-  color: var(--muted);
-  font-size: 0.8rem;
-  padding: 0 2px;
-}
-.gym-set-value {
-  flex: 1;
-  color: var(--text);
-  font-weight: 600;
-}
-.gym-delete-set-btn {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 2px 4px;
-  transition: color 0.15s;
-}
-.gym-delete-set-btn:hover { color: #ef4444; }
-.gym-add-set-form {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.gym-set-input {
-  width: 72px;
-  padding: 7px 10px;
+.gym-set-chip {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: inherit;
+}
+.gym-set-chip:hover {
+  border-color: #ef4444;
+  background: rgba(239,68,68,0.08);
+  color: #ef4444;
+}
+
+/* Quick add set */
+.gym-quick-set-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.gym-quick-input {
+  width: 66px;
+  padding: 6px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(var(--primary-rgb), 0.4);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.88rem;
   text-align: center;
 }
-.gym-set-input:focus {
-  outline: none;
-  border-color: rgba(var(--primary-rgb), 0.5);
-}
-.gym-save-set-btn {
-  padding: 7px 14px;
+.gym-quick-input:focus { outline: none; border-color: var(--primary); }
+.gym-quick-x { color: var(--muted); font-size: 0.8rem; }
+.gym-quick-save {
   background: var(--primary);
   color: var(--bg);
   border: none;
-  border-radius: 10px;
-  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
 }
-.gym-save-set-btn:disabled { opacity: 0.5; }
-.gym-cancel-set-btn {
+.gym-quick-save:disabled { opacity: 0.5; }
+.gym-quick-cancel {
   background: none;
   border: none;
   color: var(--muted);
   font-size: 0.9rem;
   cursor: pointer;
-  padding: 6px 8px;
+  padding: 4px 6px;
 }
-.gym-set-error {
-  width: 100%;
-  margin: 4px 0 0;
-  font-size: 0.8rem;
-}
-.gym-add-set-btn {
+.gym-add-set-inline {
   background: none;
   border: 1px dashed var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--primary);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 7px 14px;
+  padding: 5px 12px;
   cursor: pointer;
-  width: 100%;
   transition: border-color 0.15s, background 0.15s;
 }
-.gym-add-set-btn:hover {
+.gym-add-set-inline:hover {
   border-color: rgba(var(--primary-rgb), 0.5);
   background: rgba(var(--primary-rgb), 0.06);
 }
+
+/* Add exercise button */
 .gym-add-exercise-btn {
   display: block;
   width: 100%;
   margin-top: 4px;
-  padding: 13px;
-  background: rgba(var(--primary-rgb), 0.1);
-  border: 1px solid rgba(var(--primary-rgb), 0.25);
+  padding: 14px;
+  background: rgba(var(--primary-rgb), 0.08);
+  border: 1px dashed rgba(var(--primary-rgb), 0.3);
   border-radius: 14px;
   color: var(--primary);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
+  letter-spacing: 0.02em;
   transition: background 0.15s, border-color 0.15s;
 }
 .gym-add-exercise-btn:hover {
-  background: rgba(var(--primary-rgb), 0.18);
-  border-color: rgba(var(--primary-rgb), 0.4);
-}
-/* Gym modal */
-.gym-modal {
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 20px;
-}
-.gym-modal-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 14px;
-}
-.gym-modal-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.gym-modal-tabs button {
-  flex: 1;
-  padding: 8px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text-dim);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.gym-modal-tabs button.active {
   background: rgba(var(--primary-rgb), 0.15);
-  border-color: rgba(var(--primary-rgb), 0.4);
-  color: var(--primary);
+  border-color: rgba(var(--primary-rgb), 0.45);
 }
-.gym-modal-list {
+
+/* Add panel */
+.gym-add-panel {
+  margin-top: 4px;
+  background: var(--bg-card);
+  border: 1px solid rgba(var(--primary-rgb), 0.25);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.gym-add-panel-inner {
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 45vh;
-  overflow-y: auto;
+  gap: 14px;
 }
-.gym-modal-exercise-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+.gym-add-name-wrap { position: relative; }
+.gym-add-name-input {
+  width: 100%;
   padding: 12px 14px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 12px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  text-align: left;
-}
-.gym-modal-exercise-btn:hover {
-  border-color: rgba(var(--primary-rgb), 0.4);
-  background: rgba(var(--primary-rgb), 0.07);
-}
-.gym-modal-ex-name {
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 600;
+  box-sizing: border-box;
 }
-.gym-modal-ex-cat {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--primary);
-  background: rgba(var(--primary-rgb), 0.12);
-  border-radius: 6px;
-  padding: 2px 8px;
-  white-space: nowrap;
+.gym-add-name-input:focus {
+  outline: none;
+  border-color: rgba(var(--primary-rgb), 0.5);
 }
-.gym-modal-new-form {
-  display: flex;
-  flex-direction: column;
+.gym-add-name-input::placeholder { color: var(--muted); font-weight: 400; }
+.gym-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.gym-suggestion-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.gym-suggestion-btn:last-child { border-bottom: none; }
+.gym-suggestion-btn:hover { background: rgba(var(--primary-rgb), 0.1); }
+
+/* Sets table */
+.gym-add-sets-table { display: flex; flex-direction: column; gap: 8px; }
+.gym-add-sets-header {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 0 4px;
+}
+.gym-add-set-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
   gap: 12px;
 }
-.gym-modal-label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-dim);
+.gym-add-set-num {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 8px 0;
 }
-.gym-modal-input {
-  padding: 10px 12px;
+.gym-add-set-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.gym-add-set-input {
+  flex: 1;
+  padding: 8px 10px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 10px;
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  text-align: center;
+  min-width: 0;
 }
-.gym-modal-input:focus {
+.gym-add-set-input:focus {
   outline: none;
   border-color: rgba(var(--primary-rgb), 0.5);
 }
-.gym-modal-actions {
+.gym-add-set-x { color: var(--muted); font-size: 0.8rem; flex-shrink: 0; }
+.gym-add-set-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.gym-add-set-remove:hover { color: #ef4444; }
+.gym-add-more-set-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 7px;
+  cursor: pointer;
+  margin-left: 64px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.gym-add-more-set-btn:hover {
+  border-color: rgba(var(--primary-rgb), 0.4);
+  color: var(--primary);
+}
+.gym-add-actions {
   display: flex;
   gap: 10px;
-  margin-top: 4px;
 }
-.gym-modal-save-btn {
+.gym-save-btn {
   flex: 1;
-  padding: 11px;
+  padding: 12px;
   background: var(--primary);
   color: var(--bg);
   border: none;
@@ -4164,13 +4187,13 @@
   font-weight: 700;
   cursor: pointer;
 }
-.gym-modal-save-btn:disabled { opacity: 0.5; }
-.gym-modal-cancel-btn {
-  padding: 11px 16px;
+.gym-save-btn:disabled { opacity: 0.5; }
+.gym-cancel-btn {
+  padding: 12px 18px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--text-dim);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   cursor: pointer;
 }
