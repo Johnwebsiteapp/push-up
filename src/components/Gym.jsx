@@ -216,7 +216,8 @@ export default function Gym({ user }) {
   return (
     <div className="gym-view">
 
-      {/* Weekly activity chart */}
+      {/* Weekly activity chart + date — sticky header */}
+      <div className="gym-sticky-header">
       <div className="gym-week">
         {weekDays.map((d, i) => (
           <button
@@ -232,11 +233,12 @@ export default function Gym({ user }) {
       </div>
 
       {/* Date navigation */}
-      <div className="gym-date-row">
+      <div className="gym-date-row" style={{ paddingBottom: '0.5rem' }}>
         <button type="button" className="gym-date-arrow" onClick={() => setDate(d => addDays(d, -1))}>‹</button>
         <span className="gym-date-label">{formatDateLabel(date, lang)}</span>
         <button type="button" className="gym-date-arrow" onClick={() => setDate(d => addDays(d, 1))} disabled={date >= today}>›</button>
       </div>
+      </div>{/* end gym-sticky-header */}
 
       {loading ? (
         <div className="empty" style={{ padding: '2rem 0' }}>{t('loading')}</div>
@@ -405,7 +407,7 @@ export default function Gym({ user }) {
               <button
                 type="button"
                 className="gym-add-more-set-btn"
-                onClick={() => setAddSets(prev => [...prev, { weight: prev[prev.length - 1]?.weight || '', reps: '' }])}
+                onClick={() => setAddSets(prev => [...prev, { weight: '', reps: '' }])}
                 disabled={addSaving}
               >
                 + seria
