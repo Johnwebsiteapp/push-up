@@ -3973,33 +3973,30 @@
 }
 .gym-card-toggle:hover .gym-card-name-text { color: var(--primary); }
 
-/* Edit / reorder toolbar */
-.gym-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  margin: -2px 2px 2px;
-}
+/* Edit / reorder controls */
 .gym-reorder-hint {
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   color: var(--text-dim);
-  margin-right: auto;
+  text-align: center;
+  margin: 0 0 2px;
 }
-.gym-edit-toggle {
+/* Full-width reorder toggle, matches the add button size */
+.gym-edit-order-btn {
+  width: 100%;
   background: none;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 14px;
   color: var(--muted);
-  font-size: 0.74rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  padding: 4px 12px;
+  padding: 16px;
   font-family: inherit;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
-.gym-edit-toggle:hover { color: var(--text); border-color: var(--text-dim); }
-.gym-edit-toggle.active {
+.gym-edit-order-btn:hover { color: var(--text); border-color: var(--text-dim); }
+.gym-edit-order-btn.active {
   background: var(--primary);
   color: var(--bg);
   border-color: var(--primary);

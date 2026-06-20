@@ -426,17 +426,8 @@ export default function Gym({ user }) {
             </div>
           )}
 
-          {exercises.length > 1 && !addOpen && (
-            <div className="gym-toolbar">
-              {reorderMode && <span className="gym-reorder-hint">{t('gym_reorder_hint')}</span>}
-              <button
-                type="button"
-                className={`gym-edit-toggle${reorderMode ? ' active' : ''}`}
-                onClick={() => { setReorderMode(m => !m); setExpanded(new Set()) }}
-              >
-                {reorderMode ? t('gym_reorder_done') : `✎ ${t('gym_reorder')}`}
-              </button>
-            </div>
+          {reorderMode && (
+            <p className="gym-reorder-hint">{t('gym_reorder_hint')}</p>
           )}
 
           {exercises.map((ex, i) => {
@@ -564,6 +555,21 @@ export default function Gym({ user }) {
           {!addOpen && !reorderMode && (
             <button type="button" className="gym-add-exercise-btn" onClick={openAdd}>
               + Dodaj ćwiczenie
+            </button>
+          )}
+
+          {!addOpen && exercises.length > 1 && (
+            <button
+              type="button"
+              className={`gym-edit-order-btn${reorderMode ? ' active' : ''}`}
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => {
+                setReorderMode(m => !m)
+                setExpanded(new Set())
+                requestAnimationFrame(() => { const vp = document.querySelector('.tabs-viewport'); if (vp) vp.scrollTop = 0 })
+              }}
+            >
+              {reorderMode ? `✓ ${t('gym_reorder_done')}` : `✎ ${t('gym_reorder')} kolejność`}
             </button>
           )}
 
