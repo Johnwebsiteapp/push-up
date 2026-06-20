@@ -1,10 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useLang } from '../LangContext'
 
 function todayISO() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function addDays(iso, n) {
+  const d = new Date(iso + 'T12:00:00')
+  d.setDate(d.getDate() + n)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function formatDateLabel(iso, lang) {
+  const today = todayISO()
+  const yesterday = addDays(today, -1)
+  if (iso === today) return lang === 'pl' ? 'Dziś' : 'Today'
+  if (iso === yesterday) return lang === 'pl' ? 'Wczoraj' : 'Yesterday'
+  const d = new Date(iso + 'T12:00:00')
+  const dayNames = lang === 'pl'
+    ? ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb']
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const months = lang === 'pl'
+    ? ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru']
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  return `${dayNames[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`
 }
 
 const CATEGORIES = ['chest', 'back', 'shoulders', 'legs', 'biceps', 'triceps', 'other']
@@ -19,19 +40,21 @@ const CAT_KEYS = {
 }
 
 export default function Gym({ user }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const [date, setDate] = useState(todayISO)
-  const [exercises, setExercises] = useState([]) // user's exercise library
-  const [sessions, setSessions] = useState([])   // today's sessions with sets
+  const [exercises, setExercises] = useState([])
+  const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [modalTab, setModalTab] = useState('pick') // 'pick' | 'new'
+  const [modalTab, setModalTab] = useState('pick')
   const [newName, setNewName] = useState('')
   const [newCat, setNewCat] = useState('chest')
   const [modalSaving, setModalSaving] = useState(false)
   const [modalError, setModalError] = useState(null)
-  // set being added per session: { [sessionId]: { weight: '', reps: '', saving: false, error: null } }
   const [addingSet, setAddingSet] = useState({})
+
+  const today = todayISO()
+  const isToday = date === today
 
   useEffect(() => {
     let ignore = false
@@ -69,10 +92,7 @@ export default function Gym({ user }) {
     if (!error && data) {
       setSessions(prev => [...prev, { ...data, sets: [] }])
     }
-    setShowModal(false)
-    setModalTab('pick')
-    setNewName('')
-    setNewCat('chest')
+    closeModal()
   }
 
   async function createAndAddExercise() {
@@ -88,6 +108,15 @@ export default function Gym({ user }) {
     setExercises(prev => [...prev, ex].sort((a, b) => a.name.localeCompare(b.name)))
     setModalSaving(false)
     await addExerciseToDay(ex.id)
+  }
+
+  function closeModal() {
+    setShowModal(false)
+    setModalTab('pick')
+    setNewName('')
+    setNewCat('chest')
+    setModalError(null)
+    setModalSaving(false)
   }
 
   function startAddSet(sessionId) {
@@ -149,23 +178,34 @@ export default function Gym({ user }) {
 
   return (
     <div className="gym-view">
-      <div className="gym-header">
-        <h2 className="gym-title">{t('gym_title')}</h2>
-        <input
-          type="date"
-          className="gym-date-input"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          aria-label={t('gym_date_label')}
-        />
+      {/* Date navigation */}
+      <div className="gym-date-nav">
+        <button
+          type="button"
+          className="gym-date-arrow"
+          onClick={() => setDate(d => addDays(d, -1))}
+          aria-label="Poprzedni dzień"
+        >‹</button>
+        <span className="gym-date-label">{formatDateLabel(date, lang)}</span>
+        <button
+          type="button"
+          className="gym-date-arrow"
+          onClick={() => setDate(d => addDays(d, 1))}
+          disabled={isToday}
+          aria-label="Następny dzień"
+        >›</button>
       </div>
 
       {loading ? (
-        <div className="empty" style={{ padding: '2rem 0' }}>{t('loading')}</div>
+        <div className="empty" style={{ padding: '3rem 0' }}>{t('loading')}</div>
       ) : (
         <>
           {sessions.length === 0 && (
-            <p className="gym-empty">{t('gym_no_exercises')}</p>
+            <div className="gym-empty-state">
+              <div className="gym-empty-icon">🏋️</div>
+              <p className="gym-empty-text">{t('gym_no_exercises')}</p>
+              <p className="gym-empty-hint">Dotknij + aby dodać ćwiczenie</p>
+            </div>
           )}
 
           {sessions.map(sess => {
@@ -188,9 +228,9 @@ export default function Gym({ user }) {
                 <div className="gym-sets-list">
                   {sess.sets.map(st => (
                     <div key={st.id} className="gym-set-row">
-                      <span className="gym-set-num">{t('gym_set_label')} {st.set_number}</span>
+                      <span className="gym-set-num">{st.set_number}</span>
                       <span className="gym-set-value">
-                        {st.weight_kg != null ? `${st.weight_kg} kg × ` : ''}{st.reps} pow.
+                        {st.weight_kg != null ? `${st.weight_kg} kg` : '—'}<span className="gym-set-x">×</span>{st.reps} pow.
                       </span>
                       <button
                         type="button"
@@ -207,18 +247,20 @@ export default function Gym({ user }) {
                     <input
                       type="number"
                       className="gym-set-input"
-                      placeholder={t('gym_set_placeholder_weight')}
+                      placeholder="kg"
                       value={form.weight}
                       min="0"
                       step="0.5"
                       inputMode="decimal"
                       onChange={e => setAddingSet(prev => ({ ...prev, [sess.id]: { ...prev[sess.id], weight: e.target.value } }))}
                       disabled={form.saving}
+                      autoFocus
                     />
+                    <span className="gym-set-x">×</span>
                     <input
                       type="number"
                       className="gym-set-input"
-                      placeholder={t('gym_set_placeholder_reps')}
+                      placeholder="pow."
                       value={form.reps}
                       min="1"
                       inputMode="numeric"
@@ -226,28 +268,32 @@ export default function Gym({ user }) {
                       disabled={form.saving}
                     />
                     <button type="button" className="gym-save-set-btn" onClick={() => saveSet(sess.id)} disabled={form.saving}>
-                      {form.saving ? t('gym_saving') : t('gym_save_set')}
+                      {form.saving ? '…' : '✓'}
                     </button>
                     <button type="button" className="gym-cancel-set-btn" onClick={() => cancelAddSet(sess.id)} disabled={form.saving}>✕</button>
                     {form.error && <p className="error gym-set-error">{form.error}</p>}
                   </div>
                 ) : (
                   <button type="button" className="gym-add-set-btn" onClick={() => startAddSet(sess.id)}>
-                    {t('gym_add_set')}
+                    + {t('gym_add_set')}
                   </button>
                 )}
               </div>
             )
           })}
-
-          <button type="button" className="gym-add-exercise-btn" onClick={() => { setShowModal(true); setModalTab('pick'); setModalError(null) }}>
-            {t('gym_add_exercise')}
-          </button>
         </>
       )}
 
+      {/* FAB */}
+      <button
+        type="button"
+        className="gym-fab"
+        onClick={() => { setShowModal(true); setModalTab('pick') }}
+        aria-label={t('gym_add_exercise')}
+      >+</button>
+
       {showModal && (
-        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+        <div className="modal-backdrop" onClick={closeModal}>
           <div className="modal gym-modal" onClick={e => e.stopPropagation()}>
             <h3 className="gym-modal-title">{t('gym_modal_title')}</h3>
 
@@ -267,8 +313,8 @@ export default function Gym({ user }) {
             {modalTab === 'pick' && (
               <div className="gym-modal-list">
                 {exercises.filter(ex => !usedExerciseIds.has(ex.id)).length === 0 ? (
-                  <p className="muted" style={{ textAlign: 'center', padding: '1rem 0' }}>
-                    Brak dostępnych ćwiczeń. Utwórz nowe.
+                  <p className="muted" style={{ textAlign: 'center', padding: '1.5rem 0', fontSize: '0.88rem' }}>
+                    Brak ćwiczeń na liście.<br/>Utwórz nowe →
                   </p>
                 ) : (
                   exercises
@@ -300,6 +346,7 @@ export default function Gym({ user }) {
                     onChange={e => setNewName(e.target.value)}
                     maxLength={60}
                     disabled={modalSaving}
+                    autoFocus
                   />
                 </label>
                 <label className="gym-modal-label">
@@ -320,7 +367,7 @@ export default function Gym({ user }) {
                   <button type="button" className="gym-modal-save-btn" onClick={createAndAddExercise} disabled={modalSaving}>
                     {modalSaving ? t('gym_saving') : t('gym_modal_save')}
                   </button>
-                  <button type="button" className="gym-modal-cancel-btn" onClick={() => setShowModal(false)} disabled={modalSaving}>
+                  <button type="button" className="gym-modal-cancel-btn" onClick={closeModal} disabled={modalSaving}>
                     {t('gym_modal_cancel')}
                   </button>
                 </div>
